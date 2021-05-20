@@ -72,28 +72,43 @@ if test \${no_menu} != yes; then
  fi
  bootmenu \${menutimeout}
 else
+  setenv menu_0_main "Primary volume \${bpart}"
+  setenv menu_1_back "Rollback"
+  setenv menu_0_back "Rollback \${bpart}"
+  setenv menu_1_main "Primary volume"
+  if test \${bdef} = 30; then
+    setenv menu_0 "\${menu_0_main}"
+    setenv menu_1 "\${menu_1_back}"
+  else
+    setenv menu_0 "\${menu_0_back}"
+    setenv menu_1 "\${menu_1_main}"
+  fi
   echo
   echo
   echo "  *** U-Boot Boot Menu ***"
   echo
-  echo "     * Boot Primary volume \${bpart}"
-  echo "     * Boot Rollback"
+  echo "     * Boot \${menu_0}"
+  echo "     * Boot \${menu_1}"
   echo "     * U-Boot console"
   echo
   echo
-  echo "*** Booting Primary volume \${bpart} in 3 seconds, press Ctrl-C to boot next menu"
+  echo "*** Booting \${menu_0} in 3 seconds, press Ctrl-C to boot next menu"
   echo
   echo
   if sleep 3; then
-    setenv bdef 30
+    echo
   else
     echo
     echo
-    echo "*** Booting Rollback in 3 seconds, press Ctrl-C to U-boot console"
+    echo "*** Booting \${menu_1} in 3 seconds, press Ctrl-C to boot next menu"
     echo
     echo
     if sleep 3; then
-      setenv bdef 31
+      if test \${bdef} = 30; then
+        setenv bdef 31
+      else
+        setenv bdef 30
+      fi
       run switchab
     else
       exit
@@ -243,32 +258,47 @@ if test \${no_menu} != yes; then
  fi
  if bootmenu \${menutimeout}; then echo; else setenv go 1; fi
 else
+  setenv menu_0_main "Primary volume \${bpart}"
+  setenv menu_1_back "Rollback"
+  setenv menu_0_back "Rollback \${bpart}"
+  setenv menu_1_main "Primary volume"
+  if test \${bdef} = 30; then
+    setenv menu_0 "\${menu_0_main}"
+    setenv menu_1 "\${menu_1_back}"
+  else
+    setenv menu_0 "\${menu_0_back}"
+    setenv menu_1 "\${menu_1_main}"
+  fi
   echo
   echo
   echo "  *** U-Boot Boot Menu ***"
   echo
-  echo "     * Boot Primary volume \${bpart}"
-  echo "     * Boot Rollback"
+  echo "     * Boot \${menu_0}"
+  echo "     * Boot \${menu_1}"
   if test -n \${URL} && test \${ninst} = 1; then
     echo "     * Re-install from ostree_repo"
   fi
   echo "     * U-Boot console"
   echo
   echo
-  echo "*** Booting Primary volume \${bpart} in 3 seconds, press Ctrl-C to boot next menu"
+  echo "*** Booting \${menu_0} in 3 seconds, press Ctrl-C to boot next menu"
   echo
   echo
   if sleep 3; then
-    setenv bdef 30
     setenv go 1
   else
     echo
     echo
-    echo "*** Booting Rollback in 3 seconds, press Ctrl-C to boot next menu"
+    echo "*** Booting \${menu_1} in 3 seconds, press Ctrl-C to boot next menu"
     echo
     echo
     if sleep 3; then
-      setenv bdef 31
+      if test \${bdef} = 30; then
+        setenv bdef 31
+      else
+        setenv bdef 30
+      fi
+      run switchab
       setenv go 1
     fi
   fi
