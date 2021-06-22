@@ -611,7 +611,17 @@ class GenExtDebImage(GenImage):
             return
 
         logger.info("External Debian Initramfs was not found, create one")
-        cmd = "geninitramfs --debug --pkg-type external-debian"
+
+        # Reuse genimage's package_feeds rather than default setting
+        package_feeds = dict()
+        package_feeds["package_feeds"] = self.data["package_feeds"]
+        scriptFile = NamedTemporaryFile(delete=True, dir=".", suffix=".yaml")
+        with open(scriptFile.name, "w") as f:
+            yaml.dump(package_feeds, f)
+            logger.debug("Temp Package Feed Yaml FIle: %s" % (scriptFile.name))
+
+        cmd = "geninitramfs --debug --pkg-type external-debian %s" % scriptFile.name
+
         if self.args.no_validate:
             cmd += " --no-validate"
         if self.args.no_clean:
@@ -619,7 +629,10 @@ class GenExtDebImage(GenImage):
         res, output = utils.run_cmd(cmd, shell=True)
         if res != 0:
             logger.error(output)
+            scriptFile.file.close()
             sys.exit(1)
+
+        scriptFile.file.close()
 
 
 def _main_run_internal(args):
