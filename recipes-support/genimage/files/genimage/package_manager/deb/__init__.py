@@ -433,9 +433,9 @@ class AptDeb(PackageManager):
 
 class ExternalDebian(object):
     def __init__(self,
-                 bootstrap_tar,
                  bootstrap_mirror,
                  bootstrap_distro,
+                 bootstrap_components,
                  apt_sources,
                  apt_preference,
                  workdir = os.path.join(os.getcwd(),"workdir"),
@@ -446,9 +446,9 @@ class ExternalDebian(object):
         self.target_rootfs = target_rootfs
         self.apt_sources = apt_sources
         self.apt_preference = apt_preference
-        self.bootstrap_tar = bootstrap_tar
         self.bootstrap_mirror = bootstrap_mirror
         self.bootstrap_distro = bootstrap_distro
+        self.bootstrap_components = bootstrap_components
 
         self.temp_dir = os.path.join(workdir, "temp")
         utils.mkdirhier(self.target_rootfs)
@@ -517,22 +517,12 @@ class ExternalDebian(object):
         os.environ['ARCH_TEST'] = "do-not-arch-test"
         os.environ['DEBOOTSTRAP_DIR'] = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'],"usr/share/debootstrap")
 
-        if not os.path.exists(self.bootstrap_tar):
-            with tempfile.TemporaryDirectory(dir=os.path.dirname(self.bootstrap_tar)) as tmpdirname:
-                cmd = "debootstrap --no-check-gpg --arch=amd64 --include=gpg,gpg-agent --make-tarball={0} {1} {2} {3}".format(self.bootstrap_tar,
-                                                                                       self.bootstrap_distro,
-                                                                                       tmpdirname,
-                                                                                       self.bootstrap_mirror)
-                res, output = utils.run_cmd(cmd, shell=True)
-                if res != 0:
-                    logger.error(output)
-                    sys.exit(1)
-
         if os.path.exists(os.path.join(self.target_rootfs, "debootstrap")):
             logger.debug("Rootfs exists, skip debootstrap")
             return
 
-        cmd = "debootstrap --no-check-gpg --arch=amd64 --unpack-tarball={0} {1} {2} {3}".format(self.bootstrap_tar,
+        cmd = "debootstrap --no-check-gpg --arch=amd64 --components={0} {1} {2} {3}".format(
+                                                                            ','.join(self.bootstrap_components),
                                                                              self.bootstrap_distro,
                                                                              self.target_rootfs,
                                                                              self.bootstrap_mirror)

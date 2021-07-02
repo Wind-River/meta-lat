@@ -516,9 +516,8 @@ class GenYoctoImage(GenImage):
 class GenExtDebImage(GenImage):
     def __init__(self, args):
         super(GenExtDebImage, self).__init__(args)
-        self.debian_mirror, self.debian_distro = utils.get_debootstrap_input(self.data['package_feeds'],
+        self.debian_mirror, self.debian_distro, self.debian_components = utils.get_debootstrap_input(self.data['package_feeds'],
                                                                              deb_constant.DEFAULT_DEBIAN_DISTROS)
-        self.bootstrap_tar = os.path.join(self.deploydir, "debian-%s-base.tar" % self.debian_distro)
         self.apt_sources = "\n".join(self.data['package_feeds'])
         self.apt_preference = deb_constant.DEFAULT_APT_PREFERENCE
 
@@ -567,9 +566,9 @@ class GenExtDebImage(GenImage):
         rootfs = ExtDebRootfs(workdir,
                         self.data_dir,
                         self.machine,
-                        self.bootstrap_tar,
                         self.debian_mirror,
                         self.debian_distro,
+                        self.debian_components,
                         self.apt_sources,
                         self.apt_preference,
                         self.packages,
@@ -621,7 +620,6 @@ class GenExtDebImage(GenImage):
             logger.debug("Temp Package Feed Yaml FIle: %s" % (scriptFile.name))
 
         cmd = "geninitramfs --debug --pkg-type external-debian %s" % scriptFile.name
-
         if self.args.no_validate:
             cmd += " --no-validate"
         if self.args.no_clean:

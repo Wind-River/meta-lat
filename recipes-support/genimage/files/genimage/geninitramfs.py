@@ -154,9 +154,8 @@ class GenYoctoInitramfs(GenInitramfs):
 class GenExtDebInitramfs(GenInitramfs):
     def __init__(self, args):
         super(GenExtDebInitramfs, self).__init__(args)
-        self.debian_mirror, self.debian_distro = utils.get_debootstrap_input(self.data['package_feeds'],
+        self.debian_mirror, self.debian_distro, self.debian_components = utils.get_debootstrap_input(self.data['package_feeds'],
                                                                              deb_constant.DEFAULT_DEBIAN_DISTROS)
-        self.bootstrap_tar = os.path.join(self.deploydir, "debian-%s-base.tar" % self.debian_distro)
         self.apt_sources = "\n".join(self.data['package_feeds'])
         self.apt_preference = deb_constant.DEFAULT_APT_PREFERENCE
 
@@ -176,9 +175,9 @@ class GenExtDebInitramfs(GenInitramfs):
         rootfs = ExtDebRootfs(workdir,
                         self.data_dir,
                         self.machine,
-                        self.bootstrap_tar,
                         self.debian_mirror,
                         self.debian_distro,
+                        self.debian_components,
                         self.apt_sources,
                         self.apt_preference,
                         self.packages,

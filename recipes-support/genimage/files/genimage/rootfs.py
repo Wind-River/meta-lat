@@ -215,9 +215,9 @@ class ExtDebRootfs(Rootfs):
                  workdir,
                  data_dir,
                  machine,
-                 bootstrap_tar,
                  bootstrap_mirror,
                  bootstrap_distro,
+                 bootstrap_components,
                  apt_sources,
                  apt_preference,
                  packages,
@@ -243,9 +243,9 @@ class ExtDebRootfs(Rootfs):
         self.rootfs_pre_scripts = []
 
         PackageManager = get_pm_class(pkgtype="external-debian")
-        self.pm = PackageManager(bootstrap_tar,
-                                 bootstrap_mirror,
+        self.pm = PackageManager(bootstrap_mirror,
                                  bootstrap_distro,
+                                 bootstrap_components,
                                  apt_sources,
                                  apt_preference,
                                  self.workdir,

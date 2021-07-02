@@ -433,8 +433,9 @@ def get_debootstrap_input(package_feeds, debian_distros):
             if distro in apt_source:
                 i = apt_source.index(distro)
                 mirror = apt_source[i-1]
-                logger.info("Mirror: %s, Distro %s", mirror, distro)
-                return mirror, distro
+                components = apt_source[i+1:] or ['main']
+                logger.info("Mirror: %s, Distro %s, Components %s", mirror, distro, components)
+                return mirror, distro, components
 
     logger.info("Mirror: %s, Distro %s", mirror, distro)
     return None, None
