@@ -75,6 +75,11 @@ def set_parser_genyaml(parser=None):
         help='Specify ostree remote url, it overrides \'ostree_remote_url\' in Yaml, default is None',
         action='store').completer = complete_url
 
+    parser.add_argument('--output-yaml',
+        default=None,
+        help='Specify file name of the generated Yaml.',
+        action='store').completer = complete_url
+
     return parser
 
 def complete_url(**kwargs):
@@ -95,9 +100,12 @@ class GenYaml():
         self.pkg_type = GenImage._get_pkg_type(args)
         self.generator = genclass[self.gen_type][self.pkg_type](args)
 
-        self.generator.output_yaml = os.path.join(
-             self.generator.outdir, "%s-%s.yaml" % (self.generator.data['name'],
-                                                    self.generator.data['machine']))
+        if args.output_yaml is None:
+            self.generator.output_yaml = os.path.join(
+                 self.generator.outdir, "%s-%s.yaml" % (self.generator.data['name'],
+                                                        self.generator.data['machine']))
+        else:
+            self.generator.output_yaml = args.output_yaml
 
     def _get_gen_type(self, args):
         '''
