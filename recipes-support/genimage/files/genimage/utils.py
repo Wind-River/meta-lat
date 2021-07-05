@@ -420,22 +420,23 @@ def umount(target_rootfs):
 def cleanup(image_workdir, ostree_osname):
     rootfs_ota = os.path.join(image_workdir, "rootfs_ota/ostree/deploy/%s/deploy" % ostree_osname)
     if os.path.exists(rootfs_ota):
-        run_cmd_oneshot("chattr -i %s/*" % rootfs_ota)
+        run_cmd("chattr -i %s/*" % rootfs_ota, shell=True)
 
     run_cmd_oneshot("rm -rf %s/rootfs*" % image_workdir)
 
+deb_pattern = re.compile(r"^deb\s+.*(?P<mirror>http://[^\s]+) (?P<distro>[^\s]+) (?P<comps>.*)")
 def get_debootstrap_input(package_feeds, debian_distros):
     debian_mirror = ""
     debian_distro = ""
     for url in package_feeds:
-        apt_source = url.split()
-        for distro in debian_distros:
-            if distro in apt_source:
-                i = apt_source.index(distro)
-                mirror = apt_source[i-1]
-                components = apt_source[i+1:] or ['main']
-                logger.info("Mirror: %s, Distro %s, Components %s", mirror, distro, components)
-                return mirror, distro, components
+        m = deb_pattern.match(url)
+        if m:
+            mirror = m.group('mirror')
+            distro = m.group('distro')
+            comps = m.group('comps').split()
 
-    logger.info("Mirror: %s, Distro %s", mirror, distro)
-    return None, None
+            logger.info("Mirror: %s, Distro %s, Components %s", mirror, distro, comps)
+            return mirror, distro, comps
+
+    logger.info("No debootstrap input found. package_feeds %s" % package_feeds)
+    return None, None, None

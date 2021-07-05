@@ -521,6 +521,12 @@ class ExternalDebian(object):
             logger.debug("Rootfs exists, skip debootstrap")
             return
 
+        deb_script = os.path.join(os.environ['DEBOOTSTRAP_DIR'], "scripts/%s" % self.bootstrap_distro)
+        if not os.path.exists(deb_script):
+            logger.info("Debootstrap script does not exist, copy from bullseye")
+            src = os.path.join(os.environ['DEBOOTSTRAP_DIR'], "scripts/bullseye")
+            utils.copyfile(src, deb_script)
+
         cmd = "debootstrap --no-check-gpg --arch=amd64 --components={0} {1} {2} {3}".format(
                                                                             ','.join(self.bootstrap_components),
                                                                              self.bootstrap_distro,
