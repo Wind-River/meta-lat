@@ -426,17 +426,18 @@ def cleanup(image_workdir, ostree_osname):
 
 deb_pattern = re.compile(r"^deb\s+.*(?P<mirror>http://[^\s]+) (?P<distro>[^\s]+) (?P<comps>.*)")
 def get_debootstrap_input(package_feeds, debian_distros):
-    debian_mirror = ""
-    debian_distro = ""
+    logger.debug("package_feeds %s" % package_feeds)
+    mirror = distro = comps = None
     for url in package_feeds:
         m = deb_pattern.match(url)
         if m:
             mirror = m.group('mirror')
             distro = m.group('distro')
             comps = m.group('comps').split()
+            if distro in debian_distros:
+                logger.info("Match, Mirror: %s, Distro %s, Components %s", mirror, distro, comps)
+                return mirror, distro, comps
 
-            logger.info("Mirror: %s, Distro %s, Components %s", mirror, distro, comps)
-            return mirror, distro, comps
+    logger.info("Guess, Mirror: %s, Distro %s, Components %s", mirror, distro, comps)
+    return mirror, distro, comps
 
-    logger.info("No debootstrap input found. package_feeds %s" % package_feeds)
-    return None, None, None
