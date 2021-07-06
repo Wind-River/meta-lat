@@ -24,6 +24,8 @@ import datetime
 import argcomplete
 from texttable import Texttable
 import atexit
+from tempfile import NamedTemporaryFile
+import yaml
 
 from genimage.utils import set_logger
 from genimage.utils import show_task_info
