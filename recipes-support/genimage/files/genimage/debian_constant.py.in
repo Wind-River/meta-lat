@@ -168,7 +168,7 @@ DEFAULT_OSTREE_DATA = {
   'OSTREE_GRUB_PW_FILE': '$OECORE_NATIVE_SYSROOT/usr/share/bootfs/boot_keys/ostree_grub_pw',
   'OSTREE_FDISK_BLM': int('${OSTREE_FDISK_BLM}'),
   'OSTREE_FDISK_BSZ': int('512'),
-  'OSTREE_FDISK_RSZ': int('${OSTREE_FDISK_RSZ}'),
+  'OSTREE_FDISK_RSZ': int('8192'),
   'OSTREE_FDISK_VSZ': int('${OSTREE_FDISK_VSZ}'),
   'OSTREE_FDISK_FSZ': int('${OSTREE_FDISK_FSZ}'),
   'OSTREE_CONSOLE': 'console=ttyS0,115200 console=tty1',
