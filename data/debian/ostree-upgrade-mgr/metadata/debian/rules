@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -d $(CURDIR)/debian/ostree-upgrade-mgr/usr/bin
+	install -m 0755 ostree_upgrade.sh $(CURDIR)/debian/ostree-upgrade-mgr/usr/bin/ostree_upgrade.sh
+	install -m 0755 ostree_reset.sh $(CURDIR)/debian/ostree-upgrade-mgr/usr/bin/ostree_reset.sh

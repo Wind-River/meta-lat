@@ -1,0 +1,5 @@
+#!/bin/sh
+# Expected to be called as: depmodwrapper -a KERNEL_VERSION
+set -x
+
+exec env depmod "$1" "$2" "$3" "$4"

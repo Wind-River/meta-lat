@@ -1,0 +1,31 @@
+From a0ff1b51c1746a07bdd59b279eb12b6ea1fef73f Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Thu, 17 Jun 2021 14:09:39 +0800
+Subject: [PATCH] use environment var to replace yocto var
+
+The nativesdk tools should never call bitbake to get yocto var,
+if have to, use environment var to replace
+
+Upstream-Status: Inappropriate [lat specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ scripts/lib/wic/misc.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/lib/wic/misc.py b/scripts/lib/wic/misc.py
+index 1f199b9f23..533b40715b 100644
+--- a/scripts/lib/wic/misc.py
++++ b/scripts/lib/wic/misc.py
+@@ -246,4 +246,7 @@ def get_bitbake_var(var, image=None, cache=True):
+     Provide old get_bitbake_var API by wrapping
+     get_var method of BB_VARS singleton.
+     """
+-    return BB_VARS.get_var(var, image, cache)
++    logger.debug("get_bitbake_var: %s", var)
++    if var not in os.environ:
++        logger.debug("Environment %s is not found", var)
++    return os.environ.get(var, None)
+-- 
+2.27.0
+

@@ -1,0 +1,20 @@
+#!/bin/sh
+ssh_allow_root_login() {
+	for config in sshd_config sshd_config_readonly; do
+		if [ -e ${IMAGE_ROOTFS}/etc/ssh/$config ]; then
+			sed -i 's/^[#[:space:]]*PermitRootLogin.*/PermitRootLogin yes/' ${IMAGE_ROOTFS}/etc/ssh/$config
+		fi
+	done
+
+	if [ -e ${IMAGE_ROOTFS}/usr/sbin/dropbear ] ; then
+		if grep -q DROPBEAR_EXTRA_ARGS ${IMAGE_ROOTFS}/etc/default/dropbear 2>/dev/null ; then
+			sed -i '/^DROPBEAR_EXTRA_ARGS=/ s/-w//' ${IMAGE_ROOTFS}/etc/default/dropbear
+		fi
+	fi
+}
+
+ssh_allow_root_login
+
+# cleanup
+ret=$?
+exit $ret

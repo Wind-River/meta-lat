@@ -1,0 +1,51 @@
+From bbe84a33c81066fee96dd28a4009d8404b51e642 Mon Sep 17 00:00:00 2001
+From: Chaitanya Vadrevu <chaitanya.vadrevu@ni.com>
+Date: Tue, 3 Nov 2020 16:10:32 -0600
+Subject: [PATCH] isoimage-isohybrid.py: Support adding files/dirs
+
+Add "payload_dir" parameter so user can add other files/dirs
+to the ISO.
+
+Upstream-Status: Backport
+
+Signed-off-by: Chaitanya Vadrevu <chaitanya.vadrevu@ni.com>
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+---
+ .../lib/wic/plugins/source/isoimage-isohybrid.py   | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+index 11326a274b..afc9ea0f8f 100644
+--- a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
++++ b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+@@ -216,6 +216,18 @@ class IsoImagePlugin(SourcePlugin):
+             creator.name = source_params['image_name'].strip()
+             logger.debug("The name of the image is: %s", creator.name)
+ 
++    @staticmethod
++    def _install_payload(source_params, iso_dir):
++        """
++        Copies contents of payload directory (as specified in 'payload_dir' param) into iso_dir
++        """
++
++        if source_params.get('payload_dir'):
++            payload_dir = source_params['payload_dir']
++
++            logger.debug("Payload directory: %s", payload_dir)
++            shutil.copytree(payload_dir, iso_dir, symlinks=True, dirs_exist_ok=True)
++
+     @classmethod
+     def do_prepare_partition(cls, part, source_params, creator, cr_workdir,
+                              oe_builddir, bootimg_dir, kernel_dir,
+@@ -228,6 +240,8 @@ class IsoImagePlugin(SourcePlugin):
+ 
+         isodir = "%s/ISO" % cr_workdir
+ 
++        cls._install_payload(source_params, isodir)
++
+         if part.rootfs_dir is None:
+             if not 'ROOTFS_DIR' in rootfs_dir:
+                 raise WicError("Couldn't find --rootfs-dir, exiting.")
+-- 
+2.27.0
+

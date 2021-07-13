@@ -1,0 +1,141 @@
+From 2f3a9badc5fd06f1486f4e31682cf1e57be5a3ef Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Thu, 14 May 2020 17:01:22 +0800
+Subject: [PATCH] get vars from environment
+
+Since wic in sdk does not support bitbake, get IMAGE_ROOTFS/
+DEPLOY_DIR_IMAGE/RECIPE_SYSROOT_NATIVE from
+environment rather than bitbake
+
+Set DEPLOY_DIR_IMAGE to bootimg_dir
+
+Support iso image generation out of Yocto build
+
+Upstream-Status: Inappropriate [LAT specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ scripts/lib/wic/ksparser.py                   |  2 +-
+ scripts/lib/wic/pluginbase.py                 |  2 +-
+ .../wic/plugins/source/isoimage-isohybrid.py  | 20 +++++++++----------
+ scripts/wic                                   |  9 +++++----
+ 4 files changed, 17 insertions(+), 16 deletions(-)
+
+diff --git a/scripts/lib/wic/ksparser.py b/scripts/lib/wic/ksparser.py
+index 650b976223..40c2f110e2 100644
+--- a/scripts/lib/wic/ksparser.py
++++ b/scripts/lib/wic/ksparser.py
+@@ -247,7 +247,7 @@ class KickStart():
+                         if not self.bootloader:
+                             self.bootloader = parsed
+                             # Concatenate the strings set in APPEND
+-                            append_var = get_bitbake_var("APPEND")
++                            append_var = os.environ.get("APPEND", None)
+                             if append_var:
+                                 self.bootloader.append = ' '.join(filter(None, \
+                                                          (self.bootloader.append, append_var)))
+diff --git a/scripts/lib/wic/pluginbase.py b/scripts/lib/wic/pluginbase.py
+index d9b4e57747..1294fcb69f 100644
+--- a/scripts/lib/wic/pluginbase.py
++++ b/scripts/lib/wic/pluginbase.py
+@@ -36,7 +36,7 @@ class PluginMgr:
+         # collect plugin directories
+         if not cls._plugin_dirs:
+             cls._plugin_dirs = [os.path.join(os.path.dirname(__file__), 'plugins')]
+-            layers = get_bitbake_var("BBLAYERS") or ''
++            layers = os.environ.get("BBLAYERS") or ''
+             for layer_path in layers.split():
+                 for script_plugin_dir in SCRIPTS_PLUGIN_DIR:
+                     path = os.path.join(layer_path, script_plugin_dir)
+diff --git a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+index 11326a274b..0c9ac09d35 100644
+--- a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
++++ b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+@@ -70,8 +70,8 @@ class IsoImagePlugin(SourcePlugin):
+         syslinux_conf += "DEFAULT boot\n"
+         syslinux_conf += "LABEL boot\n"
+ 
+-        kernel = get_bitbake_var("KERNEL_IMAGETYPE")
+-        if get_bitbake_var("INITRAMFS_IMAGE_BUNDLE") == "1":
++        kernel = os.environ.get("KERNEL_IMAGETYPE", "bzImage")
++        if os.environ.get("INITRAMFS_IMAGE_BUNDLE", "0") == "1":
+             if get_bitbake_var("INITRAMFS_IMAGE"):
+                 kernel = "%s-%s.bin" % \
+                     (get_bitbake_var("KERNEL_IMAGETYPE"), get_bitbake_var("INITRAMFS_LINK_NAME"))
+@@ -119,8 +119,8 @@ class IsoImagePlugin(SourcePlugin):
+             grubefi_conf += "\n"
+             grubefi_conf += "menuentry 'boot'{\n"
+ 
+-            kernel = get_bitbake_var("KERNEL_IMAGETYPE")
+-            if get_bitbake_var("INITRAMFS_IMAGE_BUNDLE") == "1":
++            kernel = os.environ.get("KERNEL_IMAGETYPE", "bzImage")
++            if os.environ.get("INITRAMFS_IMAGE_BUNDLE", "0") == "1":
+                 if get_bitbake_var("INITRAMFS_IMAGE"):
+                     kernel = "%s-%s.bin" % \
+                         (get_bitbake_var("KERNEL_IMAGETYPE"), get_bitbake_var("INITRAMFS_LINK_NAME"))
+@@ -248,8 +248,8 @@ class IsoImagePlugin(SourcePlugin):
+             raise WicError("Couldn't find IMAGE_ROOTFS, exiting.")
+ 
+         part.rootfs_dir = rootfs_dir
+-        deploy_dir = get_bitbake_var("DEPLOY_DIR_IMAGE")
+-        img_iso_dir = get_bitbake_var("ISODIR")
++        deploy_dir = os.environ.get("DEPLOY_DIR_IMAGE")
++        img_iso_dir = os.environ.get("ISODIR", None)
+ 
+         # Remove the temporary file created by part.prepare_rootfs()
+         if os.path.isfile(part.source_file):
+@@ -277,8 +277,8 @@ class IsoImagePlugin(SourcePlugin):
+         if os.path.isfile("%s/initrd.cpio.gz" % cr_workdir):
+             os.remove("%s/initrd.cpio.gz" % cr_workdir)
+ 
+-        kernel = get_bitbake_var("KERNEL_IMAGETYPE")
+-        if get_bitbake_var("INITRAMFS_IMAGE_BUNDLE") == "1":
++        kernel = os.environ.get("KERNEL_IMAGETYPE", "bzImage")
++        if os.environ.get("INITRAMFS_IMAGE_BUNDLE", "0") == "1":
+             if get_bitbake_var("INITRAMFS_IMAGE"):
+                 kernel = "%s-%s.bin" % \
+                     (get_bitbake_var("KERNEL_IMAGETYPE"), get_bitbake_var("INITRAMFS_LINK_NAME"))
+@@ -298,7 +298,7 @@ class IsoImagePlugin(SourcePlugin):
+             if source_params['loader'] == 'grub-efi':
+                 # Builds bootx64.efi/bootia32.efi if ISODIR didn't exist or
+                 # didn't contains it
+-                target_arch = get_bitbake_var("TARGET_SYS")
++                target_arch = os.environ.get("TARGET_SYS", "x86_64-wrs-linux")
+                 if not target_arch:
+                     raise WicError("Coludn't find target architecture")
+ 
+@@ -366,7 +366,7 @@ class IsoImagePlugin(SourcePlugin):
+             exec_cmd(chmod_cmd)
+ 
+         # Prepare files for legacy boot
+-        syslinux_dir = get_bitbake_var("STAGING_DATADIR")
++        syslinux_dir = os.environ.get("STAGING_DATADIR")
+         if not syslinux_dir:
+             raise WicError("Couldn't find STAGING_DATADIR, exiting.")
+ 
+diff --git a/scripts/wic b/scripts/wic
+index 24700f380f..98fabda73b 100755
+--- a/scripts/wic
++++ b/scripts/wic
+@@ -146,13 +146,14 @@ def wic_create_subcommand(options, usage_str):
+             logger.info("Building rootfs...\n")
+             subprocess.check_call(argv)
+ 
+-        rootfs_dir = get_bitbake_var("IMAGE_ROOTFS", options.image_name)
+-        kernel_dir = get_bitbake_var("DEPLOY_DIR_IMAGE", options.image_name)
+-        bootimg_dir = get_bitbake_var("STAGING_DATADIR", options.image_name)
++        rootfs_dir = os.environ.get("IMAGE_ROOTFS")
++        kernel_dir = os.environ.get("DEPLOY_DIR_IMAGE")
++        bootimg_dir = os.environ.get("DEPLOY_DIR_IMAGE")
+ 
+         native_sysroot = options.native_sysroot
+         if options.vars_dir and not native_sysroot:
+-            native_sysroot = get_bitbake_var("RECIPE_SYSROOT_NATIVE", options.image_name)
++            native_sysroot = os.environ.get("RECIPE_SYSROOT_NATIVE")
++
+     else:
+         if options.build_rootfs:
+             raise WicError("Image name is not specified, exiting. "
+-- 
+2.27.0
+

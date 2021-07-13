@@ -1,0 +1,15 @@
+#!/bin/sh
+# Set hostname based on MAC address or current time
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+image_type:
+- ostree-repo
+- ustart
+packages:
+- sed
+system:
+- run_once:
+  - exampleyamls/sysdef/run_once.d/30_set_hostname.sh

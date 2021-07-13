@@ -1,0 +1,52 @@
+From 0f1a5569fb059a0733600587360abf526bb6890a Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Tue, 8 Jun 2021 17:18:42 +0800
+Subject: [PATCH] add boot menu to bios boot
+
+Then the timeout will work on bios boot
+
+Upstream-Status: Pending
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ .../wic/plugins/source/isoimage-isohybrid.py    | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+index 8f6a94a077..319a05530a 100644
+--- a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
++++ b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+@@ -67,6 +67,11 @@ class IsoImagePlugin(SourcePlugin):
+         syslinux_conf += "\n"
+         if splashline:
+             syslinux_conf += "%s\n" % splashline
++
++        syslinux_conf += "ui vesamenu.c32\n"
++        syslinux_conf += "menu title Select kernel options and boot kernel\n"
++        syslinux_conf += "menu tabmsg Press [Tab] to edit, [Return] to select\n"
++
+         syslinux_conf += "DEFAULT boot\n"
+         syslinux_conf += "LABEL boot\n"
+ 
+@@ -416,6 +421,18 @@ class IsoImagePlugin(SourcePlugin):
+         install_cmd += "%s/isolinux/ldlinux.c32" % isodir
+         exec_cmd(install_cmd)
+ 
++        install_cmd = "install -m 644 %s/syslinux/vesamenu.c32 " % syslinux_dir
++        install_cmd += "%s/isolinux/vesamenu.c32" % isodir
++        exec_cmd(install_cmd)
++
++        install_cmd = "install -m 644 %s/syslinux/libcom32.c32 " % syslinux_dir
++        install_cmd += "%s/isolinux/libcom32.c32" % isodir
++        exec_cmd(install_cmd)
++
++        install_cmd = "install -m 644 %s/syslinux/libutil.c32 " % syslinux_dir
++        install_cmd += "%s/isolinux/libutil.c32" % isodir
++        exec_cmd(install_cmd)
++
+         #create ISO image
+         iso_img = "%s/tempiso_img.iso" % cr_workdir
+         iso_bootimg = "isolinux/isolinux.bin"
+-- 
+2.27.0
+

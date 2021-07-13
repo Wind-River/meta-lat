@@ -1,0 +1,47 @@
+From 2b808186d8709bc6acfd7de186e7ec304765f219 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Fri, 4 Jun 2021 11:20:18 +0800
+Subject: [PATCH 5/6] tweak build option for lat
+
+Upstream-Status: Inappropriate [lat specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ debian/rules | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/debian/rules b/debian/rules
+index ad579279..77a746b2 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -1,5 +1,6 @@
+ #!/usr/bin/make -f
+ 
++export DEB_CFLAGS_MAINT_APPEND = -Werror=implicit-function-declaration -Werror=int-conversion
+ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+ export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+ 
+@@ -16,17 +17,18 @@ configure_options = \
+ 	--enable-installed-tests \
+ 	--libexecdir='$${prefix}/libexec' \
+ 	--with-avahi \
+-	--with-dracut \
++	--without-dracut \
+ 	--with-grub2 \
+ 	--with-grub2-mkconfig-path=/usr/sbin/grub-mkconfig \
+ 	--with-libarchive \
+ 	--with-libsystemd \
+ 	--with-libmount \
+ 	--with-soup \
+-	--with-selinux \
++	--without-selinux \
+ 	--with-systemdsystemgeneratordir=/lib/systemd/system-generators \
+ 	--with-systemdsystemunitdir=/lib/systemd/system \
+ 	--without-smack \
++	--with-builtin-grub2-mkconfig \
+ 	$(NULL)
+ 
+ ifneq ($(filter libostree-doc,$(binaries)),)
+-- 
+2.17.1
+

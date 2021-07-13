@@ -1,0 +1,103 @@
+From 025f283020d2a1240beb8df44faadf5b3581f09d Mon Sep 17 00:00:00 2001
+From: fupan li <fupan.li@windriver.com>
+Date: Mon, 22 Jan 2018 14:18:18 +0800
+Subject: [PATCH 02/12] ostree: secure boot support for no change to grub.cfg
+
+Signed-off-by: fupan li <fupan.li@windriver.com>
+---
+ src/boot/grub2/ostree-grub-generator    | 33 +++++++++++++++++++++++++
+ src/libostree/ostree-bootloader-grub2.c |  3 ++-
+ 2 files changed, 35 insertions(+), 1 deletion(-)
+
+diff --git a/src/boot/grub2/ostree-grub-generator b/src/boot/grub2/ostree-grub-generator
+index ed0694bd..c515ec9b 100644
+--- a/src/boot/grub2/ostree-grub-generator
++++ b/src/boot/grub2/ostree-grub-generator
+@@ -35,12 +35,15 @@ else
+     fi
+ fi
+ 
++sysroot_dir=${3}
++
+ read_config()
+ {
+     config_file=${1}
+     title=""
+     initrd=""
+     options=""
++    ostree=""
+     linux=""
+     devicetree=""
+ 
+@@ -63,6 +66,7 @@ read_config()
+                 ;;
+             "options")
+                 options=${value}
++                ostree=`echo ${value} | sed 's/^.*ostree=\([^ ]*\).*$/\1/'`
+                 ;;
+         esac
+     done < ${config_file}
+@@ -80,6 +84,7 @@ populate_menu()
+     else
+         boot_prefix="${OSTREE_BOOT_PARTITION}"
+     fi
++    count=0
+     for config in $(ls -v -r $entries_path/*.conf); do
+         read_config ${config}
+         menu="${menu}menuentry '${title}' {\n"
+@@ -91,7 +96,35 @@ populate_menu()
+             menu="${menu}\t devicetree ${boot_prefix}${devicetree}\n"
+         fi
+         menu="${menu}}\n\n"
++
++        linux_dir=`dirname ${sysroot_dir}/${boot_prefix}${linux}`
++        linux_parent_dir=`basename ${linux_dir}`
++        if [ -L ${linux_dir}/../${count} ]; then
++	    unlink ${linux_dir}/../${count}
++        fi	
++        ln -sf ${linux_parent_dir} ${linux_dir}/../${count}
++        ostree_boot_dir="${sysroot_dir}/${ostree}/../../../../boot"
++        ostree_dir=`echo ${ostree} | cut -s -f3- -d '/'`
++        if [ ! -d ${ostree_boot_dir} ]; then
++            mkdir ${ostree_boot_dir}
++        fi
++        if [ -L ${ostree_boot_dir}/${count} ]; then
++            unlink ${ostree_boot_dir}/${count}
++        fi
++        ln -sf ../${ostree_dir} ${ostree_boot_dir}/${count}
++        count=`expr $count + 1`        
+     done
++
++    if [ $count -eq 1 ]; then
++        if [ -L ${linux_dir}/../${count} ]; then
++            unlink ${linux_dir}/../${count}
++        fi
++        if [ -L ${ostree_boot_dir}/${count} ]; then
++            unlink ${ostree_boot_dir}/${count}
++        fi
++        ln -sf ${linux_parent_dir} ${linux_dir}/../${count}
++        ln -sf ../${ostree_dir} ${ostree_boot_dir}/${count}
++    fi
+     # The printf command seems to be more reliable across shells for special character (\n, \t) evaluation
+     printf "$menu" >> ${new_grub2_cfg}
+ }
+diff --git a/src/libostree/ostree-bootloader-grub2.c b/src/libostree/ostree-bootloader-grub2.c
+index 57673c7d..b126bd99 100644
+--- a/src/libostree/ostree-bootloader-grub2.c
++++ b/src/libostree/ostree-bootloader-grub2.c
+@@ -396,10 +396,11 @@ _ostree_bootloader_grub2_write_config (OstreeBootloader      *bootloader,
+                                                       bootversion);
+     }
+ 
+-  const char *grub_argv[4] = { NULL, "-o", NULL, NULL};
++  const char *grub_argv[5] = { NULL, "-o", NULL, NULL, NULL};
+   Grub2ChildSetupData cdata = { NULL, };
+   grub_argv[0] = grub_exec;
+   grub_argv[2] = gs_file_get_path_cached (new_config_path);
++  grub_argv[3] = g_file_get_path (self->sysroot->path);
+ 
+   GSpawnFlags grub_spawnflags = G_SPAWN_SEARCH_PATH;
+   if (!g_getenv ("OSTREE_DEBUG_GRUB2"))
+-- 
+2.17.1
+

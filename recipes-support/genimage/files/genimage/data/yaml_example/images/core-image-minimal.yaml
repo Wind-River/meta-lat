@@ -1,0 +1,17 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+name: core-image-minimal
+packages:
+- ca-certificates
+- glib-networking
+- os-release
+- ostree
+- ostree-upgrade-mgr
+- packagegroup-core-base-utils
+- packagegroup-core-boot
+- run-postinsts
+- systemd
+include-default-packages: '0'

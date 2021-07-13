@@ -1,0 +1,43 @@
+From 1038e7d6097f46f69e01fb72f8fedec512df595f Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Fri, 9 Apr 2021 07:28:35 +0000
+Subject: [PATCH] customize watchdog for ostree
+
+Add script clearbootflag_x86_64.sh to watchdog
+
+Upstream-Status: Inappropriate [lat specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ debian/rules            | 2 ++
+ debian/watchdog.service | 1 +
+ 2 files changed, 3 insertions(+)
+
+diff --git a/debian/rules b/debian/rules
+index 73d6c8b..1a897a4 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -38,6 +38,8 @@ binary-arch:	checkroot build
+ 	$(checkdir)
+ 	dh_prep
+ 	dh_installdirs
++	install -d debian/watchdog/usr/sbin/
++	install -m 0755 clearbootflag_x86_64.sh debian/watchdog/usr/sbin/clearbootflag.sh
+ 	dh_installdocs README* watchdog.lsm IAFA-PACKAGE  \
+ 		       include/watch_err.h
+ 	dh_installexamples examples/*
+diff --git a/debian/watchdog.service b/debian/watchdog.service
+index 7a2fc36..717d662 100644
+--- a/debian/watchdog.service
++++ b/debian/watchdog.service
+@@ -9,6 +9,7 @@ Type=forking
+ EnvironmentFile=/etc/default/watchdog
+ ExecStartPre=/bin/sh -c '[ -z "${watchdog_module}" ] || [ "${watchdog_module}" = "none" ] || /sbin/modprobe $watchdog_module'
+ ExecStart=/bin/sh -c '[ $run_watchdog != 1 ] || exec /usr/sbin/watchdog $watchdog_options'
++ExecStartPost=-/usr/sbin/clearbootflag.sh
+ ExecStopPost=/bin/sh -c '[ $run_wd_keepalive != 1 ] || false'
+ 
+ [Install]
+-- 
+2.17.1
+

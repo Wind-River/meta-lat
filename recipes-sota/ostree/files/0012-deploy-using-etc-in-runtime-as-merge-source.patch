@@ -1,0 +1,50 @@
+From 6dec1c473b8e2c0e5258eba96ddd908d0e9320a8 Mon Sep 17 00:00:00 2001
+From: Jiang Lu <lu.jiang@windriver.com>
+Date: Thu, 28 Jun 2018 16:29:45 +0800
+Subject: [PATCH 12/12] deploy:using /etc in runtime as merge source
+
+When deploy new ostree image, using /etc in runtime image as source for merge
+operation, instead of /etc in previouse image.
+
+For when upgrading a repo, user expected configuration in running system come
+into new ostree image.
+
+Signed-off-by: Jiang Lu <lu.jiang@windriver.com>
+---
+ src/libostree/ostree-sysroot-deploy.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
+
+--- a/src/libostree/ostree-sysroot-deploy.c
++++ b/src/libostree/ostree-sysroot-deploy.c
+@@ -440,7 +440,12 @@ merge_configuration_from (OstreeSysroot
+ 
+   /* TODO: get rid of GFile usage here */
+   g_autoptr(GFile) orig_etc = ot_fdrel_to_gfile (merge_deployment_dfd, "usr/etc");
+-  g_autoptr(GFile) modified_etc = ot_fdrel_to_gfile (merge_deployment_dfd, "etc");
++  char *etc_merge_dir = getenv("OSTREE_ETC_MERGE_DIR");
++  g_autoptr(GFile) modified_etc;
++  if (etc_merge_dir)
++    modified_etc = g_file_new_for_path(etc_merge_dir);
++  else
++    modified_etc = ot_fdrel_to_gfile (merge_deployment_dfd, "etc");
+   /* Return values for below */
+   g_autoptr(GPtrArray) modified = g_ptr_array_new_with_free_func ((GDestroyNotify) ostree_diff_item_unref);
+   g_autoptr(GPtrArray) removed = g_ptr_array_new_with_free_func ((GDestroyNotify) g_object_unref);
+@@ -476,8 +481,15 @@ merge_configuration_from (OstreeSysroot
+   if (!glnx_opendirat (merge_deployment_dfd, "usr/etc", TRUE, &orig_etc_fd, error))
+     return FALSE;
+   glnx_autofd int modified_etc_fd = -1;
+-  if (!glnx_opendirat (merge_deployment_dfd, "etc", TRUE, &modified_etc_fd, error))
+-    return FALSE;
++  if (etc_merge_dir)
++    {
++      if (!glnx_opendirat (-1, etc_merge_dir, TRUE, &modified_etc_fd, error))
++        return FALSE;
++    }
++  else
++    if (!glnx_opendirat (merge_deployment_dfd, "etc", TRUE, &modified_etc_fd, error))
++      return FALSE;
++
+   glnx_autofd int new_etc_fd = -1;
+   if (!glnx_opendirat (new_deployment_dfd, "etc", TRUE, &new_etc_fd, error))
+     return FALSE;

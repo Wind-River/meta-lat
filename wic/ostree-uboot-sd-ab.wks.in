@@ -1,0 +1,11 @@
+bootloader --ptable msdos
+${OSTREE_SD_UBOOT_WIC1}
+${OSTREE_SD_UBOOT_WIC2}
+${OSTREE_SD_UBOOT_WIC3}
+${OSTREE_SD_UBOOT_WIC4}
+part / --source rootfs --rootfs-dir=${WORKDIR}/rootfs_ota_uboot --ondisk mmcblk --fstype=vfat --label boot --active --align ${OSTREE_SD_BOOT_ALIGN} ${OSTREE_WKS_EFI_SIZE}
+part / --source rootfs --rootfs-dir=${WORKDIR}/rootfs_ota_boot --ondisk mmcblk --fstype=ext4 --label otaboot --align 4 --type logical ${OSTREE_WKS_BOOT_SIZE}
+part / --source rootfs --rootfs-dir=${WORKDIR}/rootfs_ota --ondisk mmcblk --fstype=ext4 --label otaroot --align 4 --type logical @OSTREE_WKS_ROOT_SIZE@
+part / --source rootfs --rootfs-dir=${WORKDIR}/rootfs_ota_boot --ondisk mmcblk --fstype=ext4 --label otaboot_b --align 4 --type logical ${OSTREE_WKS_BOOT_SIZE}
+part / --source rootfs --rootfs-dir=${WORKDIR}/rootfs_ota --ondisk mmcblk --fstype=ext4 --label otaroot_b --align 4 --type logical @OSTREE_WKS_ROOT_SIZE@
+part / --source rootfs --rootfs-dir=${WORKDIR}/rootfs_ota_var --ondisk mmcblk --fstype=ext4 --label fluxdata --align 4 @OSTREE_WKS_FLUX_SIZE@

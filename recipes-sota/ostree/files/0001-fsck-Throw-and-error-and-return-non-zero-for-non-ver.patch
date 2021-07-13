@@ -1,0 +1,35 @@
+From 5acafcb2ac5f14028ffc24e7e63a1785e5deb2f0 Mon Sep 17 00:00:00 2001
+From: Jason Wessel <jason.wessel@windriver.com>
+Date: Wed, 26 Jun 2019 13:58:50 -0700
+Subject: [PATCH] fsck: Throw and error and return non-zero for non-verified
+ commits
+
+After the corruption has been fixed with "ostree fsck -a --delete", a
+second run of the "ostree fsck" command will print X partial commits
+not verified and exit with a zero.
+
+The zero exit code makes it hard to detect if a repair operation needs
+to be run, it is easier to check an exit code than try to parse the
+text that is emitted from the ostree fsck.
+
+Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
+---
+ src/ostree/ot-builtin-fsck.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/ostree/ot-builtin-fsck.c b/src/ostree/ot-builtin-fsck.c
+index a7ecd3d0..032e73cb 100644
+--- a/src/ostree/ot-builtin-fsck.c
++++ b/src/ostree/ot-builtin-fsck.c
+@@ -444,7 +444,7 @@ ostree_builtin_fsck (int argc, char **argv, OstreeCommandInvocation *invocation,
+     }
+   else if (n_partial > 0)
+     {
+-      g_print ("%u partial commits not verified\n", n_partial);
++      return glnx_throw (error, "%u partial commits not verified", n_partial);
+     }
+ 
+   if (found_corruption)
+-- 
+2.21.0
+

@@ -1,0 +1,27 @@
+From f7bd30849080ec6bae7f2ad5d50554aa9d9582d5 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Thu, 10 Jun 2021 11:28:32 +0000
+Subject: [PATCH] set ostree osname for lat
+
+Upstream-Status: Inappropriate [lat specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ debian/rules | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/debian/rules b/debian/rules
+index 77a746b2..995cbc60 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -10,6 +10,7 @@ binaries := $(shell dh_listpackages)
+ 	dh $@ --with=gir
+ 
+ override_dh_autoreconf:
++	sed -i -e "s#@OSTREE_OSNAME@#${OSTREE_OSNAME}#g" ./src/libostree/ostree-impl-system-generator.c
+ 	env NOCONFIGURE=1 dh_autoreconf ./autogen.sh
+ 
+ configure_options = \
+-- 
+2.30.2
+

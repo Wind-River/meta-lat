@@ -1,0 +1,104 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+schema;name_str:
+  type: str
+  nullable: False
+  desc: Image name
+  example: core-image-minial
+
+schema;package_str:
+  type: str
+  nullable: False
+  desc: Package Manager Type
+  example: rpm
+
+schema;machine_str:
+  type: str
+  enum: ['intel-x86-64', 'bcm-2xxx-rpi4']
+  nullable: False
+
+schema;package_feeds_seq:
+  type: seq
+  sequence:
+    - type: str
+      unique: True
+      nullable: False
+  nullable: False
+  desc: The urls of rpm package feeds
+
+schema;remote_pkgdatadir_str:
+  type: str
+  nullable: False
+
+schema;features_map:
+  type: map
+  mapping:
+    image_linguas:
+      type: str
+    pkg_globs:
+      type: str
+
+schema;packages_seq:
+  type: seq
+  sequence:
+    - type: str
+
+schema;external-packages_seq:
+  type: seq
+  sequence:
+    - type: str
+      unique: True
+
+schema;include-default-packages_str:
+  type: str
+  enum: ['0', '1']
+  nullable: False
+  desc: 1 = install default packages to image; 0 = the packages section in Yaml overrides default packages.
+
+schema;rootfs-pre-scripts_seq:
+  type: seq
+  sequence:
+    - type: str
+
+schema;rootfs-post-scripts_seq:
+  type: seq
+  sequence:
+    - type: str
+
+schema;environments_seq:
+  type: seq
+  sequence:
+    - type: str
+      pattern: .+=.+
+
+schema;gpg_map:
+  type: map
+  mapping:
+    gpg_path:
+      type: str
+      range:
+        min: 1
+        max: 80
+      desc: The length of gpg path must be less than 80 chars
+      example: /tmp/.lat_gnupg
+    grub:
+      type: map
+      mapping:
+        BOOT_GPG_NAME:
+          type: str
+        BOOT_GPG_PASSPHRASE:
+          type: str
+        BOOT_KEYS_DIR:
+          type: str
+    ostree:
+      type: map
+      mapping:
+        gpg_password:
+          type: str
+        gpgid:
+          type: str
+        gpgkey:
+          type: str

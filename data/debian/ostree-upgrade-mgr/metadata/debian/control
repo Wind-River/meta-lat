@@ -1,0 +1,19 @@
+Source: ostree-upgrade-mgr
+Section: admin
+Priority: optional
+Maintainer: root <root@3b917021b2df>
+Standards-Version: 4.5.1
+Homepage: https://github.com/WindRiver-Labs/wr-ostree
+Rules-Requires-Root: no
+
+Package: ostree-upgrade-mgr
+Architecture: all
+Priority: standard
+Depends:
+ util-linux,
+ watchdog,
+ ${misc:Depends}
+Description: wrlinux ostree upgrade config manager
+ Example of how to run some postinstall and postrm
+ operations to complete a wrlinux upgrade with ostree
+ 

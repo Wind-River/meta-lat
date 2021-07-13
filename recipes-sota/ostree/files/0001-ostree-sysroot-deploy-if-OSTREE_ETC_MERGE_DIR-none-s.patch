@@ -1,0 +1,37 @@
+From c6a4ef6390c27c4e22eed950c297c2159ce46a9d Mon Sep 17 00:00:00 2001
+From: Jason Wessel <jason.wessel@windriver.com>
+Date: Fri, 22 Nov 2019 07:07:51 -0800
+Subject: [PATCH] ostree-sysroot-deploy: if OSTREE_ETC_MERGE_DIR = "none" skip
+ merge
+
+Upstream-Status: Inappropriate [ specific to ostree_upgrade.sh functions ]
+
+Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
+---
+ src/libostree/ostree-sysroot-deploy.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/libostree/ostree-sysroot-deploy.c b/src/libostree/ostree-sysroot-deploy.c
+index 63ffa689..15a2dee0 100644
+--- a/src/libostree/ostree-sysroot-deploy.c
++++ b/src/libostree/ostree-sysroot-deploy.c
+@@ -442,10 +442,14 @@ merge_configuration_from (OstreeSysroot    *sysroot,
+   g_autoptr(GFile) orig_etc = ot_fdrel_to_gfile (merge_deployment_dfd, "usr/etc");
+   char *etc_merge_dir = getenv("OSTREE_ETC_MERGE_DIR");
+   g_autoptr(GFile) modified_etc;
+-  if (etc_merge_dir)
++  if (etc_merge_dir) {
++    /* if OSTREE_ETC_MERGE_DIR = "none" skip merge */
++    if (!strcmp(etc_merge_dir, "none"))
++      return TRUE;
+     modified_etc = g_file_new_for_path(etc_merge_dir);
+-  else
++  } else {
+     modified_etc = ot_fdrel_to_gfile (merge_deployment_dfd, "etc");
++  }
+   /* Return values for below */
+   g_autoptr(GPtrArray) modified = g_ptr_array_new_with_free_func ((GDestroyNotify) ostree_diff_item_unref);
+   g_autoptr(GPtrArray) removed = g_ptr_array_new_with_free_func ((GDestroyNotify) g_object_unref);
+-- 
+2.23.0
+

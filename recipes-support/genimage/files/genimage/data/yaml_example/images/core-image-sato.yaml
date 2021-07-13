@@ -1,0 +1,38 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+name: core-image-sato
+packages:
+- ca-certificates
+- dbus
+- dbus-x11
+- dnf
+- glib-networking
+- liberation-fonts
+- matchbox-terminal
+- matchbox-wm
+- mini-x-session
+- os-release
+- ostree
+- ostree-upgrade-mgr
+- packagegroup-base-extended
+- packagegroup-core-base-utils
+- packagegroup-core-boot
+- packagegroup-core-ssh-dropbear
+- packagegroup-core-x11-sato
+- packagegroup-core-x11-xserver
+- psplash
+- rpm
+- run-postinsts
+- systemd
+- xauth
+- xdpyinfo
+- xhost
+- xinput-calibrator
+- xmodmap
+- xrandr
+- xserver-nodm-init
+- xset
+include-default-packages: '0'

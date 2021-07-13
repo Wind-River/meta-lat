@@ -1,0 +1,20 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+name: container-base
+packages:
+- base-files
+- base-passwd
+- ca-certificates
+- dnf
+- openssh
+- os-release
+- packagegroup-core-base-utils
+- rpm
+- run-postinsts
+- update-alternatives-opkg
+include-default-packages: '0'
+environments:
+- NO_RECOMMENDATIONS="1"

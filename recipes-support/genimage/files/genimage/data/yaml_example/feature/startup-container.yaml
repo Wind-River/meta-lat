@@ -1,0 +1,20 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+packages:
+- startup-container
+- docker
+rootfs-post-scripts:
+- echo "container-base load=/var/docker-images/container-base-intel-x86-64.docker-image.tar.bz2 image=container-base-intel-x86-64"  >> $IMAGE_ROOTFS/etc/sysdef/run_on_upgrade.d/containers.dat
+system:
+- run_on_upgrade:
+  - exampleyamls/sysdef/run_on_upgrade.d/10_update_containers.sh
+- run_always:
+  - exampleyamls/sysdef/run_always.d/10_start_containers.sh
+- files:
+  - file:
+      src: deploy/container-base-intel-x86-64.docker-image.tar.bz2
+      dst: /var/docker-images/
+      mode: 644

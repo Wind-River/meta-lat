@@ -1,0 +1,44 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+type: map
+mapping:
+  name:
+    include: name_str
+  machine:
+    include: machine_str
+  image_type:
+    include: image_type_seq
+  package_type:
+    include: package_str
+  package_feeds:
+    include: package_feeds_seq
+  remote_pkgdatadir:
+    include: remote_pkgdatadir_str
+  features:
+    include: features_map
+  packages:
+    include: packages_seq
+  external-packages:
+    include: external-packages_seq
+  include-default-packages:
+    include: include-default-packages_str
+  rootfs-pre-scripts:
+    include: rootfs-pre-scripts_seq
+  rootfs-post-scripts:
+    include: rootfs-post-scripts_seq
+  environments:
+    include: environments_seq
+  gpg:
+    include: gpg_map
+
+schema;image_type_seq:
+  type: seq
+  sequence:
+    - type: str
+      enum: ['initramfs']
+      nullable: False
+  nullable: False
+  example: initramfs

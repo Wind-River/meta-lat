@@ -1,0 +1,28 @@
+From f090b7d753eb830ba9f4cab7040756ca282d8436 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Tue, 23 Mar 2021 15:55:01 +0000
+Subject: [PATCH 4/6] disable runtime test
+
+Upstream-Status: Inappropriate [lat specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ debian/rules | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/debian/rules b/debian/rules
+index 1c76a8ce..ad579279 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -47,7 +47,7 @@ override_dh_auto_configure:
+ override_dh_auto_test-arch:
+ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+ 	chmod +x tests/test-pull-bareuseronly.sh
+-	debian/test.sh
++	#debian/test.sh
+ endif
+ 
+ override_dh_auto_test-indep:
+-- 
+2.17.1
+

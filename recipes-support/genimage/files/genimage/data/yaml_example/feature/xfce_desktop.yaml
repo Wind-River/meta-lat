@@ -1,0 +1,15 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+image_type:
+- ostree-repo
+- ustart
+packages:
+- lxdm
+- packagegroup-xfce-base
+- packagegroup-xfce-extended
+- gsettings-desktop-schemas
+- packagegroup-core-x11-base
+- packagegroup-core-x11-xserver

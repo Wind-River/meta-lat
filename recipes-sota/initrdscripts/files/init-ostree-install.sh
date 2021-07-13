@@ -1,0 +1,1365 @@
+#!/bin/sh
+#
+# Copyright (c) 2019 Wind River Systems, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+# This is a reference implementation for initramfs install
+# The kernel arguments to use an install are as follows:
+#
+
+helptxt() {
+	cat <<EOF
+Usage: This script is intended to run from the initramfs and use the ostree
+binaries in the initramfs to install a file system onto a disk device.
+
+The arguments to this script are passed through the kernel boot arguments.
+
+REQUIRED:
+ rdinit=/install		- Activates the installer
+ instdev=/dev/YOUR_DEVCICE	- One or more devices separated by a comma
+	  where the first valid device found is used as the install device,
+          OR use "ask" to ask for device, OR use LABEL=x, PUUID=x, UUID=x
+ instname=OSTREE_REMOTE_NAME	- Remote name like @OSTREE_OSNAME@
+ instbr=OSTREE_BRANCH_NAME	- Branch for OSTree to use
+ insturl=OSTREE_URL		- URL to OSTree repository
+
+OPTIONAL:
+ bl=booloader			- grub, ufsd(u-boot fdisk sd)
+ instw=#			- Number of seconds to wait before erasing disk
+ instab=0			- Do not use the AB layout, only use A
+ instnet=0			- Do not invoke udhcpc or dhcpcd
+   If the above is 0, use the kernel arg:
+    ip=<client-ip>::<gw-ip>:<netmask>:<hostname>:<device>:off:<dns0-ip>:<dns1-ip>
+   Example:
+    ip=10.0.2.15::10.0.2.1:255.255.255.0:tgt:eth0:off:10.0.2.3:8.8.8.8
+ LUKS=0				- Do not create encrypted volumes
+ LUKS=1				- Encrypt var volume (requires TPM)
+ LUKS=2				- Encrypt var and and root volumes (requires TPM)
+ instflux=0			- Do not create/use the fluxdata partition for /var
+	  VSZ will be used for the size of the / partition if instab=0
+ instl=DIR			- Local override ostree repo to install from
+ instsh=1			- Start a debug shell
+ instsh=2			- Use verbose logging
+ instsh=3			- Use verbose logging and start shell
+ instsh=4			- Display the help text and start a shell
+ instpost=halt			- Halt at the end of install vs reboot
+ instpost=exit			- exit at the end of install vs reboot
+ instpost=shell		- shell at the end of install vs reboot
+ instos=OSTREE_OS_NAME		- Use alternate OS name vs @OSTREE_OSNAME@
+ instsbd=1			- Turn on the skip-boot-diff configuration
+ instsf=1			- Skip fat partition format
+ instfmt=1			- Set to 0 to skip partition formatting
+ instpt=1			- Set to 0 to skip disk partitioning
+ instgpg=0			- Turn off OSTree GnuPG signing checks
+ instdate=datespec	        - Argument to "date -u -s" like @1577836800
+ dhcpargs=DHCP_ARGS		- Args to "udhcpc -i" or "dhcpcd" like wlan0
+				  ask = Ask which interface to use
+ wifi=ssid=YOUR_SSID;psk=your_key - Setup via wpa_cli for authentication
+ wifi=ssid=YOUR_SSID;psk=ask    - Ask for password at run time
+ wifi=scan                      - Dynamically Construct wifi wpa_supplicant
+ ecurl=URL_TO_SCRIPT		- Download+execute script before disk prep
+ ecurlarg=ARGS_TO_ECURL_SCRIPT	- Arguments to pass to ecurl script
+ lcurl=URL_TO_SCRIPT		- Download+execute script after install
+ lcurlarg=ARGS_TO_ECURL_SCRIPT	- Arugments to pass to lcurl script
+ Disk sizing
+ biosplusefi=1	 		- Create one GPT disk to support booting from both of BIOS and EFI
+ BLM=#				- Blocks of boot magic area to skip
+				  ARM BSPs with SD cards usually need this
+ FSZ=#				- MB size of fat partition
+ BSZ=#				- MB size of boot partition
+ RSZ=#				- MB size of root partition
+ VSZ=#				- MB size of var partition (0 for auto expand)
+
+EOF
+}
+
+log_info() { echo "$0[$$]: $*" >&2; }
+log_error() { echo "$0[$$]: ERROR $*" >&2; }
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/lib/ostree:/usr/lib64/ostree
+
+lreboot() {
+	echo b > /proc/sysrq-trigger
+	while [ 1 ] ; do
+		sleep 60
+	done
+}
+
+conflict_label() {
+	local op=$1
+	local 'label' 'd' 'devs' 'conflict' 'i' 'fstype'
+	conflict=1
+	for label in otaefi otaboot otaboot_b otaroot otaroot_b fluxdata; do
+		devs=$(blkid -t LABEL=$label -o device |grep -v $INSTDEV)
+		if [ "$devs" != "" ] ; then
+			i=0
+			for d in $devs; do
+				i=$(($i+1))
+				if [ "$op" = "print" ] ; then
+					echo Change $label to ${label}_${i} on $d
+				else
+					echo Changing $label to ${label}_${i} on $d
+					fstype=$(lsblk $d -n -o FSTYPE)
+					if [ "$fstype" = vfat ] ; then
+						dosfslabel $d ${label}_${i}
+					elif [ "$fstype" != ${fstype#ext} ] ; then
+						e2label $d ${label}_${i}
+					else
+						fatal "Could not handle FSTYPE $fstype"
+					fi
+				fi
+			done
+			conflict=0
+		fi
+	done
+	return $conflict
+}
+
+ask_fix_label() {
+	local reply
+	while [ 1 ] ; do
+		conflict_label print
+		if [ $? -eq 0 ];then
+			echo "Partition labels above need to altered for proper install."
+			echo "B - Reboot"
+			IFS='' read -p "FIX: (y/n/B)" -r reply
+			[ "$reply" = "B" ] && echo b > /proc/sysrq-trigger;
+			if [ "$reply" = "y" ] ; then
+				conflict_label fix
+			elif [ "$reply" = "n" ] ; then
+				break
+			fi
+		else
+			break
+		fi
+	done
+}
+
+# The valid dev should be not ISO disk
+check_valid_dev() {
+	local heading
+	instdev=$1
+	blkid -t TYPE=iso9660 -o device $instdev
+	if [ $? -eq 0 ];then
+		echo "$instdev is ISO disk"
+		return 1
+	fi
+	return 0
+}
+
+ask_dev() {
+	local 'heading' 'inp' 'i' 'reply' 'reply2' 'out' 'choices'
+	fix_part_labels=0
+	heading="    `lsblk -o NAME,VENDOR,SIZE,MODEL,TYPE |head -n 1`"
+	while [ 1 ] ; do
+		choices=()
+		while IFS="" read -r inp; do
+			choices+=("$inp")
+		done<<< $(lsblk -n -o NAME,VENDOR,SIZE,MODEL,TYPE |grep disk)
+		echo "$heading"
+		for i in ${!choices[@]}; do
+			[ "${choices[$i]}" = "" ] && continue
+			echo "$i - ${choices[$i]}"
+		done
+		echo "B - Reboot"
+		out=0
+		IFS='' read -p "Select disk to format and install: " -r reply
+		[ "$reply" = "B" ] && echo b > /proc/sysrq-trigger;
+		[ "$reply" -ge 0 -a "$reply" -lt ${#choices[@]} ] 2> /dev/null && out=1
+		if [ $out = 1 ] ; then
+			i=$(echo ${choices[$reply]}|awk '{print $1}')
+			IFS='' read -p "ERASE /dev/$i (y/n) " -r reply2
+			if [ "$reply2" = "y" ] ; then
+				INSTDEV=/dev/$i
+				break
+			fi
+		fi
+	done
+	ask_fix_label
+}
+
+ask() {
+	local 'char' 'charcount' 'prompt' 'reply'
+	prompt="$1"
+	charcount='0'
+	reply=''
+	while IFS='' read -n '1' -p "${prompt}" -r -s 'char'; do
+            case "${char}" in
+		# Handles NULL
+		( $'\000' )
+		break
+		;;
+		# Handle Control-U
+		($'\025' )
+		    prompt=''
+		    while [ $charcount -gt 0 ] ; do
+			prompt=$prompt$'\b \b'
+			(( charcount-- ))
+		    done
+		    charcount=0
+		    reply=''
+		    ;;
+		# Handles BACKSPACE and DELETE
+		( $'\010' | $'\177' )
+		if (( charcount > 0 )); then
+		    prompt=$'\b \b'
+		    reply="${reply%?}"
+		    (( charcount-- ))
+		else
+		    prompt=''
+		fi
+		;;
+		( * )
+		prompt='*'
+		reply+="${char}"
+		(( charcount++ ))
+		;;
+            esac
+	done
+	printf "\n"
+	askpw="$reply"
+}
+
+ask_psk() {
+	local netnum=$2
+	local var=$3
+	while [ 1 ] ; do
+		ask "$1"
+		if [ "$askpw" != "" ] ; then
+			val="$askpw"
+			wpa_cli set_network $netnum $var \"$val\"|grep -q ^OK
+			if [ $? == 0 ] ; then
+				break
+			else
+				echo "Invalid characters or length of password"
+			fi
+		fi
+	done
+}
+
+wifi_scan() {
+	local i before after
+	while [ 1 ] ; do
+		bss=()
+		freq=()
+		sigl=()
+		flags=()
+		ssid=()
+		wpa_cli scan > /dev/null
+		sleep 2
+		while IFS="" read -r inp; do
+			[ "$inp" != "${inp#Selected}" ] && continue
+			[ "$inp" != "${inp#bssid}" ] && continue
+			before=${inp%%$'\t'*}
+			after=${inp#*$'\t'}
+			bss+=("$before")
+			before=${after%%$'\t'*}
+			after=${after#*$'\t'}
+			freq+=("$before")
+			before=${after%%$'\t'*}
+			after=${after#*$'\t'}
+			sigl+=("$before")
+			before=${after%%$'\t'*}
+			after=${after#*$'\t'}
+			flags+=("${before//\[ESS\]/}")
+			ssid+=("$after")
+		done <<< $(wpa_cli scan_results)
+		echo "SSID/BSSID/Frequency/Signal Level/Flags/"
+		for i in ${!bss[@]}; do
+			[ "${ssid[$i]}" = "" ] && continue
+			echo "$i - ${ssid[$i]}/${bss[$i]}/${freq[$i]}/${sigl[$i]}/${flags[$i]}"
+		done
+		echo "R - Rescan"
+		echo "B - Reboot"
+		while [ 1 ] ; do
+			IFS='' read -p "Selection: " -r reply
+			[ "$reply" = "r" ] && reply=R
+			[ "$reply" = "R" ] && break;
+			[ "$reply" = "B" ] && echo b > /proc/sysrq-trigger;
+			[ "$reply" -ge 0 -a "$reply" -lt ${#bss[@]} ] 2> /dev/null && break
+		done
+		[ $reply != "R" ] && break
+	done
+	# Setup WiFi Parameters
+	SSID="${ssid[$reply]}"
+	FWIFI="${flags[$reply]}"
+}
+
+do_wifi() {
+	retry=0
+	while [ $retry -lt 100 ] ; do
+		ifconfig ${DHCPARGS% *} > /dev/null 2>&1 && break
+		retry=$(($retry+1))
+		sleep 0.1
+	done
+	if [ $retry -ge 100 ] ;then
+		fatal "Error could not find interface ${DHCPARGS% *}"
+	fi
+	wpa_supplicant -i ${DHCPARGS} -c /etc/wpa_supplicant.conf -B
+	if [ "${WIFI}" != "" ] ; then
+		while [ 1 ] ; do
+			wpa_cli remove_network 0 > /dev/null
+			netnum=`wpa_cli add_network |tail -1`
+			# Assume psk= is last in case there is a ; in the psk
+			WIFI_S=""
+			if [ "$WIFI" = "scan" ] ; then
+				wifi_scan
+				wpa_cli set_network $netnum ssid "\"$SSID\"" > /dev/null
+				if [ "$FWIFI" != "${FWIFI/EAP/}" ] ; then
+					IFS='' read -p "EAP User ID: " -r reply
+					wpa_cli set_network $netnum key_mgmt WPA-EAP > /dev/null
+					wpa_cli set_network $netnum identity "\"$reply\"" > /dev/null
+					ask_psk "EAP Password: " $netnum password
+				else
+					ask_psk "WiFi Password: " $netnum psk > /dev/null
+				fi
+			else
+				psk=${WIFI##*;psk=}
+				WIFI_S="${WIFI%;psk=*}"
+				WIFI_S="${WIFI_S//;/ }"
+				if [ "$psk" != "" ] ; then
+					WIFI_S="$WIFI_S psk=$psk"
+				fi
+			fi
+			for k in $WIFI_S; do
+				var=${k%%=*}
+				val=${k#*=}
+				if [ "$var" = "psk" -a "$val" = "ask" ] ; then
+					ask_psk "WiFi Password: " $netnum psk
+				fi
+				# Try with quotes first
+				wpa_cli set_network $netnum $var \"$val\"|grep -q ^OK
+				if [ $? != 0 ] ; then
+					wpa_cli set_network $netnum $var $val|grep -q ^OK || \
+						echo "Error: with wpa_cli set_network $netnum $var $val"
+				fi
+			done
+			wpa_cli enable_network $netnum
+			# Allow up to 20 seconds for network to come ready
+			retry=0
+			timeout=$((4*20))
+			while [ $retry -lt $timeout ] ; do
+				state=`wpa_cli status |grep wpa_state=`
+				if [ "$state" != "${state/COMPLETED/}" ] ; then
+					break
+				fi
+				sleep .250
+				retry=$(($retry+1))
+			done
+			if [ "$state" != "${state/COMPLETED/}" -o "$state" != "${state/CONNECTED/}" ] ; then
+				echo "WiFi Acitvated"
+				break
+			fi
+			if [ "$psk" = "ask" -o "WIFI" = "scan" ] ; then
+				echo "Error: Failed to connect to WiFi"
+				wpa_cli disable_network $netnum > /dev/null
+				wpa_cli flush $netnum > /dev/null
+				continue
+			fi
+			fatal "Error: Failed to establish WiFi link."
+		done
+	fi
+}
+
+do_dhcp() {
+	if [ "$dhcp_done" = 1 ] ; then
+		return
+	fi
+	# If no network needed do not conifgure it
+	if [ "${ECURL}" = "" -o "${ECURL}" = "none" ] && [ "${LCURL}" = "" -o "${LCURL}" = "none" ] && [ "$INSTL" != "" ] ; then
+		return
+	fi
+	if [ "${DHCPARGS}" = "ask" ] ; then
+		while [ 1 ] ; do
+			echo "Select an interface to use"
+			iface=()
+			while IFS="" read -r inp; do
+				iface+=($inp)
+			done <<< $(ls /sys/class/net |grep -v ^lo\$ |grep -v ^sit0)
+			for i in ${!iface[@]}; do
+				echo "$i - ${iface[$i]}"
+			done
+			echo "B - Reboot"
+			IFS='' read -p "Selection: " -r reply
+			[ "$reply" = "B" ] && echo b > /proc/sysrq-trigger;
+			[[ "$reply" =~ ^[0-9]+$ ]] && [ "$reply" -ge 0 -a "$reply" -lt ${#iface[@]} ] && break
+		done
+		DHCPARGS="${iface[$reply]}"
+	fi
+	dhcp_done=1
+	if [ -f /sbin/wpa_supplicant -a "${DHCPARGS}" != "${DHCPARGS#w}" ] ; then
+		# Activate wifi
+		do_wifi
+	fi
+	if [ -f /sbin/udhcpc ] ; then
+		# Assume first arg is ethernet inteface
+		if [ "${DHCPARGS}" != "" ] ; then
+			/sbin/udhcpc -i ${DHCPARGS}
+		else
+			/sbin/udhcpc
+		fi
+	else
+		dhcpcd ${DHCPARGS}
+	fi
+}
+
+
+do_mount_fs() {
+	echo "mounting FS: $*"
+	[[ -e /proc/filesystems ]] && { grep -q "$1" /proc/filesystems || { log_error "Unknown filesystem"; return 1; } }
+	[[ -d "$2" ]] || mkdir -p "$2"
+	[[ -e /proc/mounts ]] && { grep -q -e "^$1 $2 $1" /proc/mounts && { log_info "$2 ($1) already mounted"; return 0; } }
+	mount -t "$1" "$1" "$2" || fatal "Error mounting $2"
+}
+
+early_setup() {
+	do_mount_fs proc /proc
+	read_args
+	do_mount_fs sysfs /sys
+	mount -t devtmpfs none /dev
+	mkdir -p /dev/pts
+	mount -t devpts none /dev/pts
+	do_mount_fs tmpfs /tmp
+	do_mount_fs tmpfs /run
+
+	$_UDEV_DAEMON --daemon
+	udevadm trigger --action=add
+
+	if [ -x /sbin/mdadm ]; then
+		/sbin/mdadm -v --assemble --scan --auto=md
+	fi
+
+	if [ -e "/sys/fs/selinux" ];then
+		do_mount_fs selinuxfs /sys/fs/selinux
+		echo 1 > /sys/fs/selinux/disable
+	fi
+}
+
+udev_daemon() {
+	OPTIONS="/sbin/udev/udevd /sbin/udevd /lib/udev/udevd /lib/systemd/systemd-udevd"
+
+	for o in $OPTIONS; do
+		if [ -x "$o" ]; then
+			echo $o
+			return 0
+		fi
+	done
+
+	return 1
+}
+
+fatal() {
+    echo $1 >$CONSOLE
+    echo >$CONSOLE
+    if [ "$INSTPOST" = "shell" ] ; then shell_start ; fi
+    if [ "$INSTPOST" = "exit" ] ; then exit 1 ; fi
+    sleep 10
+    lreboot
+}
+
+# Global Variable setup
+# default values must match ostree-settings.inc
+BLM=2506
+FSZ=32
+BSZ=200
+RSZ=1400
+VSZ=0
+# end values from ostree-settings.inc
+LUKS=0
+BIOSPLUSEFI=0
+_UDEV_DAEMON=`udev_daemon`
+INSTDATE=${INSTDATE=""}
+INSTSH=${INSTSH=""}
+INSTNET=${INSTNET=""}
+INSTW=${INSTW=""}
+INSTDEV=${INSTDEV=""}
+INSTAB=${INSTAB=""}
+INSTPOST=${INSTPOST=""}
+INSTOS=${INSTOS=""}
+INSTNAME=${INSTNAME=""}
+BL=${BL=""}
+INSTL=${INSTL=""}
+INSTPT=${INSTPT=""}
+INSTFMT=${INSTFMT=""}
+INSTBR=${INSTBR=""}
+INSTSBD=${INSTSBD=""}
+INSTURL=${INSTURL=""}
+INSTGPG=${INSTGPG=""}
+INSTSF=${INSTSF=""}
+INSTFLUX=${INSTFLUX=""}
+DHCPARGS=${DHCPARGS=""}
+WIFI=${WIFI=""}
+ECURL=${ECURL=""}
+ECURLARG=${ECURLARG=""}
+LCURL=${LCURL=""}
+LCURLARG=${LCURLARG=""}
+CONSOLES=""
+OSTREE_CONSOLE=""
+KERNEL_PARAMS=""
+IP=""
+MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE=60
+OSTREE_KERNEL_ARGS=${OSTREE_KERNEL_ARGS=%OSTREE_KERNEL_ARGS%}
+
+if [ "$OSTREE_KERNEL_ARGS" = "%OSTREE_KERNEL_ARGS%" ] ; then
+	OSTREE_KERNEL_ARGS="ro rootwait"
+fi
+
+read_args() {
+	[ -z "$CMDLINE" ] && CMDLINE=`cat /proc/cmdline`
+	for arg in $CMDLINE; do
+		optarg=`expr "x$arg" : 'x[^=]*=\(.*\)'`
+		case $arg in
+			console=*)
+				CONSOLES="$CONSOLES ${optarg%,*}"
+				OSTREE_CONSOLE="$OSTREE_CONSOLE $arg"
+				;;
+			kernelparams=*)
+				KERNEL_PARAMS="$optarg"
+				;;
+			bl=*)
+				BL=$optarg ;;
+			instnet=*)
+				INSTNET=$optarg ;;
+			instsh=*)
+				if [ "$INSTSH" = "" ] ; then
+					INSTSH=$optarg
+					if [ "$INSTSH" = 2 -o "$INSTSH" = 3 ] ; then
+						set -xv
+					fi
+				fi
+				;;
+			ip=*)
+				IP=$optarg ;;
+			instl=*)
+				INSTL=$optarg ;;
+			instdev=*)
+				INSTDEV=$optarg ;;
+			instw=*)
+				INSTW=$optarg ;;
+			instab=*)
+				INSTAB=$optarg ;;
+			instpost=*)
+				if [ "$INSTPOST" = "" ] ; then INSTPOST=$optarg; fi ;;
+			instname=*)
+				INSTNAME=$optarg ;;
+			instsf=*)
+				INSTSF=$optarg ;;
+			instbr=*)
+				INSTBR=$optarg ;;
+			instsbd=*)
+				INSTSBD=$optarg ;;
+			instpt=*)
+				INSTPT=$optarg ;;
+			instfmt=*)
+				INSTFMT=$optarg ;;
+			insturl=*)
+				INSTURL=$optarg ;;
+			instgpg=*)
+				INSTGPG=$optarg ;;
+			instdate=*)
+				INSTDATE=$optarg ;;
+			instflux=*)
+				INSTFLUX=$optarg ;;
+			dhcpargs=*)
+				DHCPARGS=$optarg ;;
+			wifi=*)
+				WIFI=$optarg ;;
+			ecurl=*)
+				if [ "$ECURL" = "" ] ; then ECURL=$optarg; fi ;;
+			ecurlarg=*)
+				ECURLARG=$optarg ;;
+			lcurl=*)
+				if [ "$LCURL" = "" ] ; then LCURL=$optarg; fi ;;
+			lcurlarg=*)
+				LCURLARG=$optarg ;;
+			biosplusefi=*)
+				BIOSPLUSEFI=$optarg ;;
+			LUKS=*)
+				LUKS=$optarg ;;
+			BLM=*)
+				BLM=$optarg ;;
+			FSZ=*)
+				FSZ=$optarg ;;
+			BSZ=*)
+				BSZ=$optarg ;;
+			RSZ=*)
+				RSZ=$optarg ;;
+			VSZ=*)
+				VSZ=$optarg ;;
+		esac
+	done
+	# defaults if not set
+	if [ "$BL" = "" ] ; then BL=grub ; fi
+	if [ "$INSTSF" = "" ] ; then INSTSF=0 ; fi
+	if [ "$INSTSH" = "" ] ; then INSTSH=0 ; fi
+	if [ "$INSTAB" = "" ] ; then INSTAB=1 ; fi
+	if [ "$INSTOS" = "" ] ; then INSTOS=@OSTREE_OSNAME@ ; fi
+	if [ "$INSTNET" = "" ] ; then INSTNET=dhcp ; fi
+	if [ "$INSTGPG" = "" ] ; then INSTGPG=1 ; fi
+	if [ "$INSTFLUX" = "" ] ; then INSTFLUX=1 ; fi
+	if [ "$INSTSBD" = "" ] ; then INSTSBD=2 ; fi
+}
+
+shell_start() {
+	a=`cat /proc/cmdline`
+	for e in $a; do
+		case $e in
+			console=*)
+				c=${e%,*}
+				c=${c#console=*}
+				;;
+		esac
+	done
+
+	if [ "$c" = "" ] ; then
+		c=tty0
+	fi
+	args=""
+	tty > /dev/null
+	if [ $? != 0 ] ; then
+		args="</dev/$c >/dev/$c 2>&1"
+	fi
+	if [ "$1" = "exec" ] ; then
+		echo "function lreboot { echo b > /proc/sysrq-trigger; while [ 1 ] ; do sleep 60; done };trap lreboot EXIT" > /debugrc
+		exec setsid sh -c "exec /bin/bash --rcfile /debugrc $args"
+	else
+		setsid sh -c "exec /bin/bash $args"
+	fi
+}
+
+grub_pt_update() {
+	first=$(($end+1))
+	p=$((p+1))
+	if [ $first -gt $last ] ; then
+		fatal "ERROR: Disk is not big enough for requested layout"
+	fi
+}
+
+grub_partition() {
+	local a
+	local p
+	local first
+	local last
+	local end
+	lsz=`lsblk -n ${dev} -o LOG-SEC -d`
+	lsz=${lsz// /}
+	# EFI Partition
+	if [ ! -e ${fs_dev}${p1} ] ; then
+		sgdisk -i ${p1} ${dev} |grep -q ^"Partition name"
+		if [ $? != 0 ] ; then
+			echo "WARNING WARNING - ${fs_dev}${p1} does not exist, creating"
+			INSTSF=0
+		fi
+	fi
+	if [ $INSTSF = 1 ] ; then
+		for e in `sgdisk -p ${dev} 2> /dev/null |grep -A 1024 ^Number |grep -v ^Number |awk '{print $1}' |grep -v ^1\$`; do
+			a="$a -d $e"
+		done
+		if [ "$BIOSPLUSEFI" = "1"  ] ; then
+			a="$a -c 1:bios -t 1:EF02"
+		fi
+		a="$a -c ${p1}:otaefi -t ${p1}:EF00"
+		sgdisk -e $a ${dev}
+		a=""
+		first=`sgdisk -F ${dev}|grep -v Creating`
+	else
+		sgdisk -Z ${dev}
+		first=`sgdisk -F ${dev}|grep -v Creating`
+		if [ "$BIOSPLUSEFI" = "1"  ] ; then
+			# 1MB size for BIOS boot partition
+			end=$(($first+(1*1024*1024/$lsz)-1))
+			a="$a -n 1:$first:$end -c 1:bios -t 1:EF02"
+			first=$(($end+1))
+		fi
+		end=$(($first+($FSZ*1024*1024/$lsz)-1))
+		a="$a -n ${p1}:$first:$end -c ${p1}:otaefi -t ${p1}:EF00"
+		first=$(($end+1))
+	fi
+	last=$(sgdisk -E ${dev} 2>/dev/null |grep -v Creating)
+	p=$((p1+1))
+	# Boot Partition A
+	end=$(($first+($BSZ*1024*1024/$lsz)-1))
+	a="$a -n $p:$first:$end -c $p:otaboot"
+	grub_pt_update
+	# Root Partition A
+	if [ "$INSTAB" = 0 -a "${INSTFLUX}" = 0 ] ; then
+		if [ "$VSZ" = 0 ] ; then
+			end=$last
+		else
+			end=$(($first+($VSZ*1024*1024/$lsz)-1))
+		fi
+		a="$a -n $p:$first:$end -c $p:otaroot"
+	else
+		end=$(($first+($RSZ*1024*1024/$lsz)-1))
+		a="$a -n $p:$first:$end -c $p:otaroot"
+		grub_pt_update
+	fi
+	if [ "$INSTAB" = 1 ] ; then
+		# Boot Partition B
+		end=$(($first+($BSZ*1024*1024/$lsz)-1))
+		a="$a -n $p:$first:$end -c $p:otaboot_b"
+		grub_pt_update
+		# Root Partition B
+		end=$(($first+($RSZ*1024*1024/$lsz)-1))
+		a="$a -n $p:$first:$end -c $p:otaroot_b"
+		grub_pt_update
+	fi
+	# Flux Partition
+	if [ "${INSTFLUX}" = 1 ] ; then
+		if [ "$VSZ" = 0 ] ; then
+			end=$last
+		else
+			end=$(($first+($VSZ*1024*1024/$lsz)-1))
+		fi
+		a="$a -n $p:$first:$end -c $p:fluxdata"
+	fi
+	sgdisk $a -p ${dev}
+}
+
+ufdisk_partition() {
+	if [ ! -e ${fs_dev}${p1} ] ; then
+		sfdisk -l ${dev} | grep -q ${fs_dev}${p1}
+		if [ $? != 0 ] ; then
+			echo "WARNING WARNING - ${fs_dev}${p1} does not exist, creating"
+			INSTSF=0
+		fi
+	fi
+	if [ $INSTSF = 1 ] ; then
+		pts=`mktemp`
+		fdisk -l -o device ${dev} |grep ^${fs_dev} > $pts || fatal "fdisk probe failed"
+		# Start by deleting all the other partitions
+		fpt=$(cat $pts |sed -e "s#${fs_dev}##" | head -n 1)
+		for p in `cat $pts |sed -e "s#${fs_dev}##" |sort -rn`; do
+			if [ $p != 1 ] ; then
+				sfdisk --no-reread --no-tell-kernel -w never --delete ${dev} $p
+			fi
+		done
+	else
+		sgdisk -Z ${dev} > /dev/null 2> /dev/null
+		echo 'label: mbr' | sfdisk --no-reread --no-tell-kernel -W never -w never ${dev}
+		# Partition for storage of u-boot variables and backup kernel
+		echo "${BLM},${FSZ}M,0xc" | sfdisk --no-reread --no-tell-kernel -W never -w never ${dev}
+		sfdisk --no-reread --no-tell-kernel -W never -w never -A ${dev} 1
+	fi
+	# Create extended partition for remainder of disk
+	echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'), +,0x5" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+	if [ "${INSTFLUX}" = 1 ] ; then
+		# Create Boot and Root A partition
+		echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+		echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+		if [ "$INSTAB" = "1" ] ; then
+			# Create Boot and Root B partition
+			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+		fi
+		# flux data partition
+		if [ "$VSZ" = 0 ] ; then
+			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'), +" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+		else
+			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${VSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+		fi
+	else
+		if [ "$INSTAB" = "1" ] ; then
+			# Create Boot and Root A partition
+			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			# Create Boot and Root B partition
+			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+		else
+			# Create Boot and Root A partition for whole disk
+			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'), +" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+		fi
+	fi
+}
+
+##################
+
+if [ "$1" = "-h" -o "$1" = "-?" ] ; then
+	helptxt
+	exit 0
+fi
+
+if [ "$RE_EXEC" != "1" ] ; then
+	early_setup
+	if [ -e /bin/mttyexec -a "$CONSOLES" != "" ] ; then
+		export RE_EXEC=1
+		cmd="/bin/mttyexec -s"
+		for e in $CONSOLES; do
+			echo > /dev/$e 2> /dev/null
+			if [ $? = 0 ] ; then
+				cmd="$cmd -d /dev/$e"
+			fi
+		done
+		exec $cmd $0 $@
+	fi
+else
+	read_args
+fi
+
+[ -z "$CONSOLE" ] && CONSOLE="/dev/console"
+[ -z "$INIT" ] && INIT="/sbin/init"
+
+if [ "$INSTSH" = 1 -o "$INSTSH" = 3 -o "$INSTSH" = 4 ] ; then
+	if [ "$INSTSH" = 4 ] ; then
+		helptxt
+	fi
+	echo "Starting boot shell.  System will reboot on exit"
+	echo "You can execute the install with:"
+	echo "     INSTPOST=exit INSTSH=0 bash -v -x /install"
+	shell_start exec
+	lreboot
+fi
+
+udevadm settle --timeout=3
+
+if [ "$INSTNAME" = "" ] ; then
+	fatal "Error no remote archive name, need kernel argument: instname=..."
+fi
+if [ "$INSTBR" = "" ] ; then
+	fatal "Error no branch name for OSTree, need kernel argument: instbr=..."
+fi
+if [ "$INSTURL" = "" ] ; then
+	fatal "Error no URL for OSTree, need kernel argument: insturl=..."
+fi
+
+if [ "$INSTDATE" != "" ] ; then
+	if [ "$INSTDATE" = "BUILD_DATE" ] ; then
+		echo "WARNING date falling back to 1/1/2020"
+		date -u -s @1577836800
+	else
+		date -u -s $INSTDATE
+	fi
+fi
+
+# Customize here for network
+if [ "$IP" != "" ] ; then
+	if [ "$IP" = "dhcp" ] ; then
+		dns=$(dmesg |grep nameserver.= |sed 's/nameserver.=//g; s/,//g')
+	else
+		dns=$(echo "$IP"|awk -F: '{print $8" "$9}')
+	fi
+	for e in $dns; do
+		echo nameserver $e >> /etc/resolv.conf
+	done
+fi
+
+if [ "$INSTNET" = dhcp ] ; then
+	do_dhcp
+fi
+
+# Early curl exec
+
+if [ "${ECURL}" != "" -a "${ECURL}" != "none" ] ; then
+	curl ${ECURL} --output /ecurl
+	# Prevent recursion if script debugging
+	export ECURL="none"
+	chmod 755 /ecurl
+	/ecurl ${ECURLARG}
+fi
+
+# Customize here for disk detection
+
+if [ "$INSTDEV" = "" ] ; then
+	fatal "Error no kernel argument instdev=..."
+fi
+
+fix_part_labels=1
+# Device setup
+if [ "$INSTDEV" = "ask" ] ; then
+	INSTW=0
+	ask_dev
+fi
+
+retry=0
+fail=1
+while [ $retry -lt $MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE ] ; do
+	for i in ${INSTDEV//,/ }; do
+		if [ "${i#PUUID=}" != "$i" ] ; then
+			idev=$(blkid -o device -l -t PARTUUID=${i#PUUID=})
+			if [ "$idev" != "" ] ; then
+				check_valid_dev $idev || continue
+				INSTDEV=/dev/$(lsblk $idev -n -o pkname)
+				fail=0
+				break
+			fi
+		elif [ "${i#UUID=}" != "$i" ] ; then
+			idev=$(blkid --uuid ${i#UUID=})
+			if [ "$idev" != "" ] ; then
+				check_valid_dev $idev || continue
+				INSTDEV=/dev/$(lsblk $idev -n -o pkname)
+				fail=0
+				break
+			fi
+		elif [ "${i#LABEL=}" != "$i" ] ; then
+			idev=$(blkid --label ${i#LABEL=})
+			if [ "$idev" != "" ] ; then
+				check_valid_dev $idev || continue
+				INSTDEV=/dev/$(lsblk $idev -n -o pkname)
+				fail=0
+				break
+			fi
+		elif [ -e $i ] ; then
+			check_valid_dev $i || continue
+			INSTDEV=$i
+			echo "Installing to: $i"
+			fail=0
+			break
+		fi
+	done
+	[ $fail = 0 ] && break
+	retry=$(($retry+1))
+	sleep 0.1
+done
+if [ $fail = 1 ] ; then
+	INSTW=0
+	ask_dev
+fi
+
+cnt=0
+if [ "$INSTW" != "" ] && [ "$INSTW" -gt 0 ] ; then
+	cnt=$INSTW
+fi
+
+# Start a wait loop below for user input and timeout to install if instw > 0
+if [ "$cnt" -gt 0 ] ; then
+	conflict_label print
+fi
+while [ "$cnt" -gt 0 ] ; do
+	[ $(($cnt % 10)) -eq 0 ] && lsblk -o NAME,VENDOR,SIZE,MODEL,TYPE $INSTDEV
+	read -r -s -n 1 -t 1 -p "## Erasing $INSTDEV in $cnt sec ## 'y' = start ## Any key to abort ##" key
+	ret=$?
+	echo
+	if [ $ret = 0 ] ; then
+		if [ "$key" != y ] ; then
+			ask_dev
+		fi
+		break
+	fi
+	cnt=$(($cnt - 1))
+done
+if [ "$fix_part_labels" = "1" ] ; then
+	conflict_label fix
+fi
+
+fs_dev=${INSTDEV}
+# The index of first file system partition on install disk
+p1="1"
+if [ "$BIOSPLUSEFI" = "1"  ] ; then
+	# Use one GPT disk to support both of BIOS and EFI
+	# it should create a mebibyte partition (+1M) on the
+	# disk with no file system and with partition type GUID
+	# 21686148-6449-6E6F-744E-656564454649, so the index of
+	# first file system partition is 2
+	p1="2"
+fi
+
+if [ "${fs_dev#/dev/mmcblk}" != ${fs_dev} ] ; then
+       fs_dev="${INSTDEV}p"
+elif [ "${fs_dev#/dev/nbd}" != ${fs_dev} ] ; then
+       fs_dev="${INSTDEV}p"
+elif [ "${fs_dev#/dev/nvme}" != ${fs_dev} ] ; then
+       fs_dev="${INSTDEV}p"
+elif [ "${fs_dev#/dev/loop}" != ${fs_dev} ] ; then
+       fs_dev="${INSTDEV}p"
+fi
+
+# Customize here for disk partitioning
+
+dev=${INSTDEV}
+
+# Special case check if install media is different than boot media
+if [ $INSTSF = 1 ] ; then
+	i=$(blkid --label instboot)
+	if [ "$i" != "" -a "${fs_dev}${p1}" != "${i}" ] ; then
+		echo "Install disk is different than boot disk setting instsf=0"
+		INSTSF=0
+	fi
+fi
+
+if [ "$INSTPT" != "0" ] ; then
+	if [ "$BL" = "grub" ] ; then
+		grub_partition
+	elif [ "$BL" = "ufsd" ] ; then
+		ufdisk_partition
+	else
+		fatal "Error: bl=$BL is not supported"
+	fi
+fi
+
+udevadm settle --timeout=3
+
+cnt=50
+while [ $cnt ] ; do
+	blockdev --rereadpt ${dev} 2> /dev/null > /dev/null && break
+	sleep 0.1
+	cnt=$(($cnt - 1))
+done
+sync
+
+# Customize here for disk formatting
+
+if [ "$INSTPT" != "0" ] ; then
+	INSTFMT=1
+fi
+
+if [ "$BL" = "grub" -a "$INSTFMT" != "0" ] ; then
+	if [ $INSTSF = 1 ] ; then
+		dosfslabel ${fs_dev}${p1} otaefi
+	else
+		mkfs.vfat -n otaefi ${fs_dev}${p1}
+	fi
+
+	pi=$((p1+1))
+	mkfs.ext4 -F -L otaboot ${fs_dev}${pi}
+	dashe="-e"
+
+	pi=$((pi+1))
+	if [ $LUKS -gt 1 ] ; then
+		echo Y | luks-setup.sh -f $dashe -d ${fs_dev}${pi} -n luksotaroot || \
+			fatal "Cannot create LUKS volume luksotaroot"
+		dashe=""
+		mkfs.ext4 -F -L otaroot /dev/mapper/luksotaroot
+	else
+		mkfs.ext4 -F -L otaroot ${fs_dev}${pi}
+	fi
+
+	if [ "$INSTAB" = "1" ] ; then
+		pi=$((pi+1))
+		mkfs.ext4 -F -L otaboot_b ${fs_dev}${pi}
+
+		pi=$((pi+1))
+		if [ $LUKS -gt 1 ] ; then
+			echo Y | luks-setup.sh -f -d ${fs_dev}${pi} -n luksotaroot_b || \
+				fatal "Cannot create LUKS volume luksotaroot_b"
+			mkfs.ext4 -F -L otaroot_b /dev/mapper/luksotaroot_b
+		else
+			mkfs.ext4 -F -L otaroot_b ${fs_dev}${pi}
+		fi
+	fi
+	if [ "${INSTFLUX}" = 1 ] ; then
+		FLUXPART=$((pi+1))
+		if [ $LUKS -gt 0 ] ; then
+			echo Y | luks-setup.sh -f $dashe -d ${fs_dev}${FLUXPART} -n luksfluxdata || \
+				fatal "Cannot create LUKS volume luksfluxdata"
+			dashe=""
+			mkfs.ext4 -F -L fluxdata /dev/mapper/luksfluxdata
+		else
+			mkfs.ext4 -F -L fluxdata ${fs_dev}${FLUXPART}
+		fi
+	fi
+elif [ "$INSTFMT" != 0 ] ; then
+	if [ $INSTSF = 1 ] ; then
+		dosfslabel ${fs_dev}${p1} boot
+	else
+		mkfs.vfat -n boot ${fs_dev}${p1}
+	fi
+	FLUXPART=9
+	mkfs.ext4 -F -L otaboot ${fs_dev}5
+	mkfs.ext4 -F -L otaroot ${fs_dev}6
+	if [ "$INSTAB" = "1" ] ; then
+		mkfs.ext4 -F -L otaboot_b ${fs_dev}7
+		mkfs.ext4 -F -L otaroot_b ${fs_dev}8
+	else
+		FLUXPART=7
+	fi
+	if [ "${INSTFLUX}" = 1 ] ; then
+		mkfs.ext4 -F -L fluxdata ${fs_dev}${FLUXPART}
+	fi
+fi
+
+# OSTree deploy
+
+PHYS_SYSROOT="/sysroot"
+OSTREE_BOOT_DEVICE="LABEL=otaboot"
+OSTREE_ROOT_DEVICE="LABEL=otaroot"
+mount_flags="rw,noatime"
+if [ -x /init.ima ] ; then
+	mount --help 2>&1 |grep -q BusyBox
+	if [ $? = 0 ] ; then
+		mount_flags="rw,noatime,i_version"
+	else
+		mount_flags="rw,noatime,iversion"
+	fi
+fi
+for arg in ${OSTREE_KERNEL_ARGS}; do
+        kargs_list="${kargs_list} --karg-append=$arg"
+done
+
+mkdir -p ${PHYS_SYSROOT}
+mount -o $mount_flags "${OSTREE_ROOT_DEVICE}" "${PHYS_SYSROOT}" || fatal "Error mouting ${OSTREE_ROOT_DEVICE}"
+
+ostree admin --sysroot=${PHYS_SYSROOT} init-fs ${PHYS_SYSROOT}
+ostree admin --sysroot=${PHYS_SYSROOT} os-init ${INSTOS}
+ostree config --repo=${PHYS_SYSROOT}/ostree/repo set core.add-remotes-config-dir false
+ostree config --repo=${PHYS_SYSROOT}/ostree/repo set upgrade.branch ${INSTBR}
+ostree config --repo=${PHYS_SYSROOT}/ostree/repo set upgrade.remote ${INSTNAME}
+ostree config --repo=${PHYS_SYSROOT}/ostree/repo set upgrade.os ${INSTOS}
+if [ "$INSTFLUX" != "1" ] ; then
+	ostree config --repo=${PHYS_SYSROOT}/ostree/repo set upgrade.noflux 1
+fi
+if [ "$INSTAB" != "1" ] ; then
+	ostree config --repo=${PHYS_SYSROOT}/ostree/repo set upgrade.no-ab 1
+fi
+
+ostree config --repo=${PHYS_SYSROOT}/ostree/repo set upgrade.skip-boot-diff $INSTSBD
+
+if [ ! -d "${PHYS_SYSROOT}/boot" ] ; then
+   mkdir -p ${PHYS_SYSROOT}/boot
+fi
+
+mount "${OSTREE_BOOT_DEVICE}" "${PHYS_SYSROOT}/boot"  || fatal "Error mouting ${OSTREE_BOOT_DEVICE}"
+
+mkdir /instboot
+bdev=$(blkid --label instboot)
+if [ $? = 0 ] ; then
+	mount -r $bdev /instboot
+# Special case check if instboot is not available and
+# install media is different than boot media
+elif [ -n "$idev" ] && [ -e "$idev" ] && [ "$idev" != "${fs_dev}${p1}"  ] ; then
+	mount -r $idev /instboot
+fi
+
+mkdir -p ${PHYS_SYSROOT}/boot/efi
+mount ${fs_dev}${p1} ${PHYS_SYSROOT}/boot/efi || fatal "Error mouting ${fs_dev}${p1}"
+
+# Prep for Install
+mkdir -p ${PHYS_SYSROOT}/boot/loader.0
+ln -s loader.0 ${PHYS_SYSROOT}/boot/loader
+
+if [ "$BL" = "grub" ] ; then
+	mkdir -p ${PHYS_SYSROOT}/boot/grub2
+	touch ${PHYS_SYSROOT}/boot/grub2/grub.cfg
+else
+	touch  ${PHYS_SYSROOT}/boot/loader/uEnv.txt
+fi
+
+do_gpg=""
+if [ "$INSTGPG" != "1" ] ; then
+	do_gpg=--no-gpg-verify
+fi
+ostree remote --repo=${PHYS_SYSROOT}/ostree/repo add ${do_gpg} ${INSTNAME} ${INSTURL}
+
+touch /etc/ssl/certs/ca-certificates.crt
+mkdir -p /var/volatile/tmp /var/volatile/run
+
+lpull=""
+if [ "$INSTL" != "" ] ; then
+	if [ -e /instboot${INSTL#/sysroot/boot/efi} ] ; then
+		lpull="--url file:///instboot${INSTL#/sysroot/boot/efi}"
+	elif [ -e $INSTL ] ; then
+		lpull="--url file://$INSTL"
+	else
+		echo "WARNING WARNING - Local install missing, falling back to network"
+		lpull=""
+		INSTL=""
+		do_dhcp
+	fi
+fi
+
+cmd="ostree pull $lpull --repo=${PHYS_SYSROOT}/ostree/repo ${INSTNAME} ${INSTBR}"
+echo running: $cmd
+$cmd || fatal "Error: ostree pull failed"
+export OSTREE_BOOT_PARTITION="/boot"
+ostree admin deploy ${kargs_list} --sysroot=${PHYS_SYSROOT} --os=${INSTOS} ${INSTNAME}:${INSTBR} || fatal "Error: ostree deploy failed"
+
+if [ "$INSTAB" != 1 ] ; then
+	# Deploy a second time so a roll back is available from the start
+	ostree admin deploy --sysroot=${PHYS_SYSROOT} --os=${INSTOS} ${INSTNAME}:${INSTBR} || fatal "Error: ostree deploy failed"
+fi
+
+# Initialize "B" partion if used
+
+
+if [ "$INSTAB" = "1" ] ; then
+	mkdir -p ${PHYS_SYSROOT}_b
+	mount -o $mount_flags "${OSTREE_ROOT_DEVICE}_b" "${PHYS_SYSROOT}_b"  || fatal "Error mouting ${OSTREE_ROOT_DEVICE}_b"
+
+	ostree admin --sysroot=${PHYS_SYSROOT}_b init-fs ${PHYS_SYSROOT}_b
+	ostree admin --sysroot=${PHYS_SYSROOT}_b os-init ${INSTOS}
+	cp ${PHYS_SYSROOT}/ostree/repo/config ${PHYS_SYSROOT}_b/ostree/repo
+
+	if [ ! -d "${PHYS_SYSROOT}_b/boot" ] ; then
+		mkdir -p ${PHYS_SYSROOT}_b/boot
+	fi
+
+	mount "${OSTREE_BOOT_DEVICE}_b" "${PHYS_SYSROOT}_b/boot" || fatal "Error mouting ${OSTREE_BOOT_DEVICE}_b"
+
+
+	mkdir -p ${PHYS_SYSROOT}_b/boot/efi
+	mount ${fs_dev}${p1} ${PHYS_SYSROOT}_b/boot/efi
+
+	mkdir -p ${PHYS_SYSROOT}_b/boot/loader.0
+	ln -s loader.0 ${PHYS_SYSROOT}_b/boot/loader
+
+	# Prep for Install
+	if [ "$BL" = "grub" ] ; then
+		mkdir -p ${PHYS_SYSROOT}_b/boot/grub2
+		touch ${PHYS_SYSROOT}_b/boot/grub2/grub.cfg
+	else
+		touch  ${PHYS_SYSROOT}_b/boot/loader/uEnv.txt
+	fi
+
+	ostree pull $lpull --repo=${PHYS_SYSROOT}_b/ostree/repo --localcache-repo=${PHYS_SYSROOT}/ostree/repo ${INSTNAME}:${INSTBR} || fatal "ostree pull failed"
+	ostree admin deploy ${kargs_list} --sysroot=${PHYS_SYSROOT}_b --os=${INSTOS} ${INSTBR} || fatal "ostree deploy failed"
+fi
+
+# Replace/install boot loader
+if [ -e ${PHYS_SYSROOT}/boot/0/boot/efi/EFI ] ; then
+	cp -r  ${PHYS_SYSROOT}/boot/0/boot/efi/EFI ${PHYS_SYSROOT}/boot/efi/
+	echo "# GRUB Environment Block" > ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
+	if [ "$INSTAB" != "1" ] ; then
+	    printf "ab=0\n" >> ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
+	else
+	    echo -n "#####" >> ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
+	fi
+	printf "boot_tried_count=0\n" >> ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
+	printf "ostree_console=$OSTREE_CONSOLE\n" >> ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
+	if [ -n "$KERNEL_PARAMS" ]; then
+		printf "kernel_params=$KERNEL_PARAMS\n" >> ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
+	fi
+	echo -n "###############################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################" >> ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
+fi
+if [ -e ${PHYS_SYSROOT}/boot/loader/uEnv.txt ] ; then
+	bootdir=$(grep ^bootdir= ${PHYS_SYSROOT}/boot/loader/uEnv.txt)
+	bootdir=${bootdir#bootdir=}
+	if [ "$bootdir" != "" ] && [ -e "${PHYS_SYSROOT}/boot$bootdir" ] ; then
+		# Backup boot.scr (modified by bootfs.sh) to avoid be overridden by the one in bootdir
+		[ -e ${PHYS_SYSROOT}/boot/efi/boot.scr ] && mv ${PHYS_SYSROOT}/boot/efi/boot.scr ${PHYS_SYSROOT}/boot/efi/boot.scr-back
+		cp -r ${PHYS_SYSROOT}/boot$bootdir/* ${PHYS_SYSROOT}/boot/efi
+		[ -e ${PHYS_SYSROOT}/boot/efi/boot.scr-back ] && mv ${PHYS_SYSROOT}/boot/efi/boot.scr-back ${PHYS_SYSROOT}/boot/efi/boot.scr
+	fi
+	printf "123A" > ${PHYS_SYSROOT}/boot/efi/boot_ab_flag
+	# The first 0 is the boot count, the second zero is the boot entry default
+	printf '00WR' > ${PHYS_SYSROOT}/boot/efi/boot_cnt
+	if [ "$INSTAB" != "1" ] ; then
+		printf '1' > ${PHYS_SYSROOT}/boot/efi/no_ab
+	else
+		rm -f  ${PHYS_SYSROOT}/boot/efi/no_ab
+	fi
+
+fi
+
+# Late curl exec
+
+if [ "${LCURL}" != "" -a "${LCURL}" != "none" ] ; then
+	curl ${LCURL} --output /lcurl
+	export LCURL="none"
+	chmod 755 /lcurl
+	/lcurl ${LCURLARG}
+fi
+
+# Modify fstab if not using fluxdata
+# Caution... If someone resets the /etc/fstab with OSTree this change is lost...
+mkdir /var1
+if [ "$INSTFLUX" != "1" ] ; then
+	if [ "$BL" = "grub" ] ; then
+		sed -i -e "s#^LABEL=fluxdata.*#${PHYS_SYSROOT}/ostree/deploy/${INSTOS}/var /var none bind 0 0#" ${PHYS_SYSROOT}/boot/?/ostree/etc/fstab
+		if [ "$INSTAB" = 1 ] ; then
+			sed -i -e "s#^LABEL=fluxdata.*#${PHYS_SYSROOT}/ostree/deploy/${INSTOS}/var /var none bind 0 0#" ${PHYS_SYSROOT}_b/boot/?/ostree/etc/fstab
+		fi
+	elif [ "$BL" = "ufsd" ] ; then
+		sed -i -e "s#^LABEL=fluxdata.*#${PHYS_SYSROOT}/ostree/deploy/${INSTOS}/var /var none bind 0 0#" ${PHYS_SYSROOT}/ostree/?/etc/fstab
+		if [ "$INSTAB" = 1 ] ; then
+			sed -i -e "s#^LABEL=fluxdata.*#${PHYS_SYSROOT}/ostree/deploy/${INSTOS}/var /var none bind 0 0#" ${PHYS_SYSROOT}_b/ostree/?/etc/fstab
+		fi
+	else
+		fatal "Error: bl=$BL is not supported"
+	fi
+	mount --bind ${PHYS_SYSROOT}/ostree/deploy/${INSTOS}/var /var1
+else
+	mount -o $mount_flags LABEL=fluxdata /var1
+fi
+if [ -d ${PHYS_SYSROOT}/boot/0/ostree/var ] ; then
+	tar -C ${PHYS_SYSROOT}/boot/0/ostree/var/ --xattrs --xattrs-include='*' -cf - . | \
+	tar --xattrs --xattrs-include='*' -xf - -C /var1 2> /dev/null
+elif [ -d ${PHYS_SYSROOT}/ostree/1/var ] ; then
+	tar -C ${PHYS_SYSROOT}/ostree/1/var/ --xattrs --xattrs-include='*' -cf - . | \
+	tar --xattrs --xattrs-include='*' -xf - -C /var1 2> /dev/null
+fi
+if [ -d ${PHYS_SYSROOT}/boot/0/ostree/usr/homedirs/home ] ; then
+	tar -C ${PHYS_SYSROOT}/boot/0/ostree/usr/homedirs/home --xattrs --xattrs-include='*' -cf - . | \
+	tar --xattrs --xattrs-include='*' -xf - -C /var1/home 2> /dev/null
+elif [ -d ${PHYS_SYSROOT}/boot/1/ostree/usr/homedirs/home ] ; then
+	tar -C ${PHYS_SYSROOT}/boot/1/ostree/usr/homedirs/home --xattrs --xattrs-include='*' -cf - . | \
+	tar --xattrs --xattrs-include='*' -xf - -C /var1/home 2> /dev/null
+fi
+
+umount /var1
+
+if [ "$BIOSPLUSEFI" = "1"  ] ; then
+	mkdir -p /boot
+	mount ${fs_dev}${p1} /boot
+	if [ -e /sbin/grub-install ] ; then
+		/sbin/grub-install --target=i386-pc  ${dev}
+		echo "set legacy_bios=1" > /boot/grub/grub.cfg
+		echo "set boot_env_path=/efi/boot" >> /boot/grub/grub.cfg
+		echo "source /efi/boot/grub.cfg" >> /boot/grub/grub.cfg
+	elif [ -e /sbin/grub2-install ] ; then
+		/sbin/grub2-install --target=i386-pc  ${dev}
+		echo "set legacy_bios=1" > /boot/grub2/grub.cfg
+		echo "set boot_env_path=/efi/boot" >> /boot/grub2/grub.cfg
+		echo "source /efi/boot/grub.cfg" >> /boot/grub2/grub.cfg
+	else
+		fatal "Error: No grub2 tools available"
+	fi
+	umount /boot
+fi
+
+if [ "$INSTPOST" = "shell" ] ; then
+	echo " Entering interactive install shell, please exit to continue when done"
+	shell_start
+fi
+
+# Clean up and finish
+if [ "$INSTAB" = 1 ] ; then
+	umount ${PHYS_SYSROOT}_b/boot/efi ${PHYS_SYSROOT}_b/boot ${PHYS_SYSROOT}_b
+fi
+umount ${PHYS_SYSROOT}/boot/efi ${PHYS_SYSROOT}/boot ${PHYS_SYSROOT}
+
+for e in otaboot otaboot_b otaroot otaroot_b fluxdata; do
+	if [ -e /dev/mapper/luks${e} ] ; then
+		cryptsetup luksClose luks${e}
+	fi
+done
+
+udevadm control -e
+
+sync
+sync
+sync
+echo 3 > /proc/sys/vm/drop_caches
+
+# Eject ISO image if available
+for isodev in `blkid  -t TYPE=iso9660 -o device`; do
+	# The ISO should be installer image
+	blkid --label instboot $isodev
+	if [ $? -eq 0 ]; then
+		eject $isodev
+	fi
+done
+
+if [ "$INSTPOST" = "halt" ] ; then
+	echo o > /proc/sysrq-trigger
+	while [ 1 ] ; do sleep 60; done
+elif [ "$INSTPOST" = "shell" ] ; then
+	echo " Entering post-install debug shell, exit to reboot."
+	shell_start
+elif [ "$INSTPOST" = "exit" ] ; then
+	exit 0
+fi
+lreboot
+exit 0

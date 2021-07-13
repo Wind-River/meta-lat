@@ -1,0 +1,41 @@
+From e1e20712d4eced2584624a17161893b498276a7a Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Mon, 28 Sep 2020 23:51:56 +0800
+Subject: [PATCH] do not support subcommand gensdk
+
+Do not support gensdk and checksdk in appsdk-native
+
+Upstream-Status: Inappropriate
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ appsdk/__init__.py | 12 ------------
+ 1 file changed, 12 deletions(-)
+
+diff --git a/appsdk/__init__.py b/appsdk/__init__.py
+index 4956dfd..8f3babf 100644
+--- a/appsdk/__init__.py
++++ b/appsdk/__init__.py
+@@ -33,19 +33,7 @@ logger = logging.getLogger('appsdk')
+ def set_subparser(subparsers=None):
+     if subparsers is None:
+         sys.exit(1)
+-
+-    parser_gensdk = subparsers.add_parser('gensdk', help='Generate a new SDK')
+-    parser_gensdk.add_argument('-f', '--file',
+-                               help='An input yaml file specifying image information.',
+-                               required=True)
+-    parser_gensdk.add_argument('-o', '--output',
+-                               help='The path of the generated SDK. Default to deploy/AppSDK.sh in current directory',
+-                               default='deploy/AppSDK.sh')
+-    parser_gensdk.set_defaults(func=gensdk)
+     
+-    parser_checksdk = subparsers.add_parser('checksdk', help='Sanity check for SDK')
+-    parser_checksdk.set_defaults(func=checksdk)
+-
+     parser_buildrpm = subparsers.add_parser('genrpm', help='Build RPM package')
+     parser_buildrpm.add_argument('-f', '--file', required=True,
+                                  help='A yaml or spec file specifying package information')
+-- 
+2.18.2
+

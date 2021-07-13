@@ -1,0 +1,124 @@
+#!/bin/bash
+set -x
+set -e
+## Require environments
+# DEPLOY_DIR_IMAGE
+# IMAGE_NAME
+# IMAGE_NAME_SUFFIX
+# MACHINE
+# IMAGE_ROOTFS
+
+# OCI_IMAGE_AUTHOR
+# OCI_IMAGE_AUTHOR_EMAIL
+# OCI_IMAGE_TAG
+# OCI_IMAGE_RUNTIME_UID
+# OCI_IMAGE_ENTRYPOINT
+# OCI_IMAGE_ENTRYPOINT_ARGS
+# OCI_IMAGE_WORKINGDIR
+# OCI_IMAGE_PORTS
+# OCI_IMAGE_LABELS
+# OCI_IMAGE_ENV_VARS
+# OCI_IMAGE_TAR_OUTPUT
+OCI_IMAGE_AUTHOR="${OCI_IMAGE_AUTHOR:-windriver}"
+OCI_IMAGE_AUTHOR_EMAIL="${OCI_IMAGE_AUTHOR_EMAIL:-windriver@windirver.com}"
+
+OCI_IMAGE_TAG="${OCI_IMAGE_TAG:-latest}"
+OCI_IMAGE_RUNTIME_UID="${OCI_IMAGE_RUNTIME_UID:-}"
+
+OCI_IMAGE_SUBARCH="${OCI_IMAGE_SUBARCH:-}"
+if [ $MACHINE = "intel-x86-64" ]; then
+    OCI_IMAGE_ARCH="${OCI_IMAGE_ARCH:-x86-64}"
+else
+    OCI_IMAGE_ARCH="${OCI_IMAGE_ARCH:-aarch64}"
+fi
+
+OCI_IMAGE_ENTRYPOINT="${OCI_IMAGE_ENTRYPOINT:-}"
+OCI_IMAGE_ENTRYPOINT_ARGS="${OCI_IMAGE_ENTRYPOINT_ARGS:-}"
+OCI_IMAGE_WORKINGDIR="${OCI_IMAGE_WORKINGDIR:-}"
+
+# List of ports to expose from a container running this image:
+#  PORT[/PROT]  
+#     format: <port>/tcp, <port>/udp, or <port> (same as <port>/tcp).
+OCI_IMAGE_PORTS="${OCI_IMAGE_PORTS:-}"
+
+# key=value list of labels
+OCI_IMAGE_LABELS="${OCI_IMAGE_LABELS:-}"
+# key=value list of environment variables
+OCI_IMAGE_ENV_VARS="${OCI_IMAGE_ENV_VARS:-}"
+
+# whether the oci image dir should be left as a directory, or
+# bundled into a tarball.
+OCI_IMAGE_TAR_OUTPUT="${OCI_IMAGE_TAR_OUTPUT:-false}"
+
+do_image_oci() {
+    sloci_options=""
+
+    echo "OCI image settings:"
+    echo "  author: ${OCI_IMAGE_AUTHOR}"
+    echo "  author email: ${OCI_IMAGE_AUTHOR_EMAIL}"
+    echo "  tag: ${OCI_IMAGE_TAG}"
+    echo "  arch: ${OCI_IMAGE_ARCH}"
+    echo "  subarch: ${OCI_IMAGE_SUBARCH}"
+    echo "  entrypoint: ${OCI_IMAGE_ENTRYPOINT}"
+    echo "  entrypoing args: ${OCI_IMAGE_ENTRYPOINT_ARGS}"
+    echo "  labels: ${OCI_IMAGE_LABELS}"
+    echo "  uid: ${OCI_IMAGE_RUNTIME_UID}"
+    echo "  working dir: ${OCI_IMAGE_WORKINGDIR}"
+    echo "  env vars: ${OCI_IMAGE_ENV_VARS}"
+    echo "  ports: ${OCI_IMAGE_PORTS}"
+
+    # Change into the image deploy dir to avoid having any output operations capture
+    # long directories or the location.
+    cd ${DEPLOY_DIR_IMAGE}
+
+    oci_image_label_options=""
+    if [ -n "${OCI_IMAGE_LABELS}" ]; then
+        for l in ${OCI_IMAGE_LABELS}; do
+            oci_image_label_options="${oci_image_label_options} --label ${l}"
+        done
+    fi
+    oci_image_env_options="--env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    if [ -n "${OCI_IMAGE_ENV_VARS}" ]; then
+        for l in ${OCI_IMAGE_ENV_VARS}; do
+            oci_image_env_options="${oci_image_env_options} --env ${l}"
+        done
+    fi
+    oci_image_port_options=""
+    if [ -n "${OCI_IMAGE_PORTS}" ]; then
+        for l in ${OCI_IMAGE_PORTS}; do
+            oci_image_port_options="${oci_image_port_options} --port ${l}"
+        done
+    fi
+
+    if [ -n "${OCI_IMAGE_RUNTIME_UID}" ]; then
+        oci_image_user_options="--user ${OCI_IMAGE_RUNTIME_UID}"
+    fi
+
+    if [ -n "${OCI_IMAGE_WORKINGDIR}" ]; then
+        oci_image_working_dir_options="--working-dir ${OCI_IMAGE_WORKINGDIR}"
+    fi
+
+    if ${OCI_IMAGE_TAR_OUTPUT}; then
+        sloci_options="$sloci_options --tar"
+    fi
+
+    # options that always appear are required for a valid oci container image
+    # others are optional based on settings.
+    sloci-image $sloci_options \
+        --arch ${OCI_IMAGE_ARCH} \
+        --arch-variant "${OCI_IMAGE_SUBARCH}" \
+        --entrypoint "${OCI_IMAGE_ENTRYPOINT}" \
+        --cmd "${OCI_IMAGE_ENTRYPOINT_ARGS}" \
+        --author "${OCI_IMAGE_AUTHOR} <${OCI_IMAGE_AUTHOR_EMAIL}>" \
+        ${oci_image_user_options} \
+        ${oci_image_label_options} \
+        ${oci_image_env_options} \
+        ${oci_image_working_dir_options} \
+        ${oci_image_port_options} \
+        ${IMAGE_ROOTFS} ${IMAGE_NAME}${IMAGE_NAME_SUFFIX}-oci:${OCI_IMAGE_TAG}
+}
+
+do_image_oci
+
+ret=$?
+exit $ret

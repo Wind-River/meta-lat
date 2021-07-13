@@ -1,0 +1,18 @@
+# - Add a new user to the system, do not create home directory
+# Username: system-user
+# Password: 123456
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+image_type:
+- ostree-repo
+- ustart
+packages:
+- shadow
+- base-passwd
+- base-files
+system:
+- run_once:
+  - exampleyamls/sysdef/run_once.d/10_add_system_user.sh

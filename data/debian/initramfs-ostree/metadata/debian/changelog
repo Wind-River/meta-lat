@@ -1,0 +1,5 @@
+initramfs-ostree (1.0-1) unstable; urgency=medium
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- root <root@3b917021b2df>  Wed, 07 Apr 2021 07:12:55 +0000

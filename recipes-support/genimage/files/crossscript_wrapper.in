@@ -1,0 +1,7 @@
+#!/bin/bash
+set -x
+if [ x"$D" = "x" ]; then
+    echo "$D is not set"
+    exit 1
+fi
+PSEUDO_UNLOAD=1 qemuwrapper -L $D @QEMU_ARGS@ $D@COMMAND@ "$@"

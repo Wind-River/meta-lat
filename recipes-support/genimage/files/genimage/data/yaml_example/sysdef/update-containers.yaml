@@ -1,0 +1,29 @@
+# - At a boot after upgrade, pulls listed containers (from containers.dat)
+#   from a public registrey and runs them.
+# - At each boot, start listed containers (from containers.dat)
+# - Two containers in containers.dat: hello-world and ubuntu
+# - Add a docker_daemon.jason to set private insecure registries of Wind River
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+image_type:
+- ostree-repo
+- ustart
+packages:
+- startup-container
+- docker
+rootfs-post-scripts:
+- echo "ubuntu" >> $IMAGE_ROOTFS/etc/sysdef/run_on_upgrade.d/containers.dat
+- echo "ubuntu-bash image=ubuntu run-opt="-p 2224:22 -it" run-cmd=/bin/bash" >> $IMAGE_ROOTFS/etc/sysdef/run_on_upgrade.d/containers.dat
+system:
+- run_on_upgrade:
+  - exampleyamls/sysdef/run_on_upgrade.d/10_update_containers.sh
+- run_always:
+  - exampleyamls/sysdef/run_always.d/10_start_containers.sh
+- files:
+  - file:
+      src: exampleyamls/sysdef/run_on_upgrade.d/containers.dat
+      dst: /etc/sysdef/run_on_upgrade.d/
+      mode: 644

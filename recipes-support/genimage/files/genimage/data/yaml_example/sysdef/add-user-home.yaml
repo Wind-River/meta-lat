@@ -1,0 +1,27 @@
+# - Add a new user and create user's home directory and
+#   add the user to sudo group
+# - Allow members of group sudo to execute any command
+# Username: admin
+# Password: 123456
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+
+image_type:
+- ostree-repo
+- ustart
+packages:
+- shadow
+- base-passwd
+- base-files
+- sudo
+system:
+- run_once:
+  - exampleyamls/sysdef/run_once.d/20_add_user_home.sh
+- files:
+  - file:
+      src: exampleyamls/sysdef/files/sudoers_sudo
+      dst: /etc/sudoers.d/sudo
+      mode: 644

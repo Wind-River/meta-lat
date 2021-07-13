@@ -1,0 +1,15 @@
+# Set Wind River DNS
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+image_type:
+- ostree-repo
+- ustart
+system:
+- files:
+  - file:
+      src: exampleyamls/sysdef/files/windriver_dns.conf
+      dst: /etc/systemd/resolved.conf.d/windriver_dns.conf
+      mode: 644

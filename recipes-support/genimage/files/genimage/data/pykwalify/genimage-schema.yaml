@@ -1,0 +1,169 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+type: map
+mapping:
+  name:
+    include: name_str
+  machine:
+    include: machine_str
+  image_type:
+    include: image_type_seq
+  package_type:
+    include: package_str
+  package_feeds:
+    include: package_feeds_seq
+  remote_pkgdatadir:
+    include: remote_pkgdatadir_str
+  features:
+    include: features_map
+  packages:
+    include: packages_seq
+  external-packages:
+    include: external-packages_seq
+  include-default-packages:
+    include: include-default-packages_str
+  rootfs-pre-scripts:
+    include: rootfs-pre-scripts_seq
+  rootfs-post-scripts:
+    include: rootfs-post-scripts_seq
+  environments:
+    include: environments_seq
+  ostree:
+    include: ostree_map
+  wic:
+    include: wic_map
+  gpg:
+    include: gpg_map
+  system:
+    include: system_seq
+
+schema;system_seq:
+  type: seq
+  sequence:
+    - type: map
+      mapping:
+        run_once:
+          type: seq
+          sequence:
+            - type: str
+              nullable: False
+              func: ext_file_exists
+        run_on_upgrade:
+          type: seq
+          sequence:
+            - type: str
+              nullable: False
+              func: ext_file_exists
+        run_always:
+          type: seq
+          sequence:
+            - type: str
+              nullable: False
+              func: ext_file_exists
+        contains:
+          type: seq
+          sequence:
+            - type: str
+              nullable: False
+              func: ext_file_exists
+        files:
+          type: seq
+          sequence:
+            - type: map
+              mapping:
+                file:
+                  type: map
+                  mapping:
+                    src:
+                      type: str
+                      nullable: False
+                      func: ext_file_exists
+                    dst:
+                      type: str
+                      nullable: False
+                    mode:
+                      type: int
+                      nullable: False
+
+schema;image_type_seq:
+  type: seq
+  sequence:
+    - type: str
+      enum: ['ostree-repo', 'wic', 'iso', 'vmdk', 'vdi', 'ustart', 'all']
+      nullable: False
+  nullable: False
+  desc: The image type
+  example: ostree-repo ustart
+
+schema;ostree_map:
+  type: map
+  mapping:
+    OSTREE_CONSOLE:
+      type: str
+      nullable: False
+      pattern: console=.+
+    OSTREE_FDISK_BLM:
+      type: int
+      desc: Boot Loader Magic block offset (where the first partition should start in sectors)
+    OSTREE_FDISK_BSZ:
+      type: int
+      desc: Size of the Boot partition, numeric in MB only
+    OSTREE_FDISK_FSZ:
+      type: int
+      range:
+        min: 32
+      desc: Size of the Fat / EFI partition, numeric in MB only
+    OSTREE_FDISK_RSZ:
+      type: int
+      desc: Size of the Root partition, numeric in MB only
+    OSTREE_FDISK_VSZ:
+      type: int
+      desc: Size of the /var partition, 0 for fill disk
+    OSTREE_GRUB_PW_FILE:
+      type: str
+      nullable: False
+    OSTREE_GRUB_USER:
+      type: str
+      nullable: False
+    ostree_install_device:
+      type: str
+      nullable: False
+      desc: One or more devices separated by a comma where the first valid device found is used as the install device  OR use "ask" to ask for device, OR use LABEL=x, PUUID=x, UUID=x
+    ostree_osname:
+      type: str
+      nullable: False
+    ostree_remote_url:
+      type: str
+      desc: URL of OSTree repository for upgrade, if you bake it in, you can run ostree_upgrade.sh each time you you rebuild and publish the updates
+    ostree_skip_boot_diff:
+      type: str
+      enum: ['0', '1', '2']
+      nullable: False
+      desc: 0 = Perform a full fsck and boot diff, 1 = Skip the FSCK check, 2 = Skip the FSCK and the boot
+    ostree_use_ab:
+      type: str
+      enum: ['0', '1']
+      nullable: False
+      desc: 1 = Use the A/B partition, 0 = single partition image
+    ostree_extra_install_args:
+      type: str
+      nullable: False
+
+schema;wic_map:
+  type: map
+  mapping:
+    OSTREE_FLUX_PART:
+      type: str
+      nullable: False
+      desc: Parition type for /var, luksfluxdata or fluxdata
+    OSTREE_WKS_BOOT_SIZE:
+      type: str
+    OSTREE_WKS_EFI_SIZE:
+      type: str
+    OSTREE_WKS_FLUX_SIZE:
+      type: str
+    OSTREE_WKS_ROOT_SIZE:
+      type: str

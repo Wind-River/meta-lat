@@ -1,0 +1,25 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+machine: bcm-2xxx-rpi4
+packages:
+- crda
+- kernel-devicetree
+- kernel-image-image
+- kernel-module-bcm2835-gpiomem
+- kernel-module-bcm2835-v4l2
+- kernel-module-bnep
+- kernel-module-brcmfmac
+- kernel-module-btbcm
+- kernel-module-hci-uart
+- kernel-module-i2c-bcm2835
+- kernel-module-snd-bcm2835
+- kernel-module-spi-bcm2835
+- kernel-module-v3d
+- kernel-module-vc4
+- linux-firmware-bcm43430
+- linux-firmware-bcm43455
+- u-boot
+- u-boot-uenv

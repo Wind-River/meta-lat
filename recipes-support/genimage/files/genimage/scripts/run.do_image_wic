@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+set -x
+## Require environments
+# IMAGE_ROOTFS
+# DEPLOY_DIR_IMAGE
+# WORKDIR
+# IMAGE_NAME
+# MACHINE
+# WKS_FILE
+# DATETIME
+
+export LC_ALL="en_US.UTF-8"
+IMAGE_BASENAME="${IMAGE_NAME}"
+WIC_CREATE_EXTRA_ARGS=""
+do_image_wic() {
+	out="${DEPLOY_DIR_IMAGE}/${IMAGE_BASENAME}-${MACHINE}-${DATETIME}"
+	build_wic="${WORKDIR}/build-wic"
+	wks="${WKS_FILE}"
+	if [ -z "$wks" ]; then
+		bbfatal "No kickstart files from WKS_FILE were found: ${WKS_FILE}. Please set WKS_FILE appropriately."
+	fi
+	wic create -D -r ${IMAGE_ROOTFS} -b ${DEPLOY_DIR_IMAGE} -k ${DEPLOY_DIR_IMAGE}  -m -s ${WKS_FILE} -o "$build_wic" ${WIC_CREATE_EXTRA_ARGS}
+
+	mv "$build_wic/$(basename "${wks%.wks}")"*.direct "$out.rootfs.wic"
+
+	bmaptool create "$out.rootfs.wic" -o "$out.rootfs.wic.bmap"
+}
+
+bbfatal() {
+	echo "ERROR: $*"
+	exit 1
+}
+
+do_image_wic
+
+# cleanup
+ret=$?
+exit $ret

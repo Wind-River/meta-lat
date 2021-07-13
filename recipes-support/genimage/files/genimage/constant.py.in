@@ -1,0 +1,244 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+import getpass
+
+DEFAULT_MACHINE = "${MACHINE}"
+
+SUPPORTED_PKGTYPES = "${SUPPORTED_PKGTYPES}".split()
+
+DEFAULT_MULTIMACH_TARGET_SYS_DICT = {
+    'intel-x86-64': 'corei7-64-wrs-linux',
+    'bcm-2xxx-rpi4': 'cortexa72-wrs-linux'
+}
+
+DEFAULT_IMAGE_PKGTYPE = "${IMAGE_PKGTYPE}"
+
+DEFAULT_RPM_PACKAGE_FEED = "${DEFAULT_RPM_PACKAGE_FEED}".split()
+DEFAULT_DEB_PACKAGE_FEED = "${DEFAULT_DEB_PACKAGE_FEED}".split()
+DEFAULT_EXTERNAL_DEB_PACKAGE_FEED = "${DEFAULT_EXTERNAL_DEB_PACKAGE_FEED}".split(";")
+DEFAULT_PACKAGE_FEED = {
+    'rpm': DEFAULT_RPM_PACKAGE_FEED,
+    'deb': DEFAULT_DEB_PACKAGE_FEED,
+    'external-debian': DEFAULT_EXTERNAL_DEB_PACKAGE_FEED
+}
+
+DEFAULT_LOCAL_RPM_PACKAGE_FEED = "${DEFAULT_LOCAL_RPM_PACKAGE_FEED}".split()
+DEFAULT_LOCAL_DEB_PACKAGE_FEED = "${DEFAULT_LOCAL_DEB_PACKAGE_FEED}".split()
+DEFAULT_LOCAL_PACKAGE_FEED = {
+    'rpm': DEFAULT_LOCAL_RPM_PACKAGE_FEED,
+    'deb': DEFAULT_LOCAL_DEB_PACKAGE_FEED,
+    'external-debian': DEFAULT_EXTERNAL_DEB_PACKAGE_FEED
+}
+
+DEFAULT_REMOTE_RPM_PKGDATADIR = "${REMOTE_RPM_PKGDATADIR}"
+DEFAULT_REMOTE_DEB_PKGDATADIR = "${REMOTE_DEB_PKGDATADIR}"
+DEFAULT_REMOTE_PKGDATADIR = {
+    'rpm': DEFAULT_REMOTE_RPM_PKGDATADIR,
+    'deb': DEFAULT_REMOTE_DEB_PKGDATADIR
+}
+
+DEFAULT_IMAGE = "${LAT_DEFAULT_IMAGE}"
+
+DEFAULT_INITRD_NAME = "initramfs-ostree-image"
+
+DEFAULT_CONTAINER_NAME = "container-base"
+
+DEFAULT_IMAGE_FEATURES = {
+    'pkg_globs': None,
+    'image_linguas': '${IMAGE_LINGUAS}',
+}
+
+RPM_PACKAGE_FEED_ARCHS = '${RPM_PACKAGE_FEED_ARCHS}'
+DEB_PACKAGE_FEED_ARCHS = '${DEB_PACKAGE_FEED_ARCHS}'
+
+FEED_ARCHS_DICT = {
+    'intel-x86-64': "all any noarch x86 i586 i686 core2_32 corei7_32 intel_x86_64 x86_64 core2_64 corei7_64",
+    'bcm-2xxx-rpi4': "all any noarch armv5hf_vfp armv5thf_vfp armv5ehf_vfp armv5tehf_vfp armv6hf_vfp armv6thf_vfp armv7ahf_vfp armv7at2hf_vfp armv7ahf_neon armv7at2hf_neon bcm_2xxx_rpi4 aarch64 armv8a armv8a_crc armv8a_crypto armv8a_crc_crypto cortexa72",
+}
+
+DEFAULT_PACKAGES_COMMON = '''
+    packagegroup-core-boot
+    kernel-modules
+    i2c-tools
+    packagegroup-core-base-utils
+    glib-networking
+    ca-certificates
+    ostree
+    ostree-upgrade-mgr
+    os-release
+    run-postinsts
+    systemd
+'''.split()
+
+DEFAULT_PACKAGES_bcm_2xxx_rpi4 = '''
+    u-boot-uenv
+    alsa-utils
+    pm-utils
+    linux-firmware
+    u-boot
+    kernel-devicetree
+    kernel-image-image
+'''.split()
+
+DEFAULT_PACKAGES_intel_x86_64 = '''
+    iucode-tool intel-microcode
+    rtl8723bs-bt
+    lmsensors
+    grub-efi
+'''.split()
+
+# default rootfs: ${LAT_DEFAULT_IMAGE}
+DEFAULT_PACKAGES = {
+    'intel-x86-64': DEFAULT_PACKAGES_intel_x86_64 + DEFAULT_PACKAGES_COMMON,
+    'bcm-2xxx-rpi4': DEFAULT_PACKAGES_bcm_2xxx_rpi4 + DEFAULT_PACKAGES_COMMON,
+}
+
+OSTREE_INITRD_PACKAGES = '''
+    glib-networking
+    ca-certificates
+    e2fsprogs-e2fsck
+    mttyexec grub eject
+    ostree ostree-switchroot
+    initramfs-ostree bash
+    kmod bzip2 gnupg kbd
+    util-linux util-linux-setsid
+    util-linux-mount util-linux-blkid
+    util-linux-lsblk util-linux-fdisk
+    util-linux-fsck util-linux-blockdev
+    dosfstools curl udev mdadm
+    base-passwd rng-tools e2fsprogs-tune2fs
+    e2fsprogs-resize2fs pv gzip findutils
+    tar grep sed gawk busybox busybox-udhcpc
+'''.split()
+
+DEFAULT_CONTAINER_PACKAGES = '''
+    base-files
+    base-passwd
+    ca-certificates
+    ${PKG_MNGT_PACKAGE}
+    openssh
+    os-release
+    packagegroup-core-base-utils
+    run-postinsts
+    update-alternatives-opkg
+'''.split()
+
+DEFAULT_GPG_DATA = {
+  'gpg_path':'/tmp/.lat_gnupg_%s'%getpass.getuser(),
+  'ostree': {
+    'gpgid': '${OSTREE_GPGID}',
+    'gpgkey': '$OECORE_NATIVE_SYSROOT/usr/share/genimage/rpm_keys/RPM-GPG-PRIVKEY-${OSTREE_GPGID}',
+    'gpg_password': '${OSTREE_GPG_PASSPHRASE}'
+  },
+  'grub': {
+    'BOOT_GPG_NAME': '${BOOT_GPG_NAME}',
+    'BOOT_GPG_PASSPHRASE':'${BOOT_GPG_PASSPHRASE}',
+    'BOOT_KEYS_DIR': '$OECORE_NATIVE_SYSROOT/usr/share/bootfs/boot_keys'
+  },
+}
+
+DEFAULT_OCI_CONTAINER_DATA = {
+  'OCI_IMAGE_AUTHOR':'${OCI_IMAGE_AUTHOR}',
+  'OCI_IMAGE_AUTHOR_EMAIL' : '${OCI_IMAGE_AUTHOR_EMAIL}',
+  'OCI_IMAGE_TAG': '${OCI_IMAGE_TAG}',
+  'OCI_IMAGE_RUNTIME_UID': '${OCI_IMAGE_RUNTIME_UID}',
+  'OCI_IMAGE_ENTRYPOINT': '',
+  'OCI_IMAGE_ENTRYPOINT_ARGS': '/bin/sh',
+  'OCI_IMAGE_WORKINGDIR': '${OCI_IMAGE_WORKINGDIR}',
+  'OCI_IMAGE_PORTS': '${OCI_IMAGE_PORTS}',
+  'OCI_IMAGE_LABELS': '${OCI_IMAGE_LABELS}',
+  'OCI_IMAGE_ENV_VARS': '${OCI_IMAGE_ENV_VARS}',
+}
+
+DEFAULT_OSTREE_DATA = {
+  'ostree_use_ab': '${OSTREE_USE_AB}',
+  'ostree_osname': '${OSTREE_OSNAME}',
+  'ostree_skip_boot_diff': '${OSTREE_SKIP_BOOT_DIFF}',
+  'ostree_remote_url': '',
+  'ostree_install_device': '',
+  'ostree_extra_install_args':'',
+  'OSTREE_GRUB_USER': '${OSTREE_GRUB_USER}',
+  'OSTREE_GRUB_PW_FILE': '$OECORE_NATIVE_SYSROOT/usr/share/bootfs/boot_keys/ostree_grub_pw',
+  'OSTREE_FDISK_BLM': int('${OSTREE_FDISK_BLM}'),
+  'OSTREE_FDISK_BSZ': int('${OSTREE_FDISK_BSZ}'),
+  'OSTREE_FDISK_RSZ': int('${OSTREE_FDISK_RSZ}'),
+  'OSTREE_FDISK_VSZ': int('${OSTREE_FDISK_VSZ}'),
+  'OSTREE_FDISK_FSZ': int('${OSTREE_FDISK_FSZ}'),
+  'OSTREE_CONSOLE': '${OSTREE_CONSOLE}',
+}
+
+EXTRA_IMAGE_BOOT_FILES = {
+    'intel-x86-64': '',
+    'bcm-2xxx-rpi4': 'initramfs-ostree-image-bcm-2xxx-rpi4.cpio.gz.u-boot;initramfs',
+}
+IMAGE_BOOT_FILES = "${IMAGE_BOOT_FILES}"
+
+DEFAULT_WIC_DATA = {
+  'OSTREE_WKS_BOOT_SIZE': '${OSTREE_WKS_BOOT_SIZE}',
+  'OSTREE_WKS_EFI_SIZE': '${OSTREE_WKS_EFI_SIZE}',
+  'OSTREE_WKS_ROOT_SIZE': '${OSTREE_WKS_ROOT_SIZE}',
+  'OSTREE_WKS_FLUX_SIZE': '${OSTREE_WKS_FLUX_SIZE}',
+  'OSTREE_FLUX_PART': '${OSTREE_FLUX_PART}'
+}
+
+PACKAGE_MANAGER_SECTION_RPM = '''\
+### Dnf/Rpm
+Prerequisite: The dnf and rpm are installed on image
+
+#### Install a normal package
+The images are locked by default, so need unlock firstly:
+    $ ostree admin unlock --hotfix
+
+To install a package
+    $ dnf install <package>
+
+To remove a package
+    $ dnf remove <package>
+
+#### Install Graphic Desktop (XFCE)
+To install packages by following steps:
+    $ ostree admin unlock --hotfix
+    $ dnf install -y packagegroup-xfce-base \
+                     packagegroup-core-x11-base \
+                     gsettings-desktop-schemas \
+    $ systemctl set-default graphical.target
+    $ reboot
+'''
+
+PACKAGE_MANAGER_SECTION_DEB = '''\
+### Apt/Dpkg
+Prerequisite: The apt and dpkg are installed on image
+
+#### Install a normal package
+The images are locked by default, so need unlock firstly:
+    $ ostree admin unlock --hotfix
+
+To install a package
+    $ apt install <package>
+
+To remove a package
+    $ apt remove <package>
+'''
+
+PACKAGE_MANAGER_SECTION = {
+    'rpm': PACKAGE_MANAGER_SECTION_RPM,
+    'deb': PACKAGE_MANAGER_SECTION_DEB,
+    'external-debian': PACKAGE_MANAGER_SECTION_DEB
+}
+
+IMAGE_BOOT_FILES = "${IMAGE_BOOT_FILES}"
+OSTREE_COPY_IMAGE_BOOT_FILES = "${OSTREE_COPY_IMAGE_BOOT_FILES}"

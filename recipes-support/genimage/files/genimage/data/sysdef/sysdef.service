@@ -1,0 +1,18 @@
+[Unit]
+Description=A tool to implement the runtime functionality of the System Definition.
+DefaultDependencies=no
+After=network-online.target
+Wants=network-online.target systemd-networkd-wait-online.service
+StartLimitBurst=3
+StartLimitIntervalSec=9600
+
+[Service]
+Type=oneshot
+Restart=on-failure
+RestartSec=5
+ExecStart=/usr/bin/sysdef.sh run-all
+RemainAfterExit=yes
+TimeoutSec=3600
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,1 @@
+../../common/build_scripts/apply_metadata_patches.sh

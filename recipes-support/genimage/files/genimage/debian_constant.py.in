@@ -1,0 +1,175 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+DEFAULT_IMAGE = "debian-image-base"
+
+DEFAULT_INITRD_NAME = "debian-initramfs-ostree-image"
+
+DEFAULT_CONTAINER_NAME = "debian-container-base"
+
+DEFAULT_DEBIAN_DISTROS = "bullseye buster".split()
+
+CHROOT_PATH = "/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+
+SCRIPT_DEBIAN_CUSTOMIZE_INSTALL = '''\
+# The StarlingX customize pacakges includes:
+# - ostree 2019.1
+export PATH={0}
+chroot $IMAGE_ROOTFS bash << SCRIPT_ENDOF
+set -e
+apt update
+apt install -y --no-install-recommends linux-image-amd64 grub-common
+apt install -y --allow-downgrades --allow-unauthenticated --no-install-recommends \
+    ostree=${DEBIAN_OSTREE_VERSION} \
+    ostree-boot=${DEBIAN_OSTREE_VERSION} \
+    libostree-1-1=${DEBIAN_OSTREE_VERSION} \
+    ostree-upgrade-mgr
+apt install --no-install-recommends -y network-manager
+SCRIPT_ENDOF
+'''.format(CHROOT_PATH)
+
+SCRIPT_DEBIAN_ADD_ADMIN = '''\
+# Remove user admin whether it exists or not
+# Add a new user and create user's home directory
+# Add the user to sudo group
+# Username: admin
+# Password: 123456
+export PATH={0}
+chroot $IMAGE_ROOTFS deluser admin
+chroot $IMAGE_ROOTFS useradd admin -m --shell /bin/bash -G sudo --password '$6$YcX9PtwnWDeeZfLG$NO64/Frq0xXcMVLKFXqdKxdwBBF42I5TpEiaWfnuj6u6V5GMb0XCASZE7bG4Iiof8QtttCAN4F6xpdNhldIJl/'\
+'''.format(CHROOT_PATH)
+
+SCRIPT_DEBIAN_SET_ROOT_PASSWORD = '''\
+# Set password 'root' to root"
+export PATH={0}
+chroot $IMAGE_ROOTFS usermod -p '$6$hEv/K.fPeg/$ezIWhJPrMG3WtdEwqQRdyBwdYmPZkqW2PONFAcDd6TqWliYc9dHAwW4MFTlLanVH3/clE0/34FheDMpbAqZVG.' root;\
+'''.format(CHROOT_PATH)
+
+SCRIPT_DEBIAN_SSH_ROOT_LOGIN = '''\
+# Allow root ssh login
+export PATH={0}
+chroot $IMAGE_ROOTFS sed -i 's/^[#[:space:]]*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config\
+'''.format(CHROOT_PATH)
+
+SCRIPT_DEPLOY_KERNEL_GRUB_SDK = '''\
+# From appsdk
+# Copy kernel images and grub-efi to deploydir
+# Copy efi to rootfs
+set -x
+set -e
+cp -rf $OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/grub.cfg $DEPLOY_DIR/grub.cfg
+cp -rf $OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/bootx64.efi $DEPLOY_DIR/bootx64.efi
+cp -rf $OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/bootx64.efi $DEPLOY_DIR/grub-efi-bootx64.efi
+cp -rf $OECORE_TARGET_SYSROOT/boot/efi $IMAGE_ROOTFS/boot/
+cp -rf $IMAGE_ROOTFS/boot/*-amd64 $DEPLOY_DIR
+KERNEL=`ls $DEPLOY_DIR/vmlinuz-*-amd64`
+ln -snf --relative $KERNEL  $DEPLOY_DIR/bzImage
+rm $IMAGE_ROOTFS/root -rf
+mkdir -p $IMAGE_ROOTFS/root
+'''
+
+SCRIPT_DEPLOY_KERNEL_GRUB_LOCAL = '''\
+# From local build
+# Copy kernel images and grub-efi to deploydir
+# Copy efi to rootfs
+set -x
+set -e
+cp -rf ${DEPLOY_DIR_IMAGE}/grub.cfg $DEPLOY_DIR/grub.cfg
+cp -rf ${DEPLOY_DIR_IMAGE}/grub-efi-bootx64.efi $DEPLOY_DIR/bootx64.efi
+cp -rf ${DEPLOY_DIR_IMAGE}/grub-efi-bootx64.efi $DEPLOY_DIR/grub-efi-bootx64.efi
+mkdir -p $IMAGE_ROOTFS/boot/efi/EFI/BOOT
+cp -rf ${DEPLOY_DIR_IMAGE}/grub-efi-bootx64.efi $IMAGE_ROOTFS/boot/efi/EFI/BOOT/bootx64.efi
+cp -rf ${DEPLOY_DIR_IMAGE}/grub.cfg $IMAGE_ROOTFS/boot/efi/EFI/BOOT/
+cp -rf $IMAGE_ROOTFS/boot/*-amd64 $DEPLOY_DIR
+KERNEL=`ls $DEPLOY_DIR/vmlinuz-*-amd64`
+ln -snf --relative $KERNEL  $DEPLOY_DIR/bzImage
+rm $IMAGE_ROOTFS/root -rf
+mkdir -p $IMAGE_ROOTFS/root
+'''
+
+SCRIPT_DEBIAN_SET_BASH = '''\
+# Set bash as default shell
+ln -snf --relative $IMAGE_ROOTFS/bin/bash $IMAGE_ROOTFS/bin/sh\
+'''
+
+SCRIPT_DEBIAN_SET_MISC = '''\
+# Set hostname
+echo "intel-x86-64" > $IMAGE_ROOTFS/etc/hostname
+'''
+
+DEFAULT_PACKAGES = '''
+    openssh-client
+    openssh-server
+    net-tools
+    vim
+'''.split()
+
+DEFAULT_APT_PREFERENCE = '''\
+Package: *
+Pin: origin {0}
+Pin-Priority: 1024\
+'''.format("${DEBIAN_CUSTOMIZE_FEED_URI}".replace("http://", "").split("/")[0])
+
+SCRIPT_DEBIAN_INITRD_REDUCE_SIZE = '''\
+# Reduce rootfs size AMAP
+export PATH={0}
+chroot $IMAGE_ROOTFS bash << SCRIPT_ENDOF
+set -x
+rm -rf /boot/*
+rm -rf /var/lib/* /var/cache/*
+rm -rf /usr/share/locale /usr/share/man /usr/share/doc /usr/share/zoneinfo /usr/share/vim
+SCRIPT_ENDOF\
+'''.format(CHROOT_PATH)
+
+OSTREE_INITRD_PACKAGES = '''
+    base-passwd bash busybox
+    udhcpc bzip2 ca-certificates
+    curl dosfstools e2fsprogs
+    findutils gawk glib-networking
+    gnupg grep gzip  initramfs-ostree
+    kbd kmod mdadm mttyexec watchdog
+    pv rng-tools sed eject
+    ostree=${DEBIAN_OSTREE_VERSION}
+    ostree-boot=${DEBIAN_OSTREE_VERSION}
+    libostree-1-1=${DEBIAN_OSTREE_VERSION}
+    tar udev util-linux fdisk mount
+    linux-image-amd64 grub2
+'''.split()
+
+DEFAULT_CONTAINER_PACKAGES = '''
+    openssh-client
+    openssh-server
+    net-tools
+    vim
+    debootstrap
+'''.split()
+
+DEFAULT_OSTREE_DATA = {
+  'ostree_use_ab': '${OSTREE_USE_AB}',
+  'ostree_osname': '${OSTREE_OSNAME}',
+  'ostree_skip_boot_diff': '2',
+  'ostree_remote_url': '',
+  'ostree_install_device': '',
+  'ostree_extra_install_args':'',
+  'OSTREE_GRUB_USER': 'root',
+  'OSTREE_GRUB_PW_FILE': '$OECORE_NATIVE_SYSROOT/usr/share/bootfs/boot_keys/ostree_grub_pw',
+  'OSTREE_FDISK_BLM': int('${OSTREE_FDISK_BLM}'),
+  'OSTREE_FDISK_BSZ': int('512'),
+  'OSTREE_FDISK_RSZ': int('${OSTREE_FDISK_RSZ}'),
+  'OSTREE_FDISK_VSZ': int('${OSTREE_FDISK_VSZ}'),
+  'OSTREE_FDISK_FSZ': int('${OSTREE_FDISK_FSZ}'),
+  'OSTREE_CONSOLE': 'console=ttyS0,115200 console=tty1',
+}

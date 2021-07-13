@@ -1,0 +1,12 @@
+# Set Wind River NTP
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+image_type:
+- ostree-repo
+- ustart
+system:
+- run_once:
+  - exampleyamls/sysdef/run_once.d/40_set_ntp.sh

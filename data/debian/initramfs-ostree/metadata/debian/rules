@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -d $(CURDIR)/debian/initramfs-ostree/
+	install -m 0755 init-ostree-install.sh $(CURDIR)/debian/initramfs-ostree/install
+	install -m 0755 init-ostree.sh $(CURDIR)/debian/initramfs-ostree/init
+	install -m 0755 init.luks-ostree $(CURDIR)/debian/initramfs-ostree/init.luks-ostree
+	sed -i -e "s#@OSTREE_OSNAME@#${OSTREE_OSNAME}#g" $(CURDIR)/debian/initramfs-ostree/install
+	sed -i -e "s#@OSTREE_OSNAME@#${OSTREE_OSNAME}#g" $(CURDIR)/debian/initramfs-ostree/init.luks-ostree
+	install -d $(CURDIR)/debian/initramfs-ostree/dev
+
+

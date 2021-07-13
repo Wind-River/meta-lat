@@ -1,0 +1,14 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+machine: intel-x86-64
+image_type:
+- vdi
+- vmdk
+packages:
+- vboxguestdrivers
+- kernel-module-vboxsf
+- kernel-module-vboxvideo
+- kernel-module-vboxguest

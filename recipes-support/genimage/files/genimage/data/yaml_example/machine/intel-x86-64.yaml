@@ -1,0 +1,12 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+machine: intel-x86-64
+packages:
+- grub-efi
+- intel-microcode
+- iucode-tool
+- lmsensors
+- rtl8723bs-bt

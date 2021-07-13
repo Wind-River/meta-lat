@@ -1,0 +1,127 @@
+From db0add4e5132d09e769fd31a8eaa106a5fd55577 Mon Sep 17 00:00:00 2001
+From: Jun Miao <jun.miao@windriver.com>
+Date: Wed, 14 Apr 2021 09:26:18 +0800
+Subject: [PATCH] drm/i915/gt: Fix a lockdep warning with interrupts enabled
+
+RT complains about might sleep inside signal_irq_work() because spin_lock will
+be invoked after disabling interrupts. 
+
+Enable the local interrupt delivery of CPU hardware irq and replace the spin_lock
+with spin_lock_irqsave inside signal_irq_work on RT kernel.
+
+BUG: sleeping function called from invalid context at kernel/locking/rtmutex.c:969
+  #0: ffff89c4c00ca970 ((wq_completion)events){+.+.}-{0:0}, at: process_one_work+0x1cf/0x6d0
+  #1: ffffa433c1f53e60 ((work_completion)(&engine->retire_work)){+.+.}-{0:0}, at: process_one_work+0x1cf 0x6d
+  #2: ffff89c4ccb0a0a8 (kernel_context){+.+.}-{0:0}, at: engine_retire+0x62/0x110 [i915]
+  #3: ffff89c4cf682300 (wakeref.mutex#3){+.+.}-{0:0}, at: __intel_wakeref_put_last+0x20/0x60 [i915]
+  #4: ffff89c4ccb08398 (&b->irq_lock){+.+.}-{0:0}, at: intel_breadcrumbs_disarm_irq+0x20/0xd0 [i915]
+ irq event stamp: 2126
+ hardirqs last  enabled at (2125): [<ffffffffbb134739>] cancel_delayed_work+0xa9/0xc0
+ hardirqs last disabled at (2126): [<ffffffffc0507fe6>] __intel_breadcrumbs_park+0x76/0x80 [i915]
+ softirqs last  enabled at (0): [<ffffffffbb1099ce>] copy_process+0x63e/0x1630
+ softirqs last disabled at (0): [<0000000000000000>] 0x0
+ CPU: 3 PID: 281 Comm: kworker/3:3 Not tainted 5.10.27-rt34-yocto-preempt-rt #1
+ Hardware name: Intel(R) Client Systems NUC7i5DNKE/NUC7i5DNB, BIOS DNKBLi5v.86A.0064.2019.0523.1933 05/23 2019
+ Workqueue: events engine_retire [i915]
+ Call Trace:
+  show_stack+0x52/0x58
+  dump_stack+0x7d/0x9f
+  ___might_sleep.cold+0xe3/0xf4
+  rt_spin_lock+0x3f/0xc0
+  ? intel_breadcrumbs_disarm_irq+0x20/0xd0 [i915]
+  intel_breadcrumbs_disarm_irq+0x20/0xd0 [i915]
+  signal_irq_work+0x241/0x660 [i915]
+  ? __this_cpu_preempt_check+0x13/0x20
+  ? lockdep_hardirqs_off+0x106/0x120
+  __intel_breadcrumbs_park+0x3f/0x80 [i915]
+  __engine_park+0xbd/0xe0 [i915]
+  ____intel_wakeref_put_last+0x22/0x60 [i915]
+  __intel_wakeref_put_last+0x50/0x60 [i915]
+  intel_context_exit_engine+0x5f/0x70 [i915]
+  i915_request_retire+0x139/0x2d0 [i915]
+  engine_retire+0xb0/0x110 [i915]
+  process_one_work+0x26d/0x6d0
+  worker_thread+0x53/0x330
+  kthread+0x1b0/0x1d0
+  ? process_one_work+0x6d0/0x6d0
+  ? __kthread_parkme+0xc0/0xc0
+  ret_from_fork+0x22/0x30
+
+Fixes: 9d5612ca165a ("drm/i915/gt: Defer enabling the breadcrumb interrupt to after submission")
+Signed-off-by: Jun Miao <jun.miao@windriver.com>
+---
+ drivers/gpu/drm/i915/gt/intel_breadcrumbs.c | 19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/gt/intel_breadcrumbs.c b/drivers/gpu/drm/i915/gt/intel_breadcrumbs.c
+index 0040b4765a54..37931e3b6621 100644
+--- a/drivers/gpu/drm/i915/gt/intel_breadcrumbs.c
++++ b/drivers/gpu/drm/i915/gt/intel_breadcrumbs.c
+@@ -82,13 +82,15 @@ static void __intel_breadcrumbs_arm_irq(struct intel_breadcrumbs *b)
+ 
+ static void intel_breadcrumbs_arm_irq(struct intel_breadcrumbs *b)
+ {
++	unsigned long flags;
++
+ 	if (!b->irq_engine)
+ 		return;
+ 
+-	spin_lock(&b->irq_lock);
++	spin_lock_irqsave(&b->irq_lock, flags);
+ 	if (!b->irq_armed)
+ 		__intel_breadcrumbs_arm_irq(b);
+-	spin_unlock(&b->irq_lock);
++	spin_unlock_irqrestore(&b->irq_lock, flags);
+ }
+ 
+ static void __intel_breadcrumbs_disarm_irq(struct intel_breadcrumbs *b)
+@@ -103,10 +105,12 @@ static void __intel_breadcrumbs_disarm_irq(struct intel_breadcrumbs *b)
+ 
+ static void intel_breadcrumbs_disarm_irq(struct intel_breadcrumbs *b)
+ {
+-	spin_lock(&b->irq_lock);
++	unsigned long flags;
++
++	spin_lock_irqsave(&b->irq_lock, flags);
+ 	if (b->irq_armed)
+ 		__intel_breadcrumbs_disarm_irq(b);
+-	spin_unlock(&b->irq_lock);
++	spin_unlock_irqrestore(&b->irq_lock, flags);
+ }
+ 
+ static void add_signaling_context(struct intel_breadcrumbs *b,
+@@ -212,6 +216,7 @@ static void signal_irq_work(struct irq_work *work)
+ 	const ktime_t timestamp = ktime_get();
+ 	struct llist_node *signal, *sn;
+ 	struct intel_context *ce;
++	unsigned long flags;
+ 
+ 	signal = NULL;
+ 	if (unlikely(!llist_empty(&b->signaled_requests)))
+@@ -286,11 +291,11 @@ static void signal_irq_work(struct irq_work *work)
+ 			llist_entry(signal, typeof(*rq), signal_node);
+ 		struct list_head cb_list;
+ 
+-		spin_lock(&rq->lock);
++		spin_lock_irqsave(&rq->lock, flags);
+ 		list_replace(&rq->fence.cb_list, &cb_list);
+ 		__dma_fence_signal__timestamp(&rq->fence, timestamp);
+ 		__dma_fence_signal__notify(&rq->fence, &cb_list);
+-		spin_unlock(&rq->lock);
++		spin_unlock_irqrestore(&rq->lock, flags);
+ 
+ 		i915_request_put(rq);
+ 	}
+@@ -342,9 +347,7 @@ void intel_breadcrumbs_park(struct intel_breadcrumbs *b)
+ 	/* Kick the work once more to drain the signalers */
+ 	irq_work_sync(&b->irq_work);
+ 	while (unlikely(READ_ONCE(b->irq_armed))) {
+-		local_irq_disable();
+ 		signal_irq_work(&b->irq_work);
+-		local_irq_enable();
+ 		cond_resched();
+ 	}
+ 	GEM_BUG_ON(!list_empty(&b->signalers));
+-- 
+2.25.1
+

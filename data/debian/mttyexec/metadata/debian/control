@@ -1,0 +1,17 @@
+Source: mttyexec
+Section: admin
+Priority: optional
+Maintainer: root <root@3b917021b2df>
+Standards-Version: 4.5.1
+Homepage: https://github.com/WindRiver-Labs/wr-ostree
+#Vcs-Browser: https://salsa.debian.org/debian/mttyexec
+#Vcs-Git: https://salsa.debian.org/debian/mttyexec.git
+Rules-Requires-Root: no
+
+Package: mttyexec
+Architecture: any
+Depends: ${misc:Depends}
+Multi-Arch: foreign
+Description: Multiplex serial ports and tty devices
+ Service funtion to multiplex one or more serial ports and
+ tty console devices
