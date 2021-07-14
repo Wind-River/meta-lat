@@ -4,4 +4,4 @@
 
 part /boot --source isoimage-isohybrid --sourceparams="@SOURCE_PARAMS@" --ondisk cd --label instboot
 
-bootloader  --timeout=15  --append="${BOOT_PARAMS}"
+bootloader  --timeout=15  ${BOOT_PARAMS}
