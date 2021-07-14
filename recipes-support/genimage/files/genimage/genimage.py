@@ -192,34 +192,40 @@ class GenImage(GenXXX):
 
         image_wic.create()
 
+    def _get_boot_parms(self, image_name, data_ostree):
+        date_since_epoch = datetime.datetime.now().strftime('%s')
+        boot_params = "rdinit=/install instname=%s " % data_ostree['ostree_osname']
+        boot_params += "instbr=%s instab=%s " % (image_name, data_ostree['ostree_use_ab'])
+        boot_params += "instsf=1 instdate=@%s instw=60 instl=/ostree_repo " % date_since_epoch
+        boot_params += "biosplusefi=1 "
+        if data_ostree['ostree_remote_url']:
+            boot_params += "insturl=%s " % data_ostree['ostree_remote_url']
+        else:
+            boot_params += "insturl=file://NOT_SET "
+        boot_params += "BLM={0} FSZ={1} BSZ={2} RSZ={3} VSZ={4} ".format(data_ostree['OSTREE_FDISK_BLM'],
+                                                                         data_ostree['OSTREE_FDISK_FSZ'],
+                                                                         data_ostree['OSTREE_FDISK_BSZ'],
+                                                                         data_ostree['OSTREE_FDISK_RSZ'],
+                                                                         data_ostree['OSTREE_FDISK_VSZ'])
+        if data_ostree.get('ostree_install_device', False):
+            boot_params += "instdev=%s " % data_ostree['ostree_install_device']
+        else:
+            boot_params += "instdev=/dev/nvme0n1,/dev/mmcblk0,/dev/sda,/dev/vda "
+
+        for ostree_key in ['OSTREE_CONSOLE', 'ostree_extra_install_args']:
+            if data_ostree.get(ostree_key, False):
+                boot_params += "%s " % data_ostree[ostree_key]
+
+        boot_params = ' --label "OSTree Install %s" --appends "%s" ' % (image_name, boot_params)
+        return boot_params
+
     @show_task_info("Create ISO Image")
     def do_image_iso(self):
         if self.machine != "intel-x86-64":
             logger.error("Only intel-x86-64 support ISO image")
             sys.exit(1)
 
-        date_since_epoch = datetime.datetime.now().strftime('%s')
-        boot_params = "rdinit=/install instname=%s " % self.data['ostree']['ostree_osname']
-        boot_params += "instbr=%s instab=%s " % (self.image_name, self.data['ostree']['ostree_use_ab'])
-        boot_params += "instsf=1 instdate=@%s instw=60 instl=/ostree_repo " % date_since_epoch
-        boot_params += "biosplusefi=1 "
-        if self.data['ostree']['ostree_remote_url']:
-            boot_params += "insturl=%s " % self.data['ostree']['ostree_remote_url']
-        else:
-            boot_params += "insturl=file://NOT_SET "
-        boot_params += "BLM={0} FSZ={1} BSZ={2} RSZ={3} VSZ={4} ".format(self.data['ostree']['OSTREE_FDISK_BLM'],
-                                                                         self.data['ostree']['OSTREE_FDISK_FSZ'],
-                                                                         self.data['ostree']['OSTREE_FDISK_BSZ'],
-                                                                         self.data['ostree']['OSTREE_FDISK_RSZ'],
-                                                                         self.data['ostree']['OSTREE_FDISK_VSZ'])
-        if self.data['ostree'].get('ostree_install_device', False):
-            boot_params += "instdev=%s " % self.data['ostree']['ostree_install_device']
-        else:
-            boot_params += "instdev=/dev/nvme0n1,/dev/mmcblk0,/dev/sda,/dev/vda "
-
-        for ostree_key in ['OSTREE_CONSOLE', 'ostree_extra_install_args']:
-            if self.data['ostree'].get(ostree_key, False):
-                boot_params += "%s " % self.data['ostree'][ostree_key]
+        boot_params = self._get_boot_parms(self.image_name, self.data["ostree"])
 
         workdir = os.path.join(self.workdir, self.image_name)
         image_iso = CreateISOImage(
