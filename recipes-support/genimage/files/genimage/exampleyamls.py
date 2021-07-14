@@ -31,6 +31,8 @@ from genimage.constant import SUPPORTED_PKGTYPES
 from genimage.constant import DEFAULT_IMAGE_PKGTYPE
 
 import genimage.utils as utils
+import genimage.debian_constant as deb_constant
+import genimage.constant as constant
 
 logger = logging.getLogger('appsdk')
 
@@ -126,6 +128,24 @@ def _main_run_internal(args):
         utils.run_cmd_oneshot(cmd)
         cmd = "genyaml -d -o {0} --pkg-type {1}".format(outdir, args.pkg_type)
         utils.run_cmd_oneshot(cmd)
+
+    if DEFAULT_MACHINE == "intel-x86-64":
+        if args.pkg_type ==  "external-debian":
+            cmd = "genyaml -d -o {0} --pkg-type external-debian --type iso --name debian-image-multiple".format(outdir)
+            utils.run_cmd_oneshot(cmd)
+            yaml_file = os.path.join(outdir, "debian-image-multiple-intel-x86-64.yaml")
+            with open(yaml_file, "a") as f:
+                f.write("system:\n")
+                f.write("- contains:\n")
+                f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % deb_constant.DEFAULT_IMAGE)
+        else:
+            cmd = "genyaml -d -o {0} --pkg-type {1} --type iso --name lat-image-multiple".format(outdir, args.pkg_type)
+            utils.run_cmd_oneshot(cmd)
+            yaml_file = os.path.join(outdir, "lat-image-multiple-intel-x86-64.yaml")
+            with open(yaml_file, "a") as f:
+                f.write("system:\n")
+                f.write("- contains:\n")
+                f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % constant.DEFAULT_IMAGE)
 
     table = Texttable()
     table.set_cols_align(["l", "l"])
