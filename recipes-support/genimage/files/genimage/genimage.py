@@ -25,7 +25,7 @@ import argcomplete
 from texttable import Texttable
 import atexit
 from tempfile import NamedTemporaryFile
-import yaml
+from genimage.utils import yaml
 
 from genimage.utils import set_logger
 from genimage.utils import show_task_info
@@ -226,6 +226,14 @@ class GenImage(GenXXX):
             sys.exit(1)
 
         boot_params = self._get_boot_parms(self.image_name, self.data["ostree"])
+        for yaml_file in self.guest_yamls:
+            with open(yaml_file) as f:
+                try:
+                    data = yaml.load(f)
+                    boot_params += self._get_boot_parms(data["name"], data["ostree"])
+                except Exception as e:
+                    logger.error("Parse nest/guest Yaml %s failed\n%s", yaml_file, logging.traceback.format_exc())
+                    sys.exit(1)
 
         workdir = os.path.join(self.workdir, self.image_name)
         image_iso = CreateISOImage(
