@@ -90,6 +90,7 @@ class GenImage(GenXXX):
     def __init__(self, args):
         super(GenImage, self).__init__(args)
         logger.debug("GPG Path: %s" % self.data["gpg"]["gpg_path"])
+        self.guest_yamls = []
 
     def _parse_default(self):
         self.data['name'] = DEFAULT_IMAGE
@@ -133,7 +134,20 @@ class GenImage(GenXXX):
         if self.args.ostree_remote_url:
             self.data["ostree"]["ostree_remote_url"] = self.args.ostree_remote_url
 
+    def _sysdef_contains(self):
+        for element in self.data["system"]:
+            if "contains" in element:
+                for yaml in element["contains"]:
+                    if yaml not in self.guest_yamls:
+                        self.guest_yamls.append(yaml)
+
+        logger.info("sysdef contains:\n%s", '\n'.join(self.guest_yamls))
+        self.guest_yamls = sysdef.install_contains(self.guest_yamls, self.args)
+
     def do_prepare(self):
+        if "system" in self.data:
+            self._sysdef_contains()
+
         super(GenImage, self).do_prepare()
         gpg_data = self.data["gpg"]
         utils.check_gpg_keys(gpg_data)
@@ -475,21 +489,7 @@ class GenYoctoImage(GenImage):
 
         sysdef.install_files(files, target_rootfs)
 
-    def _sysdef_contains(self):
-        guest_yamls = list()
-        for element in self.data["system"]:
-            if "contains" in element:
-                for yaml in element["contains"]:
-                    if yaml not in guest_yamls:
-                        guest_yamls.append(yaml)
-
-        logger.info("sysdef contains:\n%s", '\n'.join(guest_yamls))
-        sysdef.install_contains(guest_yamls, self.args)
-
     def do_prepare(self):
-        if "system" in self.data:
-            self._sysdef_contains()
-
         super(GenYoctoImage, self).do_prepare()
         os.environ['DEFAULT_INITRD_NAME'] = DEFAULT_INITRD_NAME
 
