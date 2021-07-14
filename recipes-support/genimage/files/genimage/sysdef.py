@@ -26,13 +26,14 @@ import genimage.utils as utils
 logger = logging.getLogger('appsdk')
 
 def install_contains(guest_yamls, args):
-    extra_options = "-w %s/sub_workdir -o %s/sub_deploy" % (args.workdir, args.outdir)
+    extra_options = "-w %s/sub_workdir -o %s" % (args.workdir, args.outdir)
     if args.no_clean:
         extra_options += " --no-clean"
     if args.no_validate:
         extra_options += " --no-validate"
-
+    output_guest_yamls = []
     for yaml_file in guest_yamls:
+        logger.info("Sysdef: build nested %s", yaml_file)
         yaml_file = os.path.expandvars(yaml_file)
         with open(yaml_file) as f:
             d = yaml.load(f, Loader=yaml.FullLoader) or dict()
@@ -43,8 +44,9 @@ def install_contains(guest_yamls, args):
         image_type = d['image_type']
         if "vmdk" in image_type or \
            "vdi" in image_type or \
-           "ostree_repo" in image_type or \
+           "ostree-repo" in image_type or \
            "ustart" in image_type or \
+           "iso" in image_type or \
            "wic" in image_type:
 
             if args.gpgpath:
@@ -65,6 +67,9 @@ def install_contains(guest_yamls, args):
             logger.error("The contains section does not support %s", image_type)
             sys.exit(1)
 
+        output_guest_yamls.append(yaml_file)
+
+    return output_guest_yamls
 def install_scripts(scripts, destdir):
     if scripts is None or destdir is None:
         return
