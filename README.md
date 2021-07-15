@@ -1011,10 +1011,10 @@ Prepare all the needed layers.
 $ . ./oe-init-build-env
 
 #### 3.3 Edit local.conf to enable external-debian
-$ echo 'DEBIAN_CUSTOMIZE_FEED_URI = "http://<web-server-url>/debian"' >> conf/local.conf
+$ echo 'DEBIAN_CUSTOMIZE_FEED_URI = "http://web-server-url/debian"' >> conf/local.conf
 
 #### 3.4 Change debian mirror and distro (default to http://ftp.us.debian.org/debian)
-$ echo 'DEFAULT_DEBIAN_MIRROR = "http://<debian-mirror-url>"' >>  conf/local.conf
+$ echo 'DEFAULT_DEBIAN_MIRROR = "http://debian-mirror-url"' >>  conf/local.conf
 
 #### 3.5 Build
 ##### 3.5.1 Build with minimal rpms
