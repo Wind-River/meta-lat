@@ -4,9 +4,9 @@ This layer provides LAT (Linux Assembly Tool).
 
 LAT is a tool that assembles various types of images using binary package feeds.
 Currently it supports three types of package feeds.
-rpm: Yocto RPM feeds
-deb: Yocto DEB feeds
-external-debian: Debian package feeds
+ * `rpm: Yocto RPM feeds`
+ * `deb: Yocto DEB feeds`
+ * `external-debian: Debian package feeds`
 
 ## Build
 
