@@ -11,6 +11,7 @@ Currently it supports three types of package feeds.
 ## Build
 
 ### Set local.conf
+```
 cat << ENDOF >> conf/local.conf
 INIT_MANAGER = "systemd"
 require conf/distro/ostree.conf
@@ -18,9 +19,11 @@ require conf/distro/lat.conf
 MACHINE = "intel-x86-64"
 PACKAGE_FEED_URIS = "http://<web-server-url>/lat"
 ENDOF
+```
 
 ### Build
 #### Create yocto rpm repository
+```
 $ bitbake world && bitbake package-index
 
 $ ls tmp-glibc/deploy/rpm/*/repodata/repomd.xml -1
@@ -34,21 +37,27 @@ $ ls tmp-glibc/deploy/rpm/*/repodata/repomd.xml -1
 tmp-glibc/deploy/rpm/cortexa72/repodata/repomd.xml
 tmp-glibc/deploy/rpm/bcm_2xxx_rpi4/repodata/repomd.xml
 tmp-glibc/deploy/rpm/noarch/repodata/repomd.xml
+```
 
 Above ls only list required repodata
 
 #### Create lat-image-base appsdk
+```
 $ bitbake lat-image-base -cpopulate_sdk
+```
 
 ### Setup rpm repo on http server
 Setup a web server (such as httpd, apache2), and create a symlink to deploy dir
-
+```
 $ ln -snf path-to-build/tmp-glibc/deploy /var/www/html/lat
+```
 
 Then http://<web-server-url>/lat is accessible
 
 ### App SDK
+```
 wget http://<web-server-url>/lat/sdk/poky-xxx-glibc-x86_64-intel_x86_64-lat-image-base-sdk.sh
+```
 
 
 ## Linux Assembly Tool appsdk information
