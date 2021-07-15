@@ -1013,9 +1013,8 @@ $ . ./oe-init-build-env
 #### 3.3 Edit local.conf to enable external-debian
 $ echo 'DEBIAN_CUSTOMIZE_FEED_URI = "http://<web-server-url>/debian"' >> conf/local.conf
 
-#### 3.4 Change debian mirror and distro
-(Optional, if not set, default is http://ftp.us.debian.org/debian)
-$ echo 'DEFAULT_DEBIAN_MIRROR = "http://ftp.cn.debian.org/debian"' >>  conf/local.conf
+#### 3.4 Change debian mirror and distro (default to http://ftp.us.debian.org/debian)
+$ echo 'DEFAULT_DEBIAN_MIRROR = "http://<debian-mirror-url>"' >>  conf/local.conf
 
 #### 3.5 Build
 ##### 3.5.1 Build with minimal rpms
@@ -1034,9 +1033,9 @@ $ sudo su
 $ . environment-setup-corei7-64-wrs-linux
 
 ### 5. Generate default debian based image
-#### 5.1 Example Yamls, provides three yaml files, edit yamls file for further
-customization
+#### 5.1 Example Yamls, provides three yaml files, edit yamls file for further customization
 $ appsdk exampleyamls --pkg-type external-debian
+
 +-----------+-------------------------------------------------+
 | Yaml Type |                      Name                       |
 +===========+=================================================+
@@ -1053,10 +1052,10 @@ $ appsdk --log-dir log gencontainer exampleyamls/debian-lat-image-base-intel-x86
 $ appsdk --log-dir log geninitramfs exampleyamls/debian-initramfs-ostree-image-intel-x86-64.yaml
 
 #### 5.4 Debian based image with LAT installer
-5.4.1 Create ustart image
+##### 5.4.1 Create ustart image
 $ appsdk --log-dir log genimage exampleyamls/debian-image-base-intel-x86-64.yaml
 
-5.4.2 Create ISO image
+##### 5.4.2 Create ISO image
 $ appsdk --log-dir log genimage exampleyamls/debian-image-base-intel-x86-64.yaml --type iso
 
 ## Dependencies
@@ -1093,32 +1092,5 @@ revision: HEAD
 ## Maintenance
 
 This layer is maintained by Wind River Systems, Inc.
-Contact <support@windriver.com> or your support representative for more
-information on submitting changes.
-
-## License
-
-Copyright (C) 2021 Wind River Systems, Inc.
-
-Source code included in the tree for individual recipes is under the LICENSE
-stated in the associated recipe (.bb file) unless otherwise stated.
-
-The metadata is under the following license unless otherwise stated.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+Contact <hongxu.jia@windriver.com>, <qi.chen@windriver.com> or
+your support representative for more information on submitting changes.
