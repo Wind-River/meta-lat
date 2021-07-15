@@ -4,9 +4,10 @@ This layer provides LAT (Linux Assembly Tool).
 
 LAT is a tool that assembles various types of images using binary package feeds.
 Currently it supports three types of package feeds.
- * `rpm: Yocto RPM feeds`
- * `deb: Yocto DEB feeds`
- * `external-debian: Debian package feeds`
+
+- rpm: Yocto RPM feeds
+- deb: Yocto DEB feeds
+- external-debian: Debian package feeds
 
 ## Build
 
@@ -970,26 +971,35 @@ checksdk
 intel-x86-64
 
 ### Source a build
+```
 $ . ./oe-init-build-env
+```
 
 ### Build
 #### Build with minimal rpms
+```
 $ bitbake appsdk-native && bitbake package-index build-sysroots
+```
 
 #### Build with full rpms
+```
 $ bitbake world appsdk-native && bitbake package-index build-sysroots
+```
 
 ### Run appsdk
+```
 $ tmp-glibc/sysroots/x86_64/usr/bin/appsdk -h
+```
 
 ### Enable bash completion of appsdk (optional, host bash >= 4.2)
 The bash completion of appsdk requires host bash support for
 complete -D, which was introduced in bash 4.2
-
+```
 $ bash --rcfile tmp-glibc/sysroots/x86_64/environment-appsdk-native
 $ appsdk <TAB>
 -d            exampleyamls  genimage      genrpm        -h            --log-dir     -q
 --debug       gencontainer  geninitramfs  genyaml       --help        publishrpm    --quiet
+```
 
 ## External Debian Support
 
@@ -999,7 +1009,7 @@ Using the Wind River Linux Assembly Tool - create OSTree debian-based image
 intel-x86-64
 
 ### 2. Create  debian-11 (bullseye) based package feed for LAT support
-See meta-lat/data/debian/README.txt for details
+See [meta-lat/data/debian/README.txt](https://github.com/Wind-River/meta-lat/blob/main/data/debian/README.txt) for details
 
 Then http://<web-server-url>/debian is accessible
 
@@ -1008,34 +1018,50 @@ Then http://<web-server-url>/debian is accessible
 Prepare all the needed layers.
 
 #### 3.2 Source a build
+```
 $ . ./oe-init-build-env
+```
 
 #### 3.3 Edit local.conf to enable external-debian
-$ echo 'DEBIAN_CUSTOMIZE_FEED_URI = "http://web-server-url/debian"' >> conf/local.conf
+```
+$ echo 'DEBIAN_CUSTOMIZE_FEED_URI = "http://<web-server-url>/debian"' >> conf/local.conf
+```
 
-#### 3.4 Change debian mirror and distro (default to http://ftp.us.debian.org/debian)
-$ echo 'DEFAULT_DEBIAN_MIRROR = "http://debian-mirror-url"' >>  conf/local.conf
+#### 3.4 Change debian mirror and distro (Optional)
+(If not set, default is http://ftp.us.debian.org/debian)
+```
+$ echo 'DEFAULT_DEBIAN_MIRROR = "http://ftp.cn.debian.org/debian"' >>  conf/local.conf
+```
 
 #### 3.5 Build
 ##### 3.5.1 Build with minimal rpms
+```
 $ bitbake appsdk-native && bitbake lat-image-base -cpopulate_sdk && bitbake package-index build-sysroots
+```
 
 ##### 3.5.2 Build with full rpms
+```
 $ bitbake world appsdk-native && bitbake lat-image-base -cpopulate_sdk && bitbake package-index build-sysroots
+```
 
 ### 4. Install AppSDK
 #### 4.1 Install SDK
+```
 $ ./poky-*-glibc-x86_64-intel_x86_64-lat-image-base-sdk.sh -y -d stx
 $ cd stx
+```
 
 #### 4.2 Root privilege is required
+```
 $ sudo su
 $ . environment-setup-corei7-64-wrs-linux
+```
 
 ### 5. Generate default debian based image
-#### 5.1 Example Yamls, provides three yaml files, edit yamls file for further customization
+#### 5.1 Example Yamls
+Provides three yaml files, edit yamls file for further customization
+```
 $ appsdk exampleyamls --pkg-type external-debian
-
 +-----------+-------------------------------------------------+
 | Yaml Type |                      Name                       |
 +===========+=================================================+
@@ -1044,19 +1070,28 @@ $ appsdk exampleyamls --pkg-type external-debian
 |           | debian-initramfs-ostree-image-intel-x86-64.yaml |
 |           |                                                 |
 +-----------+-------------------------------------------------+
+```
 
 #### 5.2 Debian based container image
+```
 $ appsdk --log-dir log gencontainer exampleyamls/debian-lat-image-base-intel-x86-64.yaml
+```
 
 #### 5.3 Debian based initramfs image with LAT installer
+```
 $ appsdk --log-dir log geninitramfs exampleyamls/debian-initramfs-ostree-image-intel-x86-64.yaml
+```
 
 #### 5.4 Debian based image with LAT installer
 ##### 5.4.1 Create ustart image
+```
 $ appsdk --log-dir log genimage exampleyamls/debian-image-base-intel-x86-64.yaml
+```
 
 ##### 5.4.2 Create ISO image
+```
 $ appsdk --log-dir log genimage exampleyamls/debian-image-base-intel-x86-64.yaml --type iso
+```
 
 ## Dependencies
 
@@ -1064,7 +1099,7 @@ This layer depends on the openembedded-core, meta-openembedded, meta-intel
 and meta-virtualization.
 
 This layer depends on:
-
+```
 URI: git://git.openembedded.org/openembedded-core
 branch: master
 revision: HEAD
@@ -1076,9 +1111,9 @@ layers: meta-oe
         meta-networking
         meta-filesystems
         meta-python
-	meta-xfce
-	meta-gnome
-	meta-multimedia
+        meta-xfce
+        meta-gnome
+        meta-multimedia
 
 URI: git://git.yoctoproject.org/meta-intel.git
 branch: master
@@ -1087,10 +1122,44 @@ revision: HEAD
 URI: git://git.yoctoproject.org/meta-virtualization
 branch: master
 revision: HEAD
+```
 
 
 ## Maintenance
 
 This layer is maintained by Wind River Systems, Inc.
-Contact <hongxu.jia@windriver.com>, <qi.chen@windriver.com> or
-your support representative for more information on submitting changes.
+Contact:
+
+```
+Hongxu Jia <hongxu.jia@windriver.com>
+Qi Chen <qi.chen@windriver.com>
+Zhangle Yang(Eric) <Zhangle.Yang@windriver.com>
+```
+or your support representative for more information on submitting changes.
+
+## License
+
+Copyright (C) 2021 Wind River Systems, Inc.
+
+Source code included in the tree for individual recipes is under the LICENSE
+stated in the associated recipe (.bb file) unless otherwise stated.
+
+The metadata is under the following license unless otherwise stated.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
