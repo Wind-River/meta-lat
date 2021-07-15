@@ -1011,7 +1011,7 @@ intel-x86-64
 ### 2. Create  debian-11 (bullseye) based package feed for LAT support
 See [meta-lat/data/debian/README.txt](https://github.com/Wind-River/meta-lat/blob/main/data/debian/README.txt) for details
 
-Then http://<web-server-url>/debian is accessible
+Then `http://<web-server-url>/debian` is accessible
 
 ### 3. Build steps
 #### 3.1 Setup project
