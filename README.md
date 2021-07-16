@@ -1127,13 +1127,9 @@ revision: HEAD
 
 ## Maintenance
 
-This layer is maintained by Wind River Systems, Inc.
-Contact:
+This layer is maintained by:
 
 ```
 Hongxu Jia <hongxu.jia@windriver.com>
 Qi Chen <qi.chen@windriver.com>
-Zhangle Yang(Eric) <Zhangle.Yang@windriver.com>
-Jason Wessel <jason.wessel@windriver.com>
 ```
-or your support representative for more information on submitting changes.
