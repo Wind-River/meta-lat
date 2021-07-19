@@ -20,6 +20,6 @@ system:
   - exampleyamls/container-base-@MACHINE@.yaml
 - files:
   - file:
-      src: sub_deploy/deploy/container-base-@MACHINE@.docker-image.tar.bz2
+      src: deploy/container-base-@MACHINE@.docker-image.tar.bz2
       dst: /var/docker-images/
 
