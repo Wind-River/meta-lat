@@ -22,7 +22,7 @@ def ext_file_exists(value, rule_obj, path):
     if value.startswith("http:") or value.startswith("https:") or value.startswith("ftp:"):
         return True
 
-    if "sub_deploy/deploy" in value:
+    if "deploy" in value:
         return True
 
     if not os.path.exists(value):
