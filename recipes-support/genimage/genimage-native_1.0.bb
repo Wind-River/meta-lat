@@ -152,6 +152,9 @@ copy_qemu_data() {
     if [ -e ${DEPLOY_DIR_IMAGE}/ovmf.qcow2 ]; then
         cp -f ${DEPLOY_DIR_IMAGE}/ovmf.qcow2 ${D}${datadir}/qemu_data/
     fi
+    if [ -e ${DEPLOY_DIR_IMAGE}/ovmf.vars.qcow2 ]; then
+        cp -f ${DEPLOY_DIR_IMAGE}/ovmf.vars.qcow2 ${D}${datadir}/qemu_data/
+    fi
 
     sed -e '/^staging_bindir_native =/d' \
         -e '/^staging_dir_host =/d' \
