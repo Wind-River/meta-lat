@@ -70,6 +70,10 @@ result in a system booted to the Grub boot menuo.
 Create a disk image
     $ qemu-img create -f raw boot-image-qemu.hddimg 16G
 
+Prepare OVMF images
+    $ cp -f deploy/ovmf.qcow2 OVMF_CODE.fd
+    $ cp -f deploy/ovmf.vars.qcow2 OVMF_VARS.fd
+
 Burn the image onto disk image:
     $ zcat @IMAGE_NAME@.ustart.img.gz | dd of=boot-image-qemu.hddimg conv=notrunc
 
@@ -79,7 +83,8 @@ For qemu x86_64 with KVM:
         -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
         -cpu kvm64 -enable-kvm \
-        -drive if=pflash,format=qcow2,file=ovmf.qcow2
+        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
+        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd
 
 For qemu x86_64 without KVM:
 
@@ -87,7 +92,8 @@ For qemu x86_64 without KVM:
         -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
         -cpu Nehalem \
-        -drive if=pflash,format=qcow2,file=ovmf.qcow2
+        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
+        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd
 
 #### Qemu Simulator
 qemu-system-x86_64
@@ -119,7 +125,7 @@ If above refer does not work (such as you do not have root right to enable kvm)
 
 #### Qemu Bootloader
 Enable UEFI support for Virtual Machines
-`-drive if=pflash,format=qcow2,file=ovmf.qcow2`
+`-drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd`
 
 #### Qemu No Graphic
 Disable graphical output and redirect serial I/Os to console
