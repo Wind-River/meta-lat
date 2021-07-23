@@ -92,7 +92,7 @@ schema;image_type_seq:
   type: seq
   sequence:
     - type: str
-      enum: ['ostree-repo', 'wic', 'iso', 'vmdk', 'vdi', 'ustart', 'all']
+      enum: ['ostree-repo', 'wic', 'iso', 'vmdk', 'vdi', 'ustart', 'pxe', 'all']
       nullable: False
   nullable: False
   desc: The image type

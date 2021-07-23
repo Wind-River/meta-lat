@@ -31,6 +31,7 @@ from genimage.utils import set_logger
 from genimage.utils import show_task_info
 from genimage.image import CreateWicImage
 from genimage.image import CreateISOImage
+from genimage.image import CreatePXE
 from genimage.image import CreateVMImage
 from genimage.image import CreateOstreeRepo
 from genimage.image import CreateOstreeOTA
@@ -68,6 +69,7 @@ def set_parser_genimage(parser=None):
 
     if DEFAULT_MACHINE == "intel-x86-64":
         supported_types.append('iso')
+        supported_types.append('pxe')
 
     parser = set_parser(parser, supported_types)
     parser.add_argument('-g', '--gpgpath',
@@ -192,7 +194,7 @@ class GenImage(GenXXX):
 
         image_wic.create()
 
-    def _get_boot_parms(self, image_name, data_ostree):
+    def _get_boot_parms(self, image_name, data_ostree, image_type="iso"):
         date_since_epoch = datetime.datetime.now().strftime('%s')
         boot_params = "rdinit=/install instname=%s " % data_ostree['ostree_osname']
         boot_params += "instbr=%s instab=%s " % (image_name, data_ostree['ostree_use_ab'])
@@ -216,7 +218,8 @@ class GenImage(GenXXX):
             if data_ostree.get(ostree_key, False):
                 boot_params += "%s " % data_ostree[ostree_key]
 
-        boot_params = ' --label "OSTree Install %s" --appends "%s" ' % (image_name, boot_params)
+        if image_type == "iso":
+            boot_params = ' --label "OSTree Install %s" --appends "%s" ' % (image_name, boot_params)
         return boot_params
 
     @show_task_info("Create ISO Image")
@@ -249,6 +252,48 @@ class GenImage(GenXXX):
                         pkg_type = self.pkg_type)
         image_iso.set_wks_in_environ(**{'BOOT_PARAMS': boot_params})
         image_iso.create()
+
+    @show_task_info("Create PXE Initramfs and Boot File")
+    def do_image_pxe(self):
+        # Reuse genimage's package_feeds rather than default setting
+        package_feeds = dict()
+        package_feeds["package_feeds"] = self.data["package_feeds"]
+        scriptFile = NamedTemporaryFile(delete=True, dir=".", suffix=".yaml")
+        with open(scriptFile.name, "w") as f:
+            yaml.dump(package_feeds, f)
+            logger.debug("Temp Package Feed Yaml FIle: %s" % (scriptFile.name))
+
+        # Create a initramfs with ostree_repo for PXE boot
+        pxe_initrd_name = "{0}-initrd-pxe".format(self.image_name)
+        cmd = "geninitramfs --debug --pkg-type %s --name %s %s" % (self.pkg_type, pxe_initrd_name, scriptFile.name)
+        if self.args.no_validate:
+            cmd += " --no-validate"
+        if self.args.no_clean:
+            cmd += " --no-clean"
+
+        if not self.data["ostree"].get('ostree_remote_url'):
+            logger.info("Do not specify ostree remote url, copy deploy/ostree_repo to pxe initrd")
+            cmd += " --rootfs-post-script 'cp -a %s/ostree_repo $IMAGE_ROOTFS'" % (self.deploydir)
+
+        res, output = utils.run_cmd(cmd, shell=True)
+        if res != 0:
+            logger.error(output)
+            scriptFile.file.close()
+            sys.exit(1)
+
+        scriptFile.file.close()
+
+        boot_params = self._get_boot_parms(self.image_name, self.data["ostree"], image_type="pxe")
+
+        pxe = CreatePXE(
+                  image_name = self.image_name,
+                  pxe_initrd_name = pxe_initrd_name,
+                  boot_params = boot_params,
+                  machine = self.machine,
+                  deploydir = self.deploydir,
+                  pkg_type = self.pkg_type)
+
+        pxe.create()
 
     @show_task_info("Create Vmdk Image")
     def do_image_vmdk(self):
@@ -372,6 +417,22 @@ class GenImage(GenXXX):
             output = subprocess.check_output(cmd_wic, shell=True, cwd=self.deploydir)
             table.add_row(["ISO Image Doc", output.strip()])
 
+        if "pxe" in self.image_type:
+            table.add_row(["TFTP dir of PXE Files", "pxe_tftp_%s/" % self.image_name])
+
+            cmd_wic = cmd_format % "pxe-tftp-{0}.tar".format(self.image_name)
+            output = subprocess.check_output(cmd_wic, shell=True, cwd=self.deploydir)
+            table.add_row(["Tarball of PXE TFTP dir", output.strip()])
+
+            doc = "PXE-for-EFI_%s.README.md" % self.image_name
+            cmd_wic = cmd_format % doc
+            output = subprocess.check_output(cmd_wic, shell=True, cwd=self.deploydir)
+            table.add_row(["PXE for EFI Boot Doc", output.strip()])
+
+            doc = "PXE-for-Legacy_%s.README.md" % self.image_name
+            cmd_wic = cmd_format % doc
+            output = subprocess.check_output(cmd_wic, shell=True, cwd=self.deploydir)
+            table.add_row(["PXE for Legacy/BIOS Boot Doc", output.strip()])
 
         logger.info("Deploy Directory: %s\n%s", self.deploydir, table.draw())
 
@@ -399,6 +460,7 @@ class GenYoctoImage(GenImage):
             self.data['image_type'] = ['ostree-repo', 'wic', 'ustart', 'vmdk', 'vdi']
             if DEFAULT_MACHINE == "intel-x86-64":
                 self.data['image_type'].append('iso')
+                self.data['image_type'].append('pxe')
 
     def _do_rootfs_pre(self, rootfs=None):
         if rootfs is None:
@@ -573,6 +635,7 @@ class GenExtDebImage(GenImage):
             self.data['image_type'] = ['ostree-repo', 'wic', 'ustart', 'vmdk', 'vdi']
             if DEFAULT_MACHINE == "intel-x86-64":
                 self.data['image_type'].append('iso')
+                self.data['image_type'].append('pxe')
 
     def do_prepare(self):
         super(GenExtDebImage, self).do_prepare()
@@ -674,7 +737,7 @@ def _main_run_internal(args):
     create.do_ostree_initramfs()
 
     # WIC image requires ostress repo
-    if any(img_type in create.image_type for img_type in ["ostree-repo", "wic", "iso", "ustart", "vmdk", "vdi"]):
+    if any(img_type in create.image_type for img_type in ["ostree-repo", "wic", "iso", "ustart", "vmdk", "vdi", "pxe"]):
         create.do_ostree_repo()
 
     if "wic" in create.image_type or "vmdk" in create.image_type or "vdi" in create.image_type:
@@ -688,6 +751,9 @@ def _main_run_internal(args):
 
     if "iso" in create.image_type:
         create.do_image_iso()
+
+    if "pxe" in create.image_type:
+        create.do_image_pxe()
 
     if "ustart" in create.image_type:
         create.do_ustart_img()
