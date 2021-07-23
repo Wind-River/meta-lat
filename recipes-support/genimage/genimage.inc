@@ -82,6 +82,8 @@ SRC_URI = "\
            file://genimage/doc/ustart_intel-x86-64.README.md.in \
            file://genimage/doc/container.README.md.in \
            file://genimage/doc/iso_intel-x86-64.README.md.in \
+           file://genimage/doc/pxe-efi_intel-x86-64.README.md.in \
+           file://genimage/doc/pxe-bios_intel-x86-64.README.md.in \
            file://METADATA.in \
            file://README.md \
            file://setup.py \
