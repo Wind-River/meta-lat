@@ -160,7 +160,7 @@ class GenImage(GenXXX):
             atexit.register(utils.cleanup, image_workdir, self.data['ostree']['ostree_osname'])
 
     def do_post(self):
-        for f in ["qemu-u-boot-bcm-2xxx-rpi4.bin", "ovmf.qcow2"]:
+        for f in ["qemu-u-boot-bcm-2xxx-rpi4.bin", "ovmf.qcow2", "ovmf.vars.qcow2"]:
             qemu_data = os.path.join(self.native_sysroot, "usr/share/qemu_data", f)
             if os.path.exists(qemu_data):
                 logger.debug("Deploy %s", f)
@@ -198,7 +198,7 @@ class GenImage(GenXXX):
         date_since_epoch = datetime.datetime.now().strftime('%s')
         boot_params = "rdinit=/install instname=%s " % data_ostree['ostree_osname']
         boot_params += "instbr=%s instab=%s " % (image_name, data_ostree['ostree_use_ab'])
-        boot_params += "instsf=1 instdate=@%s instw=60 instl=/ostree_repo " % date_since_epoch
+        boot_params += "instdate=@%s instw=60 instl=/ostree_repo " % date_since_epoch
         boot_params += "biosplusefi=1 "
         if data_ostree['ostree_remote_url']:
             boot_params += "insturl=%s " % data_ostree['ostree_remote_url']
