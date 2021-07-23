@@ -1,0 +1,8 @@
+serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1
+timeout=15
+
+default=OSTree Install @IMAGE_NAME@
+menuentry 'OSTree Install @IMAGE_NAME@'{
+linux bzImage rootwait @BOOT_PARAMS@
+initrd @INITRD@
+}

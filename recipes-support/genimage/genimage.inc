@@ -70,6 +70,8 @@ SRC_URI = "\
            file://genimage/data/pykwalify/ext.py \
            file://genimage/data/yaml_template/startup-container.yaml.in \
            file://genimage/data/wic/mkhybridiso.wks.in \
+           file://genimage/data/pxe_boot/bootfile-efi.in \
+           file://genimage/data/pxe_boot/bootfile-bios.in \
            file://genimage/scripts/run.do_image_ostree \
            file://genimage/scripts/run.do_image_otaimg \
            file://genimage/scripts/run.do_image_wic \

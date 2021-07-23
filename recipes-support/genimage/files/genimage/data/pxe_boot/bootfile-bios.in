@@ -1,0 +1,14 @@
+PROMPT 0
+ALLOWOPTIONS 1
+TIMEOUT 100
+
+DEFAULT menu.c32
+
+MENU TITLE [ LAT PXE Legacy Boot Menu ]
+MENU TABMSG Press [Tab] to edit, [Return] to select
+
+LABEL install
+    menu default
+    menu label ^OSTree Install @IMAGE_NAME@
+    kernel bzImage
+    append initrd=@INITRD@ @BOOT_PARAMS@
