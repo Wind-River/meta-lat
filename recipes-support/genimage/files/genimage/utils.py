@@ -441,3 +441,27 @@ def get_debootstrap_input(package_feeds, debian_distros):
     logger.info("Guess, Mirror: %s, Distro %s, Components %s", mirror, distro, comps)
     return mirror, distro, comps
 
+def get_mem_size(pkg_type, image_type, extra_file=None):
+    size = 0
+    if extra_file and os.path.exists(extra_file):
+        cmd = "du %s --block-size=MB -s | awk '{print $1}'" % extra_file
+        output = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        logger.debug("Size of %s(%s) is %s", extra_file, pkg_type, output)
+
+        size = int(output.replace("MB", ""))
+        size = 2 * size
+
+    if image_type == "pxe":
+        if pkg_type in ["rpm", "deb"]:
+            size += 2048
+        else:
+            size += 4096
+    else:
+        if pkg_type in ["rpm", "deb"]:
+            size += 512
+        else:
+            size += 2048
+
+    logger.debug("Allocate Memory Size: %d MB", size)
+
+    return str(size)

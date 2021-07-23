@@ -20,6 +20,7 @@ import os
 import os.path
 import logging
 import datetime
+import shutil
 
 from genimage import utils
 from genimage import constant
@@ -87,7 +88,7 @@ class Image(object, metaclass=ABCMeta):
             content = src_f.read()
             content = content.replace("@IMAGE_NAME@", image_name)
             content = content.replace("@PACKAGE_MANAGER_SECTION@", constant.PACKAGE_MANAGER_SECTION[self.pkg_type])
-            content = content.replace("@MEM@", "1200" if self.pkg_type in ["rpm", "deb"] else "2048")
+            content = content.replace("@MEM@", utils.get_mem_size(self.pkg_type, image_type))
 
         with open(readme, "w") as readme_f:
             readme_f.write(content)
@@ -281,6 +282,86 @@ class CreateISOImage(Image):
     def _rename_and_symlink(self):
         for suffix_dst, suffix_src in [("-cd.iso", "-cd.iso")]:
             old = os.path.join(self.workdir, self.image_fullname + suffix_dst)
+            new = os.path.join(self.deploydir, self.image_fullname + suffix_dst)
+            logger.debug("Rename: %s -> %s" % (old, new))
+            os.rename(old, new)
+
+            dst = os.path.join(self.deploydir, self.image_linkname + suffix_dst)
+            src = os.path.join(self.deploydir, self.image_fullname + suffix_src)
+            if os.path.exists(src):
+                logger.debug("Creating symlink: %s -> %s" % (dst, src))
+                utils.resymlink(os.path.basename(src), dst)
+            else:
+                logger.error("Skipping symlink, source does not exist: %s -> %s" % (dst, src))
+
+class CreatePXE(Image):
+    def _set_allow_keys(self):
+        self.allowed_keys = {'image_name', 'deploydir', 'machine', 'pkg_type', 'pxe_initrd_name', 'boot_params'}
+
+    def _add_keys(self):
+        self.wks_full_path = ""
+        self.date = utils.get_today()
+        self.image_fullname = "pxe-tftp-%s-%s" % (self.image_name, self.date)
+        self.image_linkname = "pxe-tftp-%s" % (self.image_name)
+        self.tftp_dir = os.path.join(self.deploydir, "pxe_tftp_%s" % self.image_name)
+        self.pxe_initrd = "{0}/{1}-{2}.cpio.gz".format(self.deploydir, self.pxe_initrd_name, self.machine)
+
+    def create(self):
+        utils.run_cmd_oneshot("rm %s -rf" % (self.tftp_dir))
+        os.umask(0)
+        os.makedirs(os.path.join(self.tftp_dir, "EFI/BOOT"), 0o777)
+        os.makedirs(os.path.join(self.tftp_dir, "pxelinux.cfg"), 0o777)
+
+        utils.run_cmd_oneshot("cp %s %s/" % (self.pxe_initrd, self.tftp_dir))
+        utils.run_cmd_oneshot("cp %s/bzImage %s/" % (self.deploydir, self.tftp_dir))
+
+        for f in ["ldlinux.c32", "libutil.c32", "menu.c32", "pxelinux.0"]:
+            s = os.path.join(os.environ['OECORE_TARGET_SYSROOT'], "usr/share/syslinux", f)
+            d = os.path.join(self.tftp_dir, f)
+            shutil.copyfile(s, d)
+
+        bootfiles_src = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'], "usr/share/genimage/data/pxe_boot")
+        utils.run_cmd_oneshot("cp -rf %s/bootfile-bios.in %s/pxelinux.cfg/default" % (bootfiles_src, self.tftp_dir))
+        utils.run_cmd_oneshot("cp -rf %s/bootfile-efi.in %s/EFI/BOOT/grub.cfg" % (bootfiles_src, self.tftp_dir))
+        utils.run_cmd_oneshot("cp %s/bootx64.efi %s/EFI/BOOT/" % (self.deploydir, self.tftp_dir))
+
+        for bootfile in ["pxelinux.cfg/default", "EFI/BOOT/grub.cfg"]:
+            bootfile = os.path.join(self.tftp_dir, bootfile)
+            with open(bootfile, "r") as f:
+                content = f.read()
+                content = content.replace("@IMAGE_NAME@", self.image_name)
+                content = content.replace("@INITRD@", os.path.basename(self.pxe_initrd))
+                content = content.replace("@BOOT_PARAMS@", self.boot_params)
+            with open(bootfile, "w") as f:
+                f.write(content)
+
+        self._write_readme()
+
+        self._create_tar()
+
+    def _write_readme(self):
+        for (dst_prefix, src) in [("PXE-for-EFI", "pxe-efi_intel-x86-64.README.md.in"),
+                           ("PXE-for-Legacy", "pxe-bios_intel-x86-64.README.md.in")]:
+            src = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'], "usr/share/genimage/doc", src)
+            with open(src, "r") as src_f:
+                content = src_f.read()
+                content = content.replace("@IMAGE_NAME@", self.image_name)
+                content = content.replace("@PACKAGE_MANAGER_SECTION@", constant.PACKAGE_MANAGER_SECTION[self.pkg_type])
+                ostree_repo = os.path.join(self.deploydir, "ostree_repo")
+                content = content.replace("@MEM@", utils.get_mem_size(self.pkg_type, "pxe", ostree_repo))
+
+            dst = os.path.join(self.deploydir, "%s_%s.README.md" % (dst_prefix, self.image_name))
+            with open(dst, "w") as readme_f:
+                readme_f.write(content)
+
+    def _create_tar(self):
+        cmd = "tar -cvf %s.tar %s" % (self.image_fullname, os.path.basename(self.tftp_dir))
+        utils.run_cmd_oneshot(cmd, cwd=self.deploydir)
+        self._rename_and_symlink()
+
+    def _rename_and_symlink(self):
+        for suffix_dst, suffix_src in [(".tar", ".tar")]:
+            old = os.path.join(self.deploydir, self.image_fullname + suffix_dst)
             new = os.path.join(self.deploydir, self.image_fullname + suffix_dst)
             logger.debug("Rename: %s -> %s" % (old, new))
             os.rename(old, new)
