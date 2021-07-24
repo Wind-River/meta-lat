@@ -4,19 +4,20 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384
 SRC_URI = "file://init-ostree.sh \
 	file://init-ostree-install.sh \
 	file://init.luks-ostree \
+	file://lat-installer.sh \
 "
 
 PR = "r9"
 
 OSTREE_ALLOW_RM_VAR ??= ""
 
-RDEPENDS_${PN} = "util-linux-sfdisk gptfdisk e2fsprogs-mke2fs"
+RDEPENDS_${PN} = "util-linux-sfdisk gptfdisk e2fsprogs-mke2fs bash"
 
 do_configure() {
 }
 
 do_install() {
-        install -m 0755 ${WORKDIR}/init-ostree-install.sh ${D}/install
+	install -m 0755 ${WORKDIR}/init-ostree-install.sh ${D}/install
 	sed -i -e 's#@OSTREE_OSNAME@#${OSTREE_OSNAME}#g' ${D}/install
 	if [ "${OSTREE_FDISK_BLM}" != "" ] ; then
 		sed -i -e 's/^BLM=.*/BLM=${OSTREE_FDISK_BLM}/' ${D}/install
@@ -44,6 +45,7 @@ do_install() {
 	# before even executing /init.
 	install -d ${D}/dev
 	mknod -m 622 ${D}/dev/console c 5 1
+	install -m 0755 ${WORKDIR}/lat-installer.sh ${D}/lat-installer.sh
 }
 
 # While this package maybe an allarch due to it being a 
@@ -52,6 +54,6 @@ do_install() {
 #inherit allarch
 INHIBIT_DEFAULT_DEPS = "1"
 
-FILES_${PN} = " /init /init.luks-ostree /dev /install"
+FILES_${PN} = " /init /init.luks-ostree /dev /install /lat-installer.sh"
 
 COMPATIBLE_HOST = "(arm|aarch64|i.86|x86_64|powerpc).*-linux"
