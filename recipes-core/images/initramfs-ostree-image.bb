@@ -19,6 +19,7 @@ PACKAGE_INSTALL = "ostree \
   ostree-switchroot \
   initramfs-ostree \
   bash \
+  killall \
   kmod \
   bzip2 \
   gnupg \

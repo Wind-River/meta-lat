@@ -110,7 +110,7 @@ DEFAULT_PACKAGES = {
 OSTREE_INITRD_PACKAGES = '''
     glib-networking
     ca-certificates
-    e2fsprogs-e2fsck
+    e2fsprogs-e2fsck killall
     mttyexec grub eject
     ostree ostree-switchroot
     initramfs-ostree bash

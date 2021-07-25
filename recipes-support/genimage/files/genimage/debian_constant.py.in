@@ -31,7 +31,7 @@ export PATH={0}
 chroot $IMAGE_ROOTFS bash << SCRIPT_ENDOF
 set -e
 apt update
-apt install -y --no-install-recommends linux-image-amd64 grub-common
+apt install -y --no-install-recommends linux-image-amd64 grub-common psmisc
 apt install -y --allow-downgrades --allow-unauthenticated --no-install-recommends \
     ostree=${DEBIAN_OSTREE_VERSION} \
     ostree-boot=${DEBIAN_OSTREE_VERSION} \
