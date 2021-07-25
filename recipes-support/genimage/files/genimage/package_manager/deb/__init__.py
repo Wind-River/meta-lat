@@ -517,7 +517,7 @@ class ExternalDebian(object):
         os.environ['ARCH_TEST'] = "do-not-arch-test"
         os.environ['DEBOOTSTRAP_DIR'] = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'],"usr/share/debootstrap")
 
-        if os.path.exists(os.path.join(self.target_rootfs, "debootstrap")):
+        if os.path.exists(os.path.join(self.target_rootfs, "dev")):
             logger.debug("Rootfs exists, skip debootstrap")
             return
 
