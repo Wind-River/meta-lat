@@ -73,6 +73,7 @@ OPTIONAL:
  ecurlarg=ARGS_TO_ECURL_SCRIPT	- Arguments to pass to ecurl script
  lcurl=URL_TO_SCRIPT		- Download+execute script after install
  lcurlarg=ARGS_TO_ECURL_SCRIPT	- Arugments to pass to lcurl script
+ ks=ARGS_TO_KICKSTART		- Download+apply kickstart setting
  Disk sizing
  biosplusefi=1	 		- Create one GPT disk to support booting from both of BIOS and EFI
  BLM=#				- Blocks of boot magic area to skip
@@ -378,7 +379,7 @@ do_dhcp() {
 		return
 	fi
 	# If no network needed do not conifgure it
-	if [ "${ECURL}" = "" -o "${ECURL}" = "none" ] && [ "${LCURL}" = "" -o "${LCURL}" = "none" ] && [ "$INSTL" != "" ] ; then
+	if [ "${ECURL}" = "" -o "${ECURL}" = "none" ] && [ "${LCURL}" = "" -o "${LCURL}" = "none" ] && [ "$INSTL" != "" ] && [ "${KS}" = "" ] ; then
 		return
 	fi
 	if [ "${DHCPARGS}" = "ask" ] ; then
@@ -511,6 +512,7 @@ KERNEL_PARAMS=""
 IP=""
 MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE=60
 OSTREE_KERNEL_ARGS=${OSTREE_KERNEL_ARGS=%OSTREE_KERNEL_ARGS%}
+KS=""
 
 if [ "$OSTREE_KERNEL_ARGS" = "%OSTREE_KERNEL_ARGS%" ] ; then
 	OSTREE_KERNEL_ARGS="ro rootwait"
@@ -527,6 +529,9 @@ read_args() {
 				;;
 			kernelparams=*)
 				KERNEL_PARAMS="$optarg"
+				;;
+			ks=*)
+				KS="$optarg"
 				;;
 			bl=*)
 				BL=$optarg ;;
@@ -861,6 +866,14 @@ if [ "$INSTNET" = dhcp ] ; then
 	do_dhcp
 fi
 
+if [ -n "${KS}" ]; then
+	./lat-installer.sh parse-ks --kickstart=${KS}
+	if [ $? -ne 0 ]; then
+		fatal "Parse Kickstart ${KS} failed"
+	fi
+	CMDLINE=`cat /tmp/lat/cmdline` read_args
+fi
+
 # Early curl exec
 
 if [ "${ECURL}" != "" -a "${ECURL}" != "none" ] ; then
@@ -1081,6 +1094,13 @@ elif [ "$INSTFMT" != 0 ] ; then
 	fi
 fi
 
+if [ -n "${KS}" ]; then
+	./lat-installer.sh pre-install
+	if [ $? -ne 0 ]; then
+		fatal "Run Kickstart Pre Install Script failed"
+	fi
+fi
+
 # OSTree deploy
 
 PHYS_SYSROOT="/sysroot"
@@ -1296,6 +1316,25 @@ if [ -d ${PHYS_SYSROOT}/boot/0/ostree/usr/homedirs/home ] ; then
 elif [ -d ${PHYS_SYSROOT}/boot/1/ostree/usr/homedirs/home ] ; then
 	tar -C ${PHYS_SYSROOT}/boot/1/ostree/usr/homedirs/home --xattrs --xattrs-include='*' -cf - . | \
 	tar --xattrs --xattrs-include='*' -xf - -C /var1/home 2> /dev/null
+fi
+
+if [ -n "${KS}" ]; then
+	rootfs=`ls ${PHYS_SYSROOT}/boot/?/ostree -d`
+	if [ "$INSTAB" = 1 ] ; then
+		rootfs="$rootfs `ls ${PHYS_SYSROOT}_b/boot/?/ostree -d`"
+	fi
+
+	for root in ${rootfs}; do
+		./lat-installer.sh set-network --root=${root} -v
+		if [ $? -ne 0 ]; then
+			fatal "Run Kickstart Set network failed in ${root}"
+		fi
+
+		./lat-installer.sh post-install --root=${root} -v
+		if [ $? -ne 0 ]; then
+			fatal "Run Kickstart Post Install Script failed in ${root}"
+		fi
+	done
 fi
 
 umount /var1
