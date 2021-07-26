@@ -1233,7 +1233,10 @@ if [ "$INSTAB" = "1" ] ; then
 		touch  ${PHYS_SYSROOT}_b/boot/loader/uEnv.txt
 	fi
 
-	ostree pull $lpull --repo=${PHYS_SYSROOT}_b/ostree/repo --localcache-repo=${PHYS_SYSROOT}/ostree/repo ${INSTNAME}:${INSTBR} || fatal "ostree pull failed"
+	if [ ${INSTURL#http} = ${INSTURL} ]; then
+		localcache="--localcache-repo=${PHYS_SYSROOT}/ostree/repo"
+	fi
+	ostree pull $lpull --repo=${PHYS_SYSROOT}_b/ostree/repo ${localcache} ${INSTNAME}:${INSTBR} || fatal "ostree pull failed"
 	ostree admin deploy ${kargs_list} --sysroot=${PHYS_SYSROOT}_b --os=${INSTOS} ${INSTBR} || fatal "ostree deploy failed"
 fi
 
