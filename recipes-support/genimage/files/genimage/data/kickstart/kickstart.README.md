@@ -1,0 +1,338 @@
+# Simplified kickstart support on LAT installer
+Define a limited set of kickstart with limited capabilities, and use
+existing shell commands (such as bash/cat/sed/mount/umount) to implement
+a simplified kickstart framework (lat-installer.sh) in LAT installer
+
+Currently, only ISO and PXE image on intel-x86-64 have kickstart support
+
+## Limited set of kickstart
+
+### Param: network
+Configures network information for the target system and activates network
+devices in the installation environment.
+
+Inherits from upstream [kickstart network](https://docs.fedoraproject.org/en-US/Fedora/html/Installation_Guide/sect-kickstart-commands-network.html)
+
+```
+--bootproto=
+    One of dhcp, static. The default option is dhcp
+
+--device=
+    the device name of the interface, for example, em1, eth0
+
+--activate
+    If you use the --activate option on a device that has already been activated
+    (for example, an interface you configured with boot options so that the system
+    could retrieve the Kickstart file) the device is reactivated to use the details
+    specified in the Kickstart file.
+
+--onboot=off|on
+    Whether or not to enable the device at boot time.
+
+--ip=
+    IP address of the device.
+
+--netmask=
+    Network mask for the installed system.
+
+--gateway=
+    Default gateway as a single IPv4 address.
+
+--nameserver=
+    DNS name server, as an IP address. To specify more than one name server,
+
+    use this parameter multiple times.
+
+--ipv6=
+    IPv6 address of the device, in the form of address[/prefix length] -
+    for example, 3ffe:ffff:0:1::1/128 . If prefix is omitted, 64 will be used.
+    You can also use auto for automatic configuration, or dhcp for DHCPv6-only
+    configuration (no router advertisements).
+
+--ipv6gateway=
+    Default gateway as a single IPv6 address.
+
+--hostname=
+    Host name for the installed system. The host name can be either
+    a fully-qualified domain name (FQDN) in the format hostname.domainname,
+    or a short host name with no domain name. Many networks have a Dynamic Host
+    Configuration Protocol (DHCP) service that automatically supplies connected
+    systems with a domain name; to allow the DHCP service to assign the domain
+    name to this machine, only specify the short host name.
+
+--noipv4
+    Disable IPv4 on this device.
+
+Example:
+    # DHCP IPV4 with IPV6 auto, reactivate at installation time and enable at boot time
+    network  --bootproto=dhcp --device=eth0 --ipv6=auto --activate
+
+    # DHCP IPV4 with IPV6 auto, not enable at boot time
+    network  --bootproto=dhcp --device=eth1 --onboot=off --ipv6=auto
+
+    # Hostname
+    network  --hostname=localhost
+
+    # Static IPV6 only
+    network  --bootproto=static --device=eth2 --noipv4 --ipv6=fd01:100::a/64 --activate --ipv6gateway=fd01:100::1
+
+    # Static IPV4
+    network --bootproto=static --device=eth3  --ip=192.168.2.10 --netmask=255.255.255.0 --gateway=192.168.2.1 --nameserver=10.0.2.1 
+```
+
+### Param: lat-disk
+Configures disk device to be installed and allocate spaces to partitions
+
+No upstream definition, newly added by LAT
+```
+--install-device=
+    ask | /dev/sda,LABEL=x # One or more devices separated by a comma
+
+--fat-size=
+    MB size of fat partition
+
+--boot-size=
+    MB size of boot partition
+
+--root-size=
+    MB size of root partition
+
+--var-size=
+    MB size of var partition (0 for auto expand)
+
+Example:
+    # Try to install a list of available devices
+    # /dev/nvme0n1,/dev/mmcblk0,/dev/sda,/dev/vda
+    # It is useful while install device is not clear
+    # The fat size is 32MB, boot size is 512MB, root size is 8096MB,
+    # the rest free disk space is expanded to /var
+    lat-disk --install-device=/dev/nvme0n1,/dev/mmcblk0,/dev/sda,/dev/vda --fat-size=32 --boot-size=512 --root-size=8096 --var-size=0
+```
+
+### Parma: %pre section
+
+Add commands to run on the system immediately after the Kickstart file has
+been parsed, but before the installation begins. This section must be placed
+towards the end of the Kickstart file, after the actual Kickstart commands,
+and must start with %pre and end with %end.
+
+Inherits from upstream [kickstart Pre-installation Script](https://docs.fedoraproject.org/en-US/Fedora/26/html/Installation_Guide/sect-kickstart-preinstall.html)
+```
+--interpreter=
+    Allows you to specify a different scripting language, such as
+    Python. Any scripting language available on the system can
+    be used; in most cases, these will be /usr/bin/sh, /usr/bin/bash,
+    and /usr/bin/python.
+
+Example:
+    %pre --interpreter=/bin/sh
+    echo "Pre script 1"
+    %end
+
+    %pre
+    echo "Pre script 2"
+    %end
+
+    %pre --interpreter=/bin/bash
+    echo "Pre script 3"
+    %end
+```
+
+### Parma: %post section
+
+Add commands to run on the system once the installation is complete, but before
+the system is rebooted for the first time. This section must start with %post
+and end with %end.
+
+This section is useful for functions such as installing additional software
+or configuring an additional name server. The post-install script is run in
+a chroot environment, therefore, performing tasks such as copying scripts or
+RPM packages from the installation media do not work by default. You can
+change this behavior using the --nochroot option as described below.
+
+Inherits from upstream [kickstart Post-installation Script](https://docs.fedoraproject.org/en-US/Fedora/26/html/Installation_Guide/sect-kickstart-postinstall.html)
+
+```
+--interpreter=
+    Allows you to specify a different scripting language, such as Python. For example:
+    %post --interpreter=/usr/bin/python
+
+    Any scripting language available on the system can be used; in most cases,
+    these will be /usr/bin/sh, /usr/bin/bash, and /usr/bin/python.
+
+--nochroot
+    Allows you to specify commands that you would like to run outside of
+    the chroot environment. Use variable IMAGE_ROOTFS to locate rootfs dir
+
+Example:
+    %post
+    echo "Post script 1"
+    %end
+
+    %post --interpreter=/bin/bash
+    echo "Post script 2"
+    %end
+
+    %post --interpreter=/bin/bash --nochroot
+    echo "Post script 3, rootdir is ${IMAGE_ROOTFS}"
+    %end
+```
+
+## Steps of HowTo (by Qemu)
+### Prepare a kickstart file
+```
+$ exampleyamls --pkg-type external-debian
+$ cat exampleyamls/kickstart/lat-installer.ks
+```
+
+### Setup a web server
+```
+$ python3 -m http.server 8888 --directory exampleyamls/kickstart/
+```
+Use browser to access http://HOST_IP:8888/lat-installer.ks
+
+### Generate LAT image with kickstart support
+While calling 'appsdk genimage', use option --install-kickstart-url to
+get kickstart file, use option --install-net-mode and --install-net-params
+to assure the network is accessible to download kickstart during installation.
+
+Currently, only ISO and PXE have kickstart support
+```
+$ appsdk --log-dir log genimage --type iso --type pxe \
+                                --install-kickstart-url http://HOST_IP:8888/lat-installer.ks \
+                                --install-net-mode dhcp \
+                                --install-net-params eth0 \
+                                exampleyamls/debian-image-base-intel-x86-64.yaml
+```
+
+### Use QEMU to boot (KVM + EFI + PXE)
+Refers deploy/PXE-for-EFI_debian-image-base.README.md
+Create a QEMU simulator with 2 disks and 4 network interfaces
+
+```
+$ qemu-img create -f raw boot-image-qemu.hddimg 16G
+$ qemu-img create -f raw boot-image-qemu-2.hddimg 16G
+$ cp -fa deploy/ovmf.qcow2 OVMF_CODE.fd
+$ cp -fa deploy/ovmf.vars.qcow2 OVMF_VARS.fd
+$ qemu-system-x86_64 -m 5174 \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -drive if=none,id=hd-2,file=boot-image-qemu-2.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd -device scsi-hd,drive=hd-2  \
+        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
+        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
+        -net nic -net user,tftp=./deploy/pxe_tftp_debian-image-base,bootfile=EFI/BOOT/bootx64.efi \
+        -device virtio-net-pci,netdev=net0 -netdev user,id=net0 \
+        -device virtio-net-pci,netdev=net1 -netdev user,id=net1 \
+        -device virtio-net-pci,netdev=net2 -netdev user,id=net2 \
+        -cpu kvm64 -enable-kvm -nographic
+```
+
+### Login QEMU
+```
+localhost login: root
+Password: 
+Linux localhost 5.10.0-8-amd64 #1 SMP Debian 5.10.46-2 (2021-07-20) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+root@localhost:~# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.2.15  netmask 255.255.255.0  broadcast 10.0.2.255
+        inet6 fec0::5054:ff:fe12:3457  prefixlen 64  scopeid 0x40<site>
+        inet6 fe80::5054:ff:fe12:3457  prefixlen 64  scopeid 0x20<link>
+        ether 52:54:00:12:34:57  txqueuelen 1000  (Ethernet)
+        RX packets 6  bytes 1635 (1.5 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 24  bytes 1997 (1.9 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+eth2: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet6 fe80::5054:ff:fe12:3459  prefixlen 64  scopeid 0x20<link>
+        inet6 fd01:100::a  prefixlen 64  scopeid 0x0<global>
+        ether 52:54:00:12:34:59  txqueuelen 1000  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 6  bytes 612 (612.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+eth3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.2.10  netmask 255.255.255.0  broadcast 192.168.2.255
+        inet6 fec0::5054:ff:fe12:3456  prefixlen 64  scopeid 0x40<site>
+        inet6 fe80::5054:ff:fe12:3456  prefixlen 64  scopeid 0x20<link>
+        ether 52:54:00:12:34:56  txqueuelen 1000  (Ethernet)
+        RX packets 1  bytes 110 (110.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 34  bytes 2222 (2.1 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 29  bytes 2680 (2.6 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 29  bytes 2680 (2.6 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+root@localhost:~# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+none            2.4G     0  2.4G   0% /dev
+tmpfs           2.4G  460K  2.4G   1% /run
+/dev/sda4       7.7G  995M  6.4G  14% /sysroot
+/dev/sda3       488M  155M  298M  35% /boot
+tmpfs           2.4G     0  2.4G   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+/dev/sda5       7.4G  159M  6.8G   3% /var
+/dev/sda2        32M  5.1M   27M  16% /boot/efi
+tmpfs           491M     0  491M   0% /run/user/0
+
+root@localhost:~# blkid
+/dev/sda2: SEC_TYPE="msdos" LABEL_FATBOOT="otaefi" LABEL="otaefi" UUID="3B57-A162" BLOCK_SIZE="512" TYPE="vfat" PARTLABEL="otaefi" PARTUUID="2f729074-8a70-4834-8397-5e8a6f60218e"
+/dev/sda3: LABEL="otaboot" UUID="358c695e-376c-45a2-a6be-a629e3c2dbb8" BLOCK_SIZE="4096" TYPE="ext4" PARTLABEL="otaboot" PARTUUID="ef502763-2b46-44c6-b420-5c23beb24501"
+/dev/sda4: LABEL="otaroot" UUID="557bd026-9f4f-47b0-a5e4-50e5eefcdafa" BLOCK_SIZE="4096" TYPE="ext4" PARTLABEL="otaroot" PARTUUID="3ede4347-dda2-419f-b097-a41e2e7e7eb8"
+/dev/sda5: LABEL="fluxdata" UUID="13f41e4f-e1e9-451b-824c-848e171b8da6" BLOCK_SIZE="4096" TYPE="ext4" PARTLABEL="fluxdata" PARTUUID="5bdfc1b6-ea3f-42f1-a7b9-a89728925521"
+/dev/sda1: PARTLABEL="bios" PARTUUID="ec9527bd-da13-44ce-9c66-5940cfdd10d7"
+
+```
+
+## License
+The image is provided under the GPL-2.0 license.
+
+Copyright (c) 2021 Wind River Systems Inc.
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License version 2 as published by the Free
+Software Foundation.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place, Suite 330, Boston, MA 02111-1307 USA
+
+The images include third party software which might be available under
+additional open source licenses, including the base Wind River Linux CD
+distribution along with third party dependencies.
+
+## Legal Notices
+All product names, logos, and brands are property of their respective owners.
+All company, product and service names used in this software are for
+identification purposes only. Wind River is a registered trademark of Wind River
+Systems, Inc. Linux is a registered trademark owned by Linus Torvalds.
+
+Disclaimer of Warranty / No Support: Wind River does not provide support and
+maintenance services for this software, under Wind River's standard Software
+Support and Maintenance Agreement or otherwise. Unless required by applicable
+law, Wind River provides the software (and each contributor provides its
+contribution) on an "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, either
+express or implied, including, without limitation, any warranties of TITLE,
+NONINFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are
+solely responsible for determining the appropriateness of using or
+redistributing the software and assume any risks associated with your exercise
+of permissions under the license.

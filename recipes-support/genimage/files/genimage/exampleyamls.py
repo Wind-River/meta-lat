@@ -138,6 +138,10 @@ def _main_run_internal(args):
                 f.write("system:\n")
                 f.write("- contains:\n")
                 f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % deb_constant.DEFAULT_IMAGE)
+
+            kickstart = os.path.join(native_sysroot, 'usr/share/genimage/data/kickstart')
+            cmd = "cp -rf {0} {1}/".format(kickstart, outdir)
+            utils.run_cmd_oneshot(cmd)
         else:
             cmd = "genyaml -d -o {0} --pkg-type {1} --type iso --name lat-image-multiple".format(outdir, args.pkg_type)
             utils.run_cmd_oneshot(cmd)
