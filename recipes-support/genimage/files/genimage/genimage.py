@@ -199,7 +199,7 @@ class GenImage(GenXXX):
         boot_params = "rdinit=/install instname=%s " % data_ostree['ostree_osname']
         boot_params += "instbr=%s instab=%s " % (image_name, data_ostree['ostree_use_ab'])
         boot_params += "instdate=@%s instw=60 instl=/ostree_repo " % date_since_epoch
-        boot_params += "biosplusefi=1 "
+        boot_params += "biosplusefi=1 net.ifnames=0 kernelparams='net.ifnames=0' "
         if data_ostree['ostree_remote_url']:
             boot_params += "insturl=%s " % data_ostree['ostree_remote_url']
         else:
