@@ -75,6 +75,26 @@ def set_parser_genyaml(parser=None):
         help='Specify ostree remote url, it overrides \'ostree_remote_url\' in Yaml, default is None',
         action='store').completer = complete_url
 
+    parser.add_argument('--install-net-mode',
+        choices=['dhcp', 'static-ipv4'],
+        default=None,
+        help='Specify network dhcp or static-ipv4 during installation, it overrides \n' + \
+             '\'install_net_mode\' in Yaml, default is None',
+        action='store')
+
+    parser.add_argument('--install-net-params',
+        default=None,
+        help='Specify network params during installation, it overrides \'install_net_params\' ' + \
+             'in Yaml, default is None. For dhcp, it is interface name, such as eth0; ' + \
+             'For static-ipv4, use the kernel arg: ip=<client-ip>::<gw-ip>:<netmask>:<hostname>:<device>:off:<dns0-ip>:<dns1-ip>, ' + \
+             'such as ip=10.0.2.15::10.0.2.1:255.255.255.0:tgt:eth0:off:10.0.2.3:8.8.8.8',
+        action='store').completer = complete_url
+
+    parser.add_argument('--install-kickstart-url',
+        default=None,
+        help='Specify kickstart url, it overrides \'install_kickstart_url\' in Yaml, default is None',
+        action='store').completer = complete_url
+
     parser.add_argument('--output-yaml',
         default=None,
         help='Specify file name of the generated Yaml.',

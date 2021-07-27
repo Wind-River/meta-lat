@@ -82,6 +82,26 @@ def set_parser_genimage(parser=None):
         help='Specify ostree remote url, it overrides \'ostree_remote_url\' in Yaml, default is None',
         action='store').completer = complete_url
 
+    parser.add_argument('--install-net-mode',
+        choices=['dhcp', 'static-ipv4'],
+        default=None,
+        help='Specify network dhcp or static-ipv4 during installation, it overrides \n' + \
+             '\'install_net_mode\' in Yaml, default is None',
+        action='store')
+
+    parser.add_argument('--install-net-params',
+        default=None,
+        help='Specify network params during installation, it overrides \'install_net_params\' ' + \
+             'in Yaml, default is None. For dhcp, it is interface name, such as eth0; ' + \
+             'For static-ipv4, use the kernel arg: ip=<client-ip>::<gw-ip>:<netmask>:<hostname>:<device>:off:<dns0-ip>:<dns1-ip>, ' + \
+             'such as ip=10.0.2.15::10.0.2.1:255.255.255.0:tgt:eth0:off:10.0.2.3:8.8.8.8',
+        action='store').completer = complete_url
+
+    parser.add_argument('--install-kickstart-url',
+        default=None,
+        help='Specify kickstart url, it overrides \'install_kickstart_url\' in Yaml, default is None',
+        action='store').completer = complete_url
+
     return parser
 
 def complete_url(**kwargs):
@@ -135,6 +155,15 @@ class GenImage(GenXXX):
 
         if self.args.ostree_remote_url:
             self.data["ostree"]["ostree_remote_url"] = self.args.ostree_remote_url
+
+        if self.args.install_net_mode:
+            self.data["ostree"]["install_net_mode"] = self.args.install_net_mode
+
+        if self.args.install_net_params:
+            self.data["ostree"]["install_net_params"] = self.args.install_net_params
+
+        if self.args.install_kickstart_url:
+            self.data["ostree"]["install_kickstart_url"] = self.args.install_kickstart_url
 
     def _sysdef_contains(self):
         for element in self.data["system"]:
@@ -204,6 +233,19 @@ class GenImage(GenXXX):
             boot_params += "insturl=%s " % data_ostree['ostree_remote_url']
         else:
             boot_params += "insturl=file://NOT_SET "
+
+        if data_ostree['install_net_mode'] == "dhcp":
+            boot_params += "instnet=dhcp "
+            if data_ostree['install_net_params']:
+                boot_params += "dhcpargs=%s " % data_ostree['install_net_params']
+        elif data_ostree['install_net_mode'] == "static-ipv4":
+            boot_params += "instnet=0 "
+            if data_ostree['install_net_params']:
+                boot_params += "%s " % data_ostree['install_net_params']
+
+        if data_ostree['install_kickstart_url']:
+            boot_params += "ks=%s " % data_ostree['install_kickstart_url']
+
         boot_params += "BLM={0} FSZ={1} BSZ={2} RSZ={3} VSZ={4} ".format(data_ostree['OSTREE_FDISK_BLM'],
                                                                          data_ostree['OSTREE_FDISK_FSZ'],
                                                                          data_ostree['OSTREE_FDISK_BSZ'],

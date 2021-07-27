@@ -151,6 +151,16 @@ schema;ostree_map:
     ostree_extra_install_args:
       type: str
       nullable: False
+    install_kickstart_url:
+      type: str
+      desc: Specify kickstart url
+    install_net_params:
+      type: str
+      desc: Specify network params during installation
+    install_net_mode:
+      type: str
+      enum: ['dhcp', 'static-ipv4', '']
+      desc: Specify network dhcp or static-ipv4 during installation
 
 schema;wic_map:
   type: map
