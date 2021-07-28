@@ -181,7 +181,7 @@ Example:
 ## Steps of HowTo (by Qemu)
 ### Prepare a kickstart file
 ```
-$ exampleyamls --pkg-type external-debian
+$ exampleyamls @PKG_TYPE@
 $ cat exampleyamls/kickstart/lat-installer.ks
 ```
 
@@ -202,11 +202,11 @@ $ appsdk --log-dir log genimage --type iso --type pxe \
                                 --install-kickstart-url http://HOST_IP:8888/lat-installer.ks \
                                 --install-net-mode dhcp \
                                 --install-net-params eth0 \
-                                exampleyamls/debian-image-base-intel-x86-64.yaml
+                                exampleyamls/@IMAGE_NAME@-intel-x86-64.yaml
 ```
 
 ### Use QEMU to boot (KVM + EFI + PXE)
-Refers deploy/PXE-for-EFI_debian-image-base.README.md
+Refers deploy/PXE-for-EFI_@IMAGE_NAME@.README.md
 Create a QEMU simulator with 2 disks and 4 network interfaces
 
 ```
@@ -220,7 +220,7 @@ $ qemu-system-x86_64 -m 5174 \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd -device scsi-hd,drive=hd-2  \
         -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
         -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
-        -net nic -net user,tftp=./deploy/pxe_tftp_debian-image-base,bootfile=EFI/BOOT/bootx64.efi \
+        -net nic -net user,tftp=./deploy/pxe_tftp_@IMAGE_NAME@,bootfile=EFI/BOOT/bootx64.efi \
         -device virtio-net-pci,netdev=net0 -netdev user,id=net0 \
         -device virtio-net-pci,netdev=net1 -netdev user,id=net1 \
         -device virtio-net-pci,netdev=net2 -netdev user,id=net2 \
@@ -229,16 +229,6 @@ $ qemu-system-x86_64 -m 5174 \
 
 ### Login QEMU
 ```
-localhost login: root
-Password: 
-Linux localhost 5.10.0-8-amd64 #1 SMP Debian 5.10.46-2 (2021-07-20) x86_64
-
-The programs included with the Debian GNU/Linux system are free software;
-the exact distribution terms for each program are described in the
-individual files in /usr/share/doc/*/copyright.
-
-Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
-permitted by applicable law.
 root@localhost:~# ifconfig
 eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         inet 10.0.2.15  netmask 255.255.255.0  broadcast 10.0.2.255

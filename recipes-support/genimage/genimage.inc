@@ -72,7 +72,7 @@ SRC_URI = "\
            file://genimage/data/wic/mkhybridiso.wks.in \
            file://genimage/data/pxe_boot/bootfile-efi.in \
            file://genimage/data/pxe_boot/bootfile-bios.in \
-           file://genimage/data/kickstart/kickstart.README.md \
+           file://genimage/data/kickstart/kickstart.README.md.in \
            file://genimage/data/kickstart/lat-installer.ks \
            file://genimage/scripts/run.do_image_ostree \
            file://genimage/scripts/run.do_image_otaimg \
