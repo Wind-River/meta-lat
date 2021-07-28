@@ -223,28 +223,45 @@ class GenImage(GenXXX):
 
         image_wic.create()
 
-    def _get_boot_parms(self, image_name, data_ostree, image_type="iso"):
-        date_since_epoch = datetime.datetime.now().strftime('%s')
-        boot_params = "rdinit=/install instname=%s " % data_ostree['ostree_osname']
+    def _get_boot_params(self, image_name, data_ostree, image_type="iso"):
+        def _get_boot_common_params(data_ostree):
+            date_since_epoch = datetime.datetime.now().strftime('%s')
+            boot_params = "instdate=@%s instw=60 " % date_since_epoch
+
+            if data_ostree['install_net_mode'] == "dhcp":
+                boot_params += "instnet=dhcp "
+                if data_ostree['install_net_params']:
+                    boot_params += "dhcpargs=%s " % data_ostree['install_net_params']
+            elif data_ostree['install_net_mode'] == "static-ipv4":
+                boot_params += "instnet=0 "
+                if data_ostree['install_net_params']:
+                    boot_params += "%s " % data_ostree['install_net_params']
+
+            if data_ostree['install_kickstart_url']:
+                boot_params += "ks=%s " % data_ostree['install_kickstart_url']
+
+            if data_ostree["ostree_extra_install_args"]:
+                boot_params += "%s " % data_ostree["ostree_extra_install_args"]
+
+            if self.pkg_type == "external-debian":
+                boot_params += "net.ifnames=0 "
+
+            return boot_params
+
+        boot_params = _get_boot_common_params(data_ostree)
+        if image_type == "ustart":
+            return boot_params
+
+        if image_type in ["pxe", "iso"]:
+            boot_params += "biosplusefi=1 instl=/ostree_repo "
+
+        boot_params += "rdinit=/install instname=%s " % data_ostree['ostree_osname']
         boot_params += "instbr=%s instab=%s " % (image_name, data_ostree['ostree_use_ab'])
-        boot_params += "instdate=@%s instw=60 instl=/ostree_repo " % date_since_epoch
-        boot_params += "biosplusefi=1 net.ifnames=0 kernelparams='net.ifnames=0' "
+
         if data_ostree['ostree_remote_url']:
             boot_params += "insturl=%s " % data_ostree['ostree_remote_url']
         else:
             boot_params += "insturl=file://NOT_SET "
-
-        if data_ostree['install_net_mode'] == "dhcp":
-            boot_params += "instnet=dhcp "
-            if data_ostree['install_net_params']:
-                boot_params += "dhcpargs=%s " % data_ostree['install_net_params']
-        elif data_ostree['install_net_mode'] == "static-ipv4":
-            boot_params += "instnet=0 "
-            if data_ostree['install_net_params']:
-                boot_params += "%s " % data_ostree['install_net_params']
-
-        if data_ostree['install_kickstart_url']:
-            boot_params += "ks=%s " % data_ostree['install_kickstart_url']
 
         boot_params += "BLM={0} FSZ={1} BSZ={2} RSZ={3} VSZ={4} ".format(data_ostree['OSTREE_FDISK_BLM'],
                                                                          data_ostree['OSTREE_FDISK_FSZ'],
@@ -270,7 +287,7 @@ class GenImage(GenXXX):
             logger.error("Only intel-x86-64 support ISO image")
             sys.exit(1)
 
-        boot_params = self._get_boot_parms(self.image_name, self.data["ostree"])
+        boot_params = self._get_boot_params(self.image_name, self.data["ostree"])
         for yaml_file in self.guest_yamls:
             with open(yaml_file) as f:
                 try:
@@ -279,7 +296,7 @@ class GenImage(GenXXX):
                         logger.debug("Skip %s from ISO multiple ostree images", data["name"])
                         continue
                     ostree = data["ostree"] if "ostree" in data else self.data["ostree"]
-                    boot_params += self._get_boot_parms(data["name"], ostree)
+                    boot_params += self._get_boot_params(data["name"], ostree)
                 except Exception as e:
                     logger.error("Parse nest/guest Yaml %s failed\n%s", yaml_file, logging.traceback.format_exc())
                     sys.exit(1)
@@ -325,7 +342,7 @@ class GenImage(GenXXX):
 
         scriptFile.file.close()
 
-        boot_params = self._get_boot_parms(self.image_name, self.data["ostree"], image_type="pxe")
+        boot_params = self._get_boot_params(self.image_name, self.data["ostree"], image_type="pxe")
 
         pxe = CreatePXE(
                   image_name = self.image_name,
@@ -391,6 +408,7 @@ class GenImage(GenXXX):
 
     @show_task_info("Create Ustart Image")
     def do_ustart_img(self):
+        boot_params = self._get_boot_params(self.image_name, self.data["ostree"], image_type="ustart")
         workdir = os.path.join(self.workdir, self.image_name)
         ustart = CreateBootfs(
                         image_name=self.image_name,
@@ -398,7 +416,8 @@ class GenImage(GenXXX):
                         machine=self.machine,
                         pkg_type = self.pkg_type,
                         ostree_osname=self.data["ostree"]['ostree_osname'],
-                        deploydir=self.deploydir)
+                        deploydir=self.deploydir,
+                        boot_params = boot_params)
         ustart.create()
 
     def do_report(self):
@@ -664,7 +683,7 @@ class GenExtDebImage(GenImage):
 
         self.data["ostree"] = deb_constant.DEFAULT_OSTREE_DATA
 
-        self.data['environments'] = ['NO_RECOMMENDATIONS="1"', 'DEBIAN_FRONTEND=noninteractive']
+        self.data['environments'] = ['NO_RECOMMENDATIONS="1"', 'DEBIAN_FRONTEND=noninteractive', 'KERNEL_PARAMS="net.ifnames=0"']
 
     def _parse_amend(self):
         super(GenExtDebImage, self)._parse_amend()
@@ -683,6 +702,16 @@ class GenExtDebImage(GenImage):
         super(GenExtDebImage, self).do_prepare()
         os.environ['DEPLOY_DIR'] = self.deploydir
         os.environ['DEFAULT_INITRD_NAME'] = deb_constant.DEFAULT_INITRD_NAME
+
+    def _do_rootfs_pre(self, rootfs=None):
+        if rootfs is None:
+            return
+
+        super(GenExtDebImage, self)._do_rootfs_pre(rootfs)
+        os.environ['OSTREE_CONSOLE'] = self.data["ostree"]['OSTREE_CONSOLE']
+        script_cmd = os.path.join(self.data_dir, 'post_rootfs', 'update_grub_cfg.sh')
+        script_cmd = "{0} {1}".format(script_cmd, rootfs.target_rootfs)
+        rootfs.add_rootfs_post_scripts(script_cmd)
 
     @show_task_info("Create External Debian Rootfs")
     def do_rootfs(self):
