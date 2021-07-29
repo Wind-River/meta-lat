@@ -151,6 +151,8 @@ def _main_run_internal(args):
                 f.write("- contains:\n")
                 f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % constant.DEFAULT_IMAGE)
 
+    utils.remove(os.path.join(outdir, "deploy"), recurse=True)
+
     table = Texttable()
     table.set_cols_align(["l", "l"])
     table.set_cols_valign(["t", "t"])
