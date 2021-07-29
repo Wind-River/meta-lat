@@ -58,7 +58,7 @@ and un-mount those that are mounted, for example:
     $ umount /dev/sdX2
 
 Now burn the image onto the micro SD card:
-    $ sudo dd if=@IMAGE_NAME@.wic of=/dev/sdX bs=1M status=progress
+    $ sudo dd if=deploy/@IMAGE_NAME@.wic of=/dev/sdX bs=1M status=progress
 
     $ sync
     $ eject /dev/sdX
@@ -73,7 +73,7 @@ Create a disk image
     $ qemu-img create -f raw boot-image-qemu.hddimg 14G
 
 Burn the image onto disk image:
-    $ dd if=@IMAGE_NAME@.wic of=boot-image-qemu.hddimg conv=notrunc
+    $ dd if=deploy/@IMAGE_NAME@.wic of=boot-image-qemu.hddimg conv=notrunc
 
 For Qemu No Graphic:
 

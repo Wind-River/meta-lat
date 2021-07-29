@@ -57,7 +57,7 @@ and un-mount those that are mounted, for example:
     $ umount /dev/sdX2
 
 Now burn the image onto the USB drive:
-    $ zcat @IMAGE_NAME@.ustart.img.gz | sudo dd of=/dev/sdX bs=1M status=progress
+    $ zcat deploy/@IMAGE_NAME@.ustart.img.gz | sudo dd of=/dev/sdX bs=1M status=progress
 
     $ sync
     $ eject /dev/sdX
@@ -75,7 +75,7 @@ Prepare OVMF images
     $ cp -f deploy/ovmf.vars.qcow2 OVMF_VARS.fd
 
 Burn the image onto disk image:
-    $ zcat @IMAGE_NAME@.ustart.img.gz | dd of=boot-image-qemu.hddimg conv=notrunc
+    $ zcat deploy/@IMAGE_NAME@.ustart.img.gz | dd of=boot-image-qemu.hddimg conv=notrunc
 
 For qemu x86_64 with KVM:
 
