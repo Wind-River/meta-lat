@@ -39,6 +39,7 @@ if not present.
 
 ## Supported BSPs
 - intel-x86-64
+- qemux86-64
 
 ## How to install/boot binary image
 ### On Board
@@ -56,7 +57,7 @@ and un-mount those that are mounted, for example:
     $ umount /dev/sdX2
 
 Now burn the image onto the USB drive:
-    $ sudo dd if=@IMAGE_NAME@-cd.iso of=/dev/sdX bs=1M status=progress
+    $ sudo dd if=deploy/@IMAGE_NAME@-cd.iso of=/dev/sdX bs=1M status=progress
 
     $ sync
     $ eject /dev/sdX
@@ -64,6 +65,135 @@ Now burn the image onto the USB drive:
 This should give you a bootable USB flash device.  Insert the device
 into a bootable USB socket on the target, and power on.  This should
 result in a system booted to the Grub boot menuo.
+
+### On Qemu + EFI
+Create a disk image
+    $ qemu-img create -f raw boot-image-qemu.hddimg 16G
+
+Prepare OVMF images
+    $ cp -f deploy/ovmf.qcow2 OVMF_CODE.fd
+    $ cp -f deploy/ovmf.vars.qcow2 OVMF_VARS.fd
+
+For qemu x86_64 with KVM:
+
+    # Installing with ISO
+    $ qemu-system-x86_64 -net nic -net user -m @MEM@ \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
+        -cdrom ./deploy/@IMAGE_NAME@-cd.iso \
+        -cpu kvm64 -enable-kvm \
+        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
+        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
+        -no-reboot
+
+    # Booting installed target without ISO
+    $ qemu-system-x86_64 -net nic -net user -m @MEM@ \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
+        -cpu kvm64 -enable-kvm \
+        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
+        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd
+
+
+For qemu x86_64 without KVM:
+
+    # Installing with ISO
+    $ qemu-system-x86_64 -net nic -net user -m @MEM@ \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
+        -cdrom ./deploy/@IMAGE_NAME@-cd.iso \
+        -cpu Nehalem \
+        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
+        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
+        -no-reboot
+
+    # Booting installed target without ISO
+    $ qemu-system-x86_64 -net nic -net user -m @MEM@ \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
+        -cpu Nehalem \
+        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
+        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd
+
+### On Qemu + Legacy/BIOS
+Create a disk image
+    $ qemu-img create -f raw boot-image-qemu.hddimg 16G
+
+For qemu x86_64 with KVM:
+
+    # Installing with ISO
+    $ qemu-system-x86_64 -net nic -net user -m @MEM@ \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
+        -cdrom ./deploy/@IMAGE_NAME@-cd.iso \
+        -cpu kvm64 -enable-kvm \
+        -no-reboot
+
+    # Booting installed target without ISO
+    $ qemu-system-x86_64 -net nic -net user -m @MEM@ \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
+        -cpu kvm64 -enable-kvm
+
+For qemu x86_64 without KVM:
+
+    # Installing with ISO
+    $ qemu-system-x86_64 -net nic -net user -m @MEM@ \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
+        -cdrom ./deploy/@IMAGE_NAME@-cd.iso \
+        -cpu Nehalem \
+        -no-reboot
+
+    # Booting installed target without ISO
+    $ qemu-system-x86_64 -net nic -net user -m @MEM@ \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
+        -cpu Nehalem
+
+#### Qemu Simulator
+qemu-system-x86_64
+
+#### Qemu Networking
+Create a SLiRP user network
+`-net nic -net user`
+
+#### Qemu Memory
+Set guest startup RAM size, @MEM@MB
+`-m @MEM@
+
+#### Qemu Image
+Use virtio-scsi-pci to load image
+`-drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd`
+
+#### Qemu CD ROM
+-cdrom ./deploy/@IMAGE_NAME@-cd.iso
+
+#### Qemu Exit after LAT installing
+Due to qemu does not have command options to eject CD ROM,
+exit rather than reboot after LAT installing
+`-no-reboot`
+
+#### Qemu CPU
+- KVM
+KVM has better performance based on virtualization as most of guest
+instruction can be executed directly on the host processor.
+`-cpu kvm64 -enable-kvm`
+If kvm failed, please refer:
+https://wiki.yoctoproject.org/wiki/How_to_enable_KVM_for_Poky_qemu
+
+If above refer does not work (such as you do not have root right to enable kvm)
+
+- For qemu x86_64, please simulate Intel Core i7 9xx (Nehalem Class Core i7)
+`-cpu Nehalem`
+
+#### Qemu Bootloader
+Enable UEFI support for Virtual Machines
+`-drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd`
+
+#### Qemu No Graphic
+Disable graphical output and redirect serial I/Os to console
+`-nographic
 
 ## Install a package
 ### Ostree Upgrade
