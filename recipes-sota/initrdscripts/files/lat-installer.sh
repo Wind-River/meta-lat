@@ -19,7 +19,8 @@
 #*/
 lat_tmp="/tmp/lat"
 lat_cmdline="${lat_tmp}/cmdline"
-lat_network="${lat_tmp}/lat_network"
+lat_network_systemd_dir="${lat_tmp}/lat_network_systemd"
+lat_network_ifupdown="${lat_tmp}/lat_network_interface"
 lat_network_active="${lat_tmp}/lat_network_active"
 lat_pre_script="${lat_tmp}/lat_pre_script"
 lat_post_script="${lat_tmp}/lat_post_script"
@@ -48,7 +49,153 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-ks_network () {
+convert_mask() {
+  local netmask=$1
+
+  awk -F. '{
+    split($0, octets)
+    for (i in octets) {
+        mask += 8 - log(2**8 - octets[i])/log(2);
+    }
+    print "/" mask
+  }' <<< ${netmask}
+}
+
+ks_network_systemd () {
+  local bootproto=""
+  local device=""
+  local ip=""
+  local netmask=""
+  local gateway==""
+  local nameserver=""
+  local ipv6=""
+  local ipv6gateway=""
+  local hostname=""
+  local activate="0"
+  local onboot="on"
+  local noipv4="0"
+  local output=""
+
+  while [ $# -gt 0 ]; do
+    val=`expr "x$1" : 'x[^=]*=\(.*\)'`
+    case $1 in
+      --bootproto=*)
+        bootproto="$val"
+        shift
+        continue
+        ;;
+      --device=*)
+        device="$val"
+        shift
+        continue
+        ;;
+      --activate)
+        activate="1"
+        shift
+        continue
+        ;;
+      --onboot=*)
+        onboot="$val"
+        shift
+        continue
+        ;;
+      --ip=*)
+        ip="$val"
+        shift
+        continue
+        ;;
+      --netmask=*)
+        netmask="$val"
+        shift
+        continue
+        ;;
+      --gateway=*)
+        gateway="$val"
+        shift
+        continue
+        ;;
+      --nameserver=*)
+        nameserver="$val"
+        shift
+        continue
+        ;;
+      --ipv6=*)
+        ipv6="$val"
+        shift
+        continue
+        ;;
+      --ipv6gateway=*)
+        ipv6gateway="$val"
+        shift
+        continue
+        ;;
+      --hostname=*)
+        hostname="$val"
+        shift
+        continue
+        ;;
+      --noipv4)
+        noipv4="1"
+        shift
+        continue
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  if [ -z "${device}" ]; then
+    return
+  fi
+
+  if [ -n "${device}" ]; then
+      output="${output}\n[Match]\nName=${device}\n"
+    if [ "${onboot}" = "off" ]; then
+      output="${output}\n[Link]\nActivationPolicy=down\n"
+    elif [ "${onboot}" = "on" ]; then
+      output="${output}\n[Link]\nActivationPolicy=up\n"
+    fi
+  fi
+
+  if [ "${bootproto}" = "static" ]; then
+    output="${output}\n[Network]"
+    if [ "${noipv4}" != "1" ]; then
+      if [ -z "${ip}"  ]; then
+        echo "No IPv4 found for ${bootproto} ${device}"
+        exit 1
+      fi
+      output="${output}\nAddress=${ip}"
+      if [ -n "${netmask}"  ]; then
+        output="${output}`convert_mask ${netmask}`"
+      fi
+      if [ -n "${gateway}"  ]; then
+        output="${output}\nGateway=${gateway}"
+      fi
+      if [ -n "${nameserver}" ]; then
+        output="${output}\nDNS=${nameserver}"
+      fi
+    fi
+  elif [ "${bootproto}" = "dhcp" ]; then
+    output="${output}\n[Network]"
+    output="${output}\nDHCP=yes\n"
+  fi
+
+  if [ -n "${ipv6}" ]; then
+    if [ "${ipv6}" != "auto" ]; then
+      output="${output}\nAddress=${ipv6}"
+      output="${output}\nGateway=${ipv6gateway}"
+    fi
+  fi
+
+  if [ -n "${output}" ]; then
+    printf "${output}\n" > ${lat_network_systemd_dir}/lat_${device}.network
+  fi
+}
+
+
+
+ks_network_ifupdown () {
   local bootproto=""
   local device=""
   local ip=""
@@ -185,7 +332,7 @@ ks_network () {
   if [ "${activate}" = "1" ]; then
     printf "${output}\n" >> ${lat_network_active}
   fi
-  printf "${output}\n" >> ${lat_network}
+  printf "${output}\n" >> ${lat_network_ifupdown}
 
   if [ -n "${hostname}" ];then
     echo "${hostname}" >> ${lat_hostname}
@@ -302,7 +449,8 @@ parse_ks() {
 
     if [ "${line::8}" = "network " ]; then
       echo "network: $line"
-      ks_network ${line:8}
+      ks_network_ifupdown ${line:8}
+      ks_network_systemd ${line:8}
     elif [ "${line::9}" = "lat-disk " ]; then
       ks_lat_disk ${line:9}
     fi
@@ -317,7 +465,7 @@ parse_ks() {
       killall -12 udhcpd
       killall -9 udhcpd
     fi
-    cp ${lat_network_active} /etc/network/interfaces.d/lat_network_active
+    cp -f ${lat_network_active} /etc/network/interfaces
     /etc/init.d/networking restart
     if [ $? -ne 0 ]; then
       fatal "Reactive network failed"
@@ -384,20 +532,32 @@ post_install() {
 }
 
 set_network() {
-  if [ -f ${lat_network} ]; then
-    lat_interface="${target_rootfs}/etc/network/interfaces.d/"
-    mkdir -p ${lat_interface}
-    cp ${lat_network} ${lat_interface}/lat_nework
-    echo "Deploy ${lat_interface}/lat_nework"
+  # Ifupdown
+  if [ -d /etc/network/interfaces.d ]; then
+    if [ -f ${lat_network_ifupdown} ]; then
+      lat_interface="${target_rootfs}/etc/network/interfaces"
+      mkdir -p ${lat_interface}
+      cp ${lat_network_ifupdown} ${lat_interface}/lat_nework
+      echo "Deploy ${lat_interface}"
+    fi
+
+    if [ -f ${lat_resolve} ]; then
+      cat ${lat_resolve} >> ${target_rootfs}/etc/resolv.conf
+    fi
+  # Systemd-networkd
+  else
+    lat_networkd="${target_rootfs}/etc/systemd/network/"
+    mkdir -p ${lat_networkd}
+    for conf in `ls ${lat_network_systemd_dir}/*`; do
+      cp $conf ${lat_networkd}
+      echo "Deploy ${lat_networkd}${conf##*/}"
+    done
   fi
 
   if [ -f ${lat_hostname} ]; then
     cat ${lat_hostname} > ${target_rootfs}/etc/hostname
   fi
 
-  if [ -f ${lat_resolve} ]; then
-    cat ${lat_resolve} >> ${target_rootfs}/etc/resolv.conf
-  fi
 
 }
 
@@ -416,7 +576,8 @@ while [ $# -gt 0 ]; do
       ;;
     --kickstart=*)
       rm -rf ${lat_tmp}
-      mkdir -p "${lat_tmp}"
+      mkdir -p ${lat_tmp}
+      mkdir -p ${lat_network_systemd_dir}
       curl $val -s --output $ks_file
       if [ $? -ne 0 ]; then
         fatal "Download kickstart file $val failed"

@@ -110,6 +110,8 @@ DEFAULT_PACKAGES = {
 OSTREE_INITRD_PACKAGES = '''
     glib-networking
     ca-certificates
+    init-ifupdown ifupdown
+    debianutils-run-parts iproute2-ip
     e2fsprogs-e2fsck killall
     mttyexec grub eject
     ostree ostree-switchroot

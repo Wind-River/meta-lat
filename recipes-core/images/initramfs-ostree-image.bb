@@ -20,6 +20,10 @@ PACKAGE_INSTALL = "ostree \
   initramfs-ostree \
   bash \
   killall \
+  init-ifupdown \
+  ifupdown \
+  debianutils-run-parts \
+  iproute2-ip \
   kmod \
   bzip2 \
   gnupg \
