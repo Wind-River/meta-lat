@@ -11,7 +11,7 @@ network  --hostname=localhost
 network  --bootproto=static --device=eth2 --noipv4 --ipv6=fd01:100::a/64 --activate --ipv6gateway=fd01:100::1
 
 # Static IPV4
-network --bootproto=static --device=eth3  --ip=192.168.2.10 --netmask=255.255.255.0 --gateway=192.168.2.1 --nameserver=10.0.2.1
+network --bootproto=static --device=eth3  --ip=192.168.2.10 --netmask=255.255.255.0 --gateway=10.0.2.2 --nameserver=10.0.2.1
 
 lat-disk --install-device=/dev/sda --fat-size=32 --boot-size=512 --root-size=8096 --var-size=0
 
