@@ -31,7 +31,7 @@ export PATH={0}
 chroot $IMAGE_ROOTFS bash << SCRIPT_ENDOF
 set -e
 apt update
-apt install -y --no-install-recommends linux-image-amd64 grub-common psmisc
+apt install -y --no-install-recommends linux-image-amd64 grub-common
 apt install -y --allow-downgrades --allow-unauthenticated --no-install-recommends \
     ostree=${DEBIAN_OSTREE_VERSION} \
     ostree-boot=${DEBIAN_OSTREE_VERSION} \
@@ -146,7 +146,7 @@ OSTREE_INITRD_PACKAGES = '''
     ostree-boot=${DEBIAN_OSTREE_VERSION}
     libostree-1-1=${DEBIAN_OSTREE_VERSION}
     tar udev util-linux fdisk mount
-    linux-image-amd64 grub2
+    linux-image-amd64 grub2 psmisc
 '''.split()
 
 DEFAULT_CONTAINER_PACKAGES = '''
