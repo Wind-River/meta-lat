@@ -3,7 +3,7 @@ Define a limited set of kickstart with limited capabilities, and use
 existing shell commands (such as bash/cat/sed/mount/umount) to implement
 a simplified kickstart framework (lat-installer.sh) in LAT installer
 
-Currently, only ISO and PXE image on intel-x86-64 have kickstart support
+Currently, only USTART/ISO/PXE image on intel-x86-64 have kickstart support
 
 ## Limited set of kickstart
 
@@ -195,10 +195,8 @@ Use browser to access http://HOST_IP:8888/lat-installer.ks
 While calling 'appsdk genimage', use option --install-kickstart-url to
 get kickstart file, use option --install-net-mode and --install-net-params
 to assure the network is accessible to download kickstart during installation.
-
-Currently, only ISO and PXE have kickstart support
 ```
-$ appsdk --log-dir log genimage --type iso --type pxe \
+$ appsdk --log-dir log genimage --type iso --type pxe --type ustart \
                                 --install-kickstart-url http://HOST_IP:8888/lat-installer.ks \
                                 --install-net-mode dhcp \
                                 --install-net-params eth0 \
