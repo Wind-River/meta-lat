@@ -193,3 +193,17 @@ OSTREE_BOOTSCR_PRECMD ??= ""
 OSTREE_GRUB_USER ??= "root"
 # Default password is root found in the file below, which is a generated hash
 OSTREE_GRUB_PW_FILE ??= "${OSTREE_KEYS_DIR}/boot_keys/boot_cfg_pw"
+
+OSTREE_SUPPORTED_ARM64_MACHINES ??= " \
+    bcm-2xxx-rpi4 \
+    xilinx-zynqmp \
+"
+
+OSTREE_SUPPORTED_ARM32_MACHINES ??= " \
+    xilinx-zynq \
+"
+
+OSTREE_SUPPORTED_ARM_MACHINES ?= " \
+    ${OSTREE_SUPPORTED_ARM64_MACHINES} \
+    ${OSTREE_SUPPORTED_ARM32_MACHINES} \
+"
