@@ -146,6 +146,8 @@ class GenYoctoContainer(GenContainer):
             self.data['container_oci']['OCI_IMAGE_ARCH'] = 'x86-64'
         elif DEFAULT_MACHINE in SUPPORTED_ARM64_MACHINES:
             self.data['container_oci']['OCI_IMAGE_ARCH'] = 'aarch64'
+        elif DEFAULT_MACHINE in SUPPORTED_ARM32_MACHINES:
+            self.data['container_oci']['OCI_IMAGE_ARCH'] = 'arm'
 
 
 class GenExtDebContainer(GenContainer):

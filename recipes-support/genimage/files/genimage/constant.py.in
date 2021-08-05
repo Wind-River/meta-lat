@@ -77,6 +77,7 @@ FEED_ARCHS_DICT = {
     'intel-x86-64': "all any noarch x86 i586 i686 core2_32 corei7_32 intel_x86_64 x86_64 core2_64 corei7_64",
     'bcm-2xxx-rpi4': "all any noarch armv5hf_vfp armv5thf_vfp armv5ehf_vfp armv5tehf_vfp armv6hf_vfp armv6thf_vfp armv7ahf_vfp armv7at2hf_vfp armv7ahf_neon armv7at2hf_neon bcm_2xxx_rpi4 aarch64 armv8a armv8a_crc armv8a_crypto armv8a_crc_crypto cortexa72",
     'xilinx-zynqmp': "all any noarch aarch64 armv8a armv8a-crc cortexa53 xilinx_zynqmp",
+    'xilinx-zynq': "all any noarch armv5hf-vfp armv5thf-vfp armv5ehf-vfp armv5tehf-vfp armv6hf-vfp armv6thf-vfp armv7ahf-vfp armv7at2hf-vfp armv7ahf-neon armv7at2hf-neon xilinx_zynq".replace('-', '_'),
 }
 
 DEFAULT_PACKAGES_COMMON = '''
@@ -114,11 +115,18 @@ DEFAULT_PACKAGES_xilinx_zynqmp = '''
     kernel-image-image
 '''.split()
 
+DEFAULT_PACKAGES_xilinx_zynq = '''
+    u-boot-uenv
+    kernel-devicetree
+    kernel-image-zimage
+'''.split()
+
 # default rootfs: ${LAT_DEFAULT_IMAGE}
 DEFAULT_PACKAGES = {
     'intel-x86-64': DEFAULT_PACKAGES_intel_x86_64 + DEFAULT_PACKAGES_COMMON,
     'bcm-2xxx-rpi4': DEFAULT_PACKAGES_bcm_2xxx_rpi4 + DEFAULT_PACKAGES_COMMON,
     'xilinx-zynqmp': DEFAULT_PACKAGES_xilinx_zynqmp + DEFAULT_PACKAGES_COMMON,
+    'xilinx-zynq': DEFAULT_PACKAGES_xilinx_zynq + DEFAULT_PACKAGES_COMMON,
 }
 
 OSTREE_INITRD_PACKAGES = '''
@@ -204,6 +212,7 @@ EXTRA_IMAGE_BOOT_FILES = {
     'intel-x86-64': '',
     'bcm-2xxx-rpi4': 'initramfs-ostree-image-bcm-2xxx-rpi4.cpio.gz.u-boot;initramfs',
     'xilinx-zynqmp': 'boot.scr initramfs-ostree-image-xilinx-zynqmp.cpio.gz.u-boot;initramfs',
+    'xilinx-zynq': 'boot.scr initramfs-ostree-image-xilinx-zynq.cpio.gz.u-boot;initramfs',
 }
 IMAGE_BOOT_FILES = "${IMAGE_BOOT_FILES}"
 
