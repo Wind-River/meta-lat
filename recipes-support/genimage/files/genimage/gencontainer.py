@@ -32,6 +32,8 @@ from genimage.constant import DEFAULT_PACKAGE_FEED
 from genimage.constant import DEFAULT_IMAGE_PKGTYPE
 from genimage.constant import DEFAULT_REMOTE_PKGDATADIR
 from genimage.constant import DEFAULT_IMAGE_FEATURES
+from genimage.constant import SUPPORTED_ARM64_MACHINES
+from genimage.constant import SUPPORTED_ARM32_MACHINES
 from genimage.container import CreateContainer
 from genimage.genXXX import set_parser
 from genimage.genXXX import GenXXX
@@ -142,7 +144,7 @@ class GenYoctoContainer(GenContainer):
         self.data['features'] =  DEFAULT_IMAGE_FEATURES
         if DEFAULT_MACHINE == 'intel-x86-64':
             self.data['container_oci']['OCI_IMAGE_ARCH'] = 'x86-64'
-        elif DEFAULT_MACHINE == 'bcm-2xxx-rpi4':
+        elif DEFAULT_MACHINE in SUPPORTED_ARM64_MACHINES:
             self.data['container_oci']['OCI_IMAGE_ARCH'] = 'aarch64'
 
 

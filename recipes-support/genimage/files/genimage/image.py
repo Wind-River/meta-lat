@@ -101,7 +101,7 @@ class CreateInitramfs(Image):
 
     def create(self):
         self._create_cpio_gz()
-        if self.machine == "bcm-2xxx-rpi4":
+        if self.machine in constant.SUPPORTED_ARM_MACHINES:
             self._create_uboot()
         self._create_symlinks()
 
@@ -125,7 +125,7 @@ class CreateInitramfs(Image):
     def _create_symlinks(self):
         dst = os.path.join(self.deploydir, self.image_linkname + ".cpio.gz")
         src = os.path.join(self.deploydir, self.image_fullname + ".rootfs.cpio.gz")
-        if self.machine == "bcm-2xxx-rpi4":
+        if self.machine in constant.SUPPORTED_ARM_MACHINES:
             dst = dst + ".u-boot"
             src = src + ".u-boot"
 

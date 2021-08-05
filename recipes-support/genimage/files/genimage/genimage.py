@@ -213,7 +213,7 @@ class GenImage(GenXXX):
 
         env = self.data['wic'].copy()
         env['WORKDIR'] = workdir
-        if self.machine == "bcm-2xxx-rpi4":
+        if self.machine in constant.SUPPORTED_ARM_MACHINES:
             env.update({'OSTREE_SD_BOOT_ALIGN':'4',
                         'OSTREE_SD_UBOOT_WIC1':'',
                         'OSTREE_SD_UBOOT_WIC2':'',
@@ -531,7 +531,7 @@ class GenYoctoImage(GenImage):
 
         super(GenYoctoImage, self)._do_rootfs_pre(rootfs)
 
-        if self.machine == "bcm-2xxx-rpi4":
+        if self.machine in constant.SUPPORTED_ARM_MACHINES:
             os.environ['OSTREE_CONSOLE'] = self.data["ostree"]['OSTREE_CONSOLE']
             script_cmd = os.path.join(self.data_dir, 'post_rootfs', 'update_boot_scr.sh')
             script_cmd = "{0} {1} {2} {3} {4}".format(script_cmd,
@@ -585,8 +585,9 @@ class GenYoctoImage(GenImage):
 
             if constant.OSTREE_COPY_IMAGE_BOOT_FILES == "1":
                 bootfiles = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'], 'usr/share/bootfiles')
-                cmd = "cp -rf {0}/* {1}".format(bootfiles, self.deploydir)
-                utils.run_cmd_oneshot(cmd)
+                if os.path.exists(bootfiles):
+                    cmd = "cp -rf {0}/* {1}".format(bootfiles, self.deploydir)
+                    utils.run_cmd_oneshot(cmd)
 
     def _sysdef_rootfs(self, target_rootfs):
         runonce_scripts = list()
@@ -640,7 +641,7 @@ class GenYoctoImage(GenImage):
     def do_ostree_initramfs(self):
         # If the Initramfs exists, reuse it
         image_name = "initramfs-ostree-image-{0}.cpio.gz".format(self.machine)
-        if self.machine == "bcm-2xxx-rpi4":
+        if self.machine in constant.SUPPORTED_ARM_MACHINES:
             image_name += ".u-boot"
 
         image = os.path.join(self.deploydir, image_name)

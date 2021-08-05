@@ -264,6 +264,8 @@ python __anonymous () {
     if machine == 'bcm-2xxx-rpi4':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa72 bcm_2xxx_rpi4 noarch')
         d.setVar('DEB_PACKAGE_FEED_ARCHS', 'cortexa72 bcm_2xxx_rpi4 all')
+    elif machine == 'xilinx-zynqmp':
+        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch xilinx_zynqmp')
     elif machine == 'intel-x86-64':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'corei7_64 intel_x86_64 noarch')
         d.setVar('DEB_PACKAGE_FEED_ARCHS', 'corei7-64 intel_x86_64 all')

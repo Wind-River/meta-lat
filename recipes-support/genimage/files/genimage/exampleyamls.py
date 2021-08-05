@@ -29,6 +29,7 @@ from genimage.utils import set_logger
 from genimage.constant import DEFAULT_MACHINE
 from genimage.constant import SUPPORTED_PKGTYPES
 from genimage.constant import DEFAULT_IMAGE_PKGTYPE
+from genimage.constant import SUPPORTED_ARM_MACHINES
 
 import genimage.utils as utils
 import genimage.debian_constant as deb_constant
@@ -88,8 +89,8 @@ def _exampleyamls_sysdef(args):
                 logger.debug("%s -> %s", src, dst)
 
 def _main_run_internal(args):
-    if args.pkg_type ==  "external-debian" and DEFAULT_MACHINE == "bcm-2xxx-rpi4":
-        logger.error("The external debian image generation does not support bcm-2xxx-rpi4")
+    if args.pkg_type ==  "external-debian" and DEFAULT_MACHINE != "intel-x86-64":
+        logger.error("The external debian image generation only works on intel-x86-64")
         sys.exit(1)
 
     outdir = os.path.join(args.outdir, 'exampleyamls')
@@ -115,7 +116,7 @@ def _main_run_internal(args):
             cmd = "cp -rf {0}/feature {1}/".format(yamlexample_dir, outdir)
             utils.run_cmd_oneshot(cmd)
 
-        if DEFAULT_MACHINE == "bcm-2xxx-rpi4":
+        if DEFAULT_MACHINE in SUPPORTED_ARM_MACHINES:
             utils.remove(os.path.join(outdir, "feature/vboxguestdrivers.yaml"))
             utils.remove(os.path.join(outdir, "feature/startup-container.yaml"))
 
