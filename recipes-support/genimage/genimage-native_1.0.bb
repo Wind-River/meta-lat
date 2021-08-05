@@ -190,11 +190,14 @@ python __anonymous () {
     machine = d.getVar('MACHINE')
     img_pkgtype = d.getVar('IMAGE_PKGTYPE')
     if machine == 'bcm-2xxx-rpi4':
-        d.appendVar('OVERRIDES', ':{0}:aarch64'.format(machine))
         d.appendVarFlag('do_install', 'depends', ' u-boot:do_deploy')
+        d.appendVar('OVERRIDES', ':{0}:aarch64'.format(machine))
     elif machine == 'intel-x86-64':
         d.appendVar('OVERRIDES', ':{0}:x86-64'.format(machine))
         d.appendVarFlag('do_install', 'depends', ' ovmf:do_deploy')
+
+    if machine in (d.getVar('OSTREE_SUPPORTED_ARM_MACHINES') or "").split():
+        d.appendVarFlag('do_install', 'depends', ' u-boot-uenv:do_deploy')
 
     for dep in d.getVar('EXAMPLEYAMLS_DEPENDS').split():
         d.appendVarFlag('do_populate_sysroot', 'depends', ' ' + dep)
