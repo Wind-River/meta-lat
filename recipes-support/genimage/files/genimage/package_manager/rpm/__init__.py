@@ -26,7 +26,6 @@ import tempfile
 import configparser
 
 from genimage.utils import set_logger
-from genimage.constant import FEED_ARCHS_DICT
 from genimage.constant import DEFAULT_LOCAL_RPM_PACKAGE_FEED
 from genimage.package_manager import PackageManager
 from genimage.package_manager import failed_postinsts_abort

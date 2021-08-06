@@ -26,13 +26,6 @@ SUPPORTED_ARM_MACHINES = "${OSTREE_SUPPORTED_ARM_MACHINES}".split()
 
 SUPPORTED_PKGTYPES = "${SUPPORTED_PKGTYPES}".split()
 
-DEFAULT_MULTIMACH_TARGET_SYS_DICT = {
-    'intel-x86-64': 'corei7-64-wrs-linux',
-    'bcm-2xxx-rpi4': 'cortexa72-wrs-linux',
-    'xilinx-zynqmp':'cortexa53-wrs-linux',
-    'xilinx-zynq':'armv7at2hf-neon-wrs-linux-gnueabi',
-}
-
 DEFAULT_IMAGE_PKGTYPE = "${IMAGE_PKGTYPE}"
 
 DEFAULT_RPM_PACKAGE_FEED = "${DEFAULT_RPM_PACKAGE_FEED}".split()
@@ -72,13 +65,6 @@ DEFAULT_IMAGE_FEATURES = {
 
 RPM_PACKAGE_FEED_ARCHS = '${RPM_PACKAGE_FEED_ARCHS}'
 DEB_PACKAGE_FEED_ARCHS = '${DEB_PACKAGE_FEED_ARCHS}'
-
-FEED_ARCHS_DICT = {
-    'intel-x86-64': "all any noarch x86 i586 i686 core2_32 corei7_32 intel_x86_64 x86_64 core2_64 corei7_64",
-    'bcm-2xxx-rpi4': "all any noarch armv5hf_vfp armv5thf_vfp armv5ehf_vfp armv5tehf_vfp armv6hf_vfp armv6thf_vfp armv7ahf_vfp armv7at2hf_vfp armv7ahf_neon armv7at2hf_neon bcm_2xxx_rpi4 aarch64 armv8a armv8a_crc armv8a_crypto armv8a_crc_crypto cortexa72",
-    'xilinx-zynqmp': "all any noarch aarch64 armv8a armv8a-crc cortexa53 xilinx_zynqmp",
-    'xilinx-zynq': "all any noarch armv5hf-vfp armv5thf-vfp armv5ehf-vfp armv5tehf-vfp armv6hf-vfp armv6thf-vfp armv7ahf-vfp armv7at2hf-vfp armv7ahf-neon armv7at2hf-neon xilinx_zynq".replace('-', '_'),
-}
 
 DEFAULT_PACKAGES_COMMON = '''
     packagegroup-core-boot

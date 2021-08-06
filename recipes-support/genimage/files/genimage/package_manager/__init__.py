@@ -26,7 +26,6 @@ import textwrap
 
 from abc import ABCMeta, abstractmethod
 
-from genimage.constant import FEED_ARCHS_DICT
 import genimage.utils as utils
 
 logger = logging.getLogger('appsdk')
@@ -55,7 +54,7 @@ class PackageManager(object, metaclass=ABCMeta):
         utils.mkdirhier(self.target_rootfs)
         utils.mkdirhier(self.temp_dir)
 
-        self.feed_archs= FEED_ARCHS_DICT.get(machine)
+        self.feed_archs = utils.get_yocto_var("PACKAGE_ARCHS").replace("-", "_")
 
         self.package_seed_sign = False
 

@@ -26,6 +26,9 @@ import shutil
 import re
 from ruamel.yaml.representer import RoundTripRepresenter
 from ruamel.yaml import YAML
+import configparser
+
+from genimage.constant import DEFAULT_MACHINE
 
 def repr_str(dumper: RoundTripRepresenter, data: str):
     if '\n' in data:
@@ -471,3 +474,22 @@ def get_mem_size(pkg_type, image_type, extra_file=None):
     logger.debug("Allocate Memory Size: %d MB", size)
 
     return str(size)
+
+def get_yocto_var(key):
+    yocto_env = os.path.join(sysroot_dir, "pkgdata", DEFAULT_MACHINE, ".yocto_vars.env")
+    if not os.path.join(yocto_env):
+        logger.error("Yocto Env File '%s' not found", yocto_env)
+        return None
+
+    try:
+        config = configparser.ConfigParser()
+        config.read(yocto_env)
+        val = config.get('yocto',key)
+    except Exception as e:
+        logger.error("Get value of %s from %s failed\n%s" % (key, yocto_env, str(e)))
+        return None
+
+    logger.debug("Get Yocto Var: %s=%s", key, val)
+
+    return val
+
