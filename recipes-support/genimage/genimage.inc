@@ -185,6 +185,8 @@ DEFAULT_PACKAGE_FEED = ""
 
 IMAGE_BOOT_FILES ??= ""
 
+KERNEL_DEVICETREE ??= ""
+
 PKG_MNGT_PACKAGE = " \
     ${@oe.utils.conditional('IMAGE_PKGTYPE', 'rpm', 'dnf rpm', '', d)} \
     ${@oe.utils.conditional('IMAGE_PKGTYPE', 'deb', 'apt dpkg', '', d)} \

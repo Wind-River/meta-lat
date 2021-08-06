@@ -24,9 +24,6 @@ export BUILD_REPRODUCIBLE_BINARIES = "1"
 
 export OSTREE_REPO
 export OSTREE_BRANCHNAME
-OSTREE_KERNEL ??= "${KERNEL_IMAGETYPE}"
-
-RAMDISK_EXT ?= ".${INITRAMFS_FSTYPES}"
 
 export SYSTEMD_USED = "${@oe.utils.ifelse(d.getVar('VIRTUAL-RUNTIME_init_manager', True) == 'systemd', 'true', '')}"
 export GRUB_USED = "${@oe.utils.ifelse(d.getVar('OSTREE_BOOTLOADER', True) == 'grub', 'true', '')}"

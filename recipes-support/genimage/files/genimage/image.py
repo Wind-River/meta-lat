@@ -419,6 +419,10 @@ class CreateOstreeRepo(Image):
         ostreerepo_env['OSTREE_GPG_PASSPHRASE'] = self.gpg_password
         ostreerepo_env['GPGPATH'] = self.gpg_path
 
+        ostreerepo_env['OSTREE_KERNEL'] = constant.OSTREE_KERNEL
+        ostreerepo_env['RAMDISK_EXT'] = constant.RAMDISK_EXT
+        ostreerepo_env['KERNEL_DEVICETREE'] = constant.KERNEL_DEVICETREE
+
         cmd = os.path.expandvars("$OECORE_NATIVE_SYSROOT/usr/share/genimage/scripts/run.do_image_ostree")
         res, output = utils.run_cmd(cmd, env=ostreerepo_env)
         if res:
