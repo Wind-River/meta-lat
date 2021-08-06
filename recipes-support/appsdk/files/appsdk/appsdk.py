@@ -75,11 +75,15 @@ class AppSDK(object):
         self.real_multimach_target_sys = utils.get_yocto_var('MULTIMACH_TARGET_SYS')
         # current native sysroot dir
         self.native_sysroot = os.environ['OECORE_NATIVE_SYSROOT']
+        # current pkgdata dir
+        self.pkgdata = os.path.abspath(os.path.join(self.native_sysroot, "../pkgdata"))
         self.data_dir = os.path.join(self.native_sysroot, "usr/share/genimage/data")
         self.sdk_sys = os.path.basename(self.native_sysroot)
         self.target_sdk_dir = os.path.dirname(os.path.dirname(self.native_sysroot))
         # new sdk's sysroot dirs
         self.native_sysroot_dir = os.path.abspath(self.sdk_output + '/' + self.sdkpath + '/sysroots/' + self.sdk_sys)
+        # new sdk's pkgdata dirs
+        self.pkgdata_dir = os.path.abspath(self.sdk_output + '/' + self.sdkpath + '/sysroots/pkgdata')
 
     def generate_sdk(self, target_image_yaml, output_sdk_path = None):
         """
@@ -95,6 +99,7 @@ class AppSDK(object):
             self.deploy_dir = os.path.dirname(os.path.abspath(output_sdk_path))
             self.sdk_name = os.path.basename(output_sdk_path).split('.sh')[0]
         self.populate_native_sysroot()
+        self.populate_pkgdata()
         self.populate_target_sysroot(target_image_yaml)
         self.create_sdk_files()
         self.archive_sdk()
@@ -212,6 +217,17 @@ class AppSDK(object):
         logger.info("Running %s ..." % cmd)
         subprocess.check_call(cmd, shell=True)
         logger.info("Finished populating target sysroot")
+
+    def populate_pkgdata(self):
+        """
+        Populate pkgdata.
+        """
+        logger.info("Constructing pkgdata '%s'" % self.pkgdata_dir)
+        if os.path.exists(self.pkgdata_dir):
+            shutil.rmtree(self.pkgdata_dir)
+
+        # copy the whole native sysroot
+        shutil.copytree(self.pkgdata, self.pkgdata_dir, symlinks=True, ignore_dangling_symlinks=True)
 
     def populate_native_sysroot(self):
         """
