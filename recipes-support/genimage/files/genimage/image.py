@@ -72,6 +72,9 @@ class Image(object, metaclass=ABCMeta):
         if image_type == "container":
             src = os.path.join(os.path.expandvars("$OECORE_NATIVE_SYSROOT/usr/share/genimage/doc"),
                 "container.README.md.in")
+        elif self.machine != "bcm-2xxx-rpi4" and self.machine in constant.SUPPORTED_ARM_MACHINES:
+            src = os.path.join(os.path.expandvars("$OECORE_NATIVE_SYSROOT/usr/share/genimage/doc"),
+                "target_{0}.README.md.in".format(self.machine))
         else:
             src = os.path.join(os.path.expandvars("$OECORE_NATIVE_SYSROOT/usr/share/genimage/doc"),
                 "{0}_{1}.README.md.in".format(image_type, self.machine))
@@ -88,6 +91,12 @@ class Image(object, metaclass=ABCMeta):
             content = content.replace("@IMAGE_NAME@", image_name)
             content = content.replace("@PACKAGE_MANAGER_SECTION@", constant.PACKAGE_MANAGER_SECTION[self.pkg_type])
             content = content.replace("@MEM@", utils.get_mem_size(self.pkg_type, image_type))
+            if image_type == "ustart":
+                burn_cmd = "zcat deploy/%s.ustart.img.gz | sudo dd of=/dev/sdX bs=1M status=progress" % image_name
+                content = content.replace("@BURN_COMMAND@", burn_cmd)
+            elif image_type == "wic":
+                burn_cmd = "sudo dd if=deploy/%s.wic of=/dev/sdX bs=1M status=progress" % image_name
+                content = content.replace("@BURN_COMMAND@", burn_cmd)
 
         with open(readme, "w") as readme_f:
             readme_f.write(content)
