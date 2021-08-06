@@ -209,10 +209,7 @@ DEFAULT_OSTREE_DATA = {
 }
 
 EXTRA_IMAGE_BOOT_FILES = {
-    'intel-x86-64': '',
-    'bcm-2xxx-rpi4': 'initramfs-ostree-image-bcm-2xxx-rpi4.cpio.gz.u-boot;initramfs',
-    'xilinx-zynqmp': 'boot.scr initramfs-ostree-image-xilinx-zynqmp.cpio.gz.u-boot;initramfs',
-    'xilinx-zynq': 'boot.scr initramfs-ostree-image-xilinx-zynq.cpio.gz.u-boot;initramfs',
+    '${MACHINE}': '',
 }
 IMAGE_BOOT_FILES = "${IMAGE_BOOT_FILES}"
 
@@ -273,5 +270,4 @@ PACKAGE_MANAGER_SECTION = {
     'external-debian': PACKAGE_MANAGER_SECTION_DEB
 }
 
-IMAGE_BOOT_FILES = "${IMAGE_BOOT_FILES}"
 OSTREE_COPY_IMAGE_BOOT_FILES = "${OSTREE_COPY_IMAGE_BOOT_FILES}"
