@@ -57,3 +57,11 @@ INHIBIT_DEFAULT_DEPS = "1"
 FILES:${PN} = " /init /init.luks-ostree /dev /install /lat-installer.sh"
 
 COMPATIBLE_HOST = "(arm|aarch64|i.86|x86_64|powerpc).*-linux"
+
+# For LAT usage
+do_export_yocto_vars() {
+    echo "[yocto]" > ${PKGDATA_DIR}/.yocto_vars.env
+    echo "MULTIMACH_TARGET_SYS=${MULTIMACH_TARGET_SYS}" >> ${PKGDATA_DIR}/.yocto_vars.env
+    echo "PACKAGE_ARCHS=${PACKAGE_ARCHS}" >> ${PKGDATA_DIR}/.yocto_vars.env
+}
+addtask export_yocto_vars

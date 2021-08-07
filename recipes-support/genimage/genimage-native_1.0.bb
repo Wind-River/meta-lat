@@ -112,6 +112,9 @@ RPMS_DEPENDS:append:intel-x86-64 = " \
 
 # Make sure the existence of ostree initramfs image
 do_install[depends] += "initramfs-ostree-image:do_image_complete"
+# Make sure the existence of Yocto var file in pkgdata
+do_install[depends] += "initramfs-ostree:do_export_yocto_vars"
+
 do_install:append() {
     mkdir -p ${D}${base_prefix}/environment-setup.d
     install -m 0755 ${WORKDIR}/bash_tab_completion.sh ${D}${base_prefix}/environment-setup.d
