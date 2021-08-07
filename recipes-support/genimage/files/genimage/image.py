@@ -115,8 +115,11 @@ class CreateInitramfs(Image):
         self._create_symlinks()
 
     def _create_uboot(self):
-        cmd = "cd %s && mkimage -A arm64 -O linux -T ramdisk -C none -n %s -d %s.rootfs.cpio.gz %s.rootfs.cpio.gz.u-boot" % \
-             (self.deploydir, self.image_fullname, self.image_fullname, self.image_fullname)
+        arch = "arm64"
+        if self.machine in constant.SUPPORTED_ARM32_MACHINES:
+            arch = "arm"
+        cmd = "cd %s && mkimage -A %s -O linux -T ramdisk -C none -n %s -d %s.rootfs.cpio.gz %s.rootfs.cpio.gz.u-boot" % \
+             (self.deploydir, arch, self.image_fullname, self.image_fullname, self.image_fullname)
         utils.run_cmd_oneshot(cmd)
 
         cmd = "rm %s/%s.rootfs.cpio.gz" % (self.deploydir, self.image_fullname)
