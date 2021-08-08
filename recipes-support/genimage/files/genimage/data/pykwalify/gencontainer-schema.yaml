@@ -50,7 +50,7 @@ schema;container_oci_map:
   mapping:
     OCI_IMAGE_ARCH:
       type: str
-      enum: ['aarch64', 'x86-64']
+      enum: ['aarch64', 'x86-64', 'arm']
       nullable: False
     OCI_IMAGE_AUTHOR:
       type: str
