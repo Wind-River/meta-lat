@@ -121,8 +121,7 @@ Inherits from upstream [kickstart Pre-installation Script](https://docs.fedorapr
 --interpreter=
     Allows you to specify a different scripting language, such as
     Python. Any scripting language available on the system can
-    be used; in most cases, these will be /usr/bin/sh, /usr/bin/bash,
-    and /usr/bin/python.
+    be used; in most cases, these will be /usr/bin/sh, /usr/bin/bash
 
 Example:
     %pre --interpreter=/bin/sh
@@ -154,11 +153,11 @@ Inherits from upstream [kickstart Post-installation Script](https://docs.fedorap
 
 ```
 --interpreter=
-    Allows you to specify a different scripting language, such as Python. For example:
-    %post --interpreter=/usr/bin/python
+    Allows you to specify a different scripting language, such as Bash. For example:
+    %post --interpreter=/usr/bin/bash
 
     Any scripting language available on the system can be used; in most cases,
-    these will be /usr/bin/sh, /usr/bin/bash, and /usr/bin/python.
+    these will be /usr/bin/sh, /usr/bin/bash.
 
 --nochroot
     Allows you to specify commands that you would like to run outside of
