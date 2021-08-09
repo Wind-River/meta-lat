@@ -182,6 +182,13 @@ copy_bootfile() {
         install -d ${D}${datadir}/bootfiles
         cp -rf ${DEPLOY_DIR_IMAGE}/${BOOTFILES_DIR_NAME} ${D}${datadir}/bootfiles/
     fi
+
+    for f in ${BOOTFILES}; do
+        install -d ${D}${datadir}/bootfiles
+        if [ -e "${DEPLOY_DIR_IMAGE}/$f" ]; then
+            cp -f ${DEPLOY_DIR_IMAGE}/$f ${D}${datadir}/bootfiles/
+        fi
+    done
 }
 
 do_install[nostamp] = "1"
@@ -189,7 +196,6 @@ do_install[nostamp] = "1"
 SYSROOT_DIRS_NATIVE += "${base_prefix}/environment-setup.d ${base_prefix}/"
 
 python __anonymous () {
-    override = d.getVar('OVERRIDE')
     machine = d.getVar('MACHINE')
     img_pkgtype = d.getVar('IMAGE_PKGTYPE')
     if machine == 'bcm-2xxx-rpi4':
@@ -197,6 +203,10 @@ python __anonymous () {
     elif machine == 'intel-x86-64':
         d.appendVar('OVERRIDES', ':{0}:x86-64'.format(machine))
         d.appendVarFlag('do_install', 'depends', ' ovmf:do_deploy')
+    elif machine == 'intel-socfpga-64':
+        d.appendVar('OVERRIDES', ':{0}:intel-socfpga-64'.format(machine))
+        d.appendVarFlag('do_install', 'depends', ' s10-u-boot-scr:do_deploy')
+        d.appendVarFlag('do_install', 'depends', ' u-boot-socfpga:do_deploy')
 
     if machine in (d.getVar('OSTREE_SUPPORTED_ARM64_MACHINES') or "").split():
         d.appendVar('OVERRIDES', ':{0}:aarch64'.format(machine))

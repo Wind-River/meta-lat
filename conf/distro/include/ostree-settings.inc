@@ -215,3 +215,6 @@ OSTREE_SUPPORTED_ARM_MACHINES ?= " \
 
 OSTREE_KERNEL ??= "${KERNEL_IMAGETYPE}"
 RAMDISK_EXT ?= ".${INITRAMFS_FSTYPES}"
+
+BOOTFILES ??= ""
+BOOTFILES_intel-socfpga-64 = "u-boot-dtb.img u-boot.img u-boot.itb ghrd.core.rbf"

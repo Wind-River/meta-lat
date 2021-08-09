@@ -106,10 +106,17 @@ copy_qemu_data() {
 
 POPULATE_SDK_PRE_TARGET_COMMAND += "copy_bootfile;"
 copy_bootfile() {
-    if [ -n "${BOOTFILES_DIR_NAME}" -a -d "${DEPLOY_DIR_IMAGE}/${BOOTFILES_DIR_NAME}" ]; then
-        install -d ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/bootfiles
-        cp -rf ${DEPLOY_DIR_IMAGE}/${BOOTFILES_DIR_NAME} ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/bootfiles/
-    fi
+	if [ -n "${BOOTFILES_DIR_NAME}" -a -d "${DEPLOY_DIR_IMAGE}/${BOOTFILES_DIR_NAME}" ]; then
+		install -d ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/bootfiles
+		cp -rf ${DEPLOY_DIR_IMAGE}/${BOOTFILES_DIR_NAME} ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/bootfiles/
+	fi
+
+	for f in ${BOOTFILES}; do
+		install -d ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/bootfiles
+		if [ -e "${DEPLOY_DIR_IMAGE}/$f" ]; then
+			cp -f ${DEPLOY_DIR_IMAGE}/$f ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/bootfiles/
+		fi
+	done
 }
 
 # Make sure code changes can result in rebuild
@@ -123,3 +130,10 @@ extract_pkgdata_postinst() {
 
 # Make sure the existence of Yocto var file in pkgdata
 do_populate_sdk[depends] += "initramfs-ostree:do_export_yocto_vars"
+
+python __anonymous () {
+    machine = d.getVar('MACHINE')
+    if machine == 'intel-socfpga-64':
+        d.appendVarFlag('do_populate_sdk', 'depends', ' s10-u-boot-scr:do_deploy')
+        d.appendVarFlag('do_populate_sdk', 'depends', ' u-boot-socfpga:do_deploy')
+}
