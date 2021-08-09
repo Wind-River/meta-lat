@@ -90,6 +90,7 @@ SRC_URI = "\
            file://genimage/doc/pxe-bios_intel-x86-64.README.md.in \
            file://genimage/doc/target_xilinx-zynq.README.md.in \
            file://genimage/doc/target_xilinx-zynqmp.README.md.in \
+           file://genimage/doc/target_nxp-imx8.README.md.in \
            file://METADATA.in \
            file://README.md \
            file://setup.py \
@@ -272,6 +273,8 @@ python __anonymous () {
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch xilinx_zynqmp')
     elif machine == 'xilinx-zynq':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'armv7at2hf_neon noarch xilinx_zynq')
+    elif machine == 'nxp-imx8':
+        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'aarch64 noarch nxp_imx8')
     elif machine == 'intel-x86-64':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'corei7_64 intel_x86_64 noarch')
         d.setVar('DEB_PACKAGE_FEED_ARCHS', 'corei7-64 intel_x86_64 all')

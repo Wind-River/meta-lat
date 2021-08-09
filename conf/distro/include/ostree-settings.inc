@@ -197,6 +197,7 @@ OSTREE_GRUB_PW_FILE ??= "${OSTREE_KEYS_DIR}/boot_keys/boot_cfg_pw"
 OSTREE_SUPPORTED_ARM64_MACHINES ??= " \
     bcm-2xxx-rpi4 \
     xilinx-zynqmp \
+    nxp-imx8 \
 "
 
 OSTREE_SUPPORTED_ARM32_MACHINES ??= " \

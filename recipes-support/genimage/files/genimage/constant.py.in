@@ -107,12 +107,26 @@ DEFAULT_PACKAGES_xilinx_zynq = '''
     kernel-image-zimage
 '''.split()
 
+DEFAULT_PACKAGES_nxp_imx8 = '''
+    u-boot-uenv
+    kernel-devicetree
+    kernel-image-image
+    i2c-tools
+    can-utils
+    pm-utils
+    alsa-utils
+    mtdev
+    linux-firmware-imx-sdma-imx7d
+    ptpd
+'''.split()
+
 # default rootfs: ${LAT_DEFAULT_IMAGE}
 DEFAULT_PACKAGES = {
     'intel-x86-64': DEFAULT_PACKAGES_intel_x86_64 + DEFAULT_PACKAGES_COMMON,
     'bcm-2xxx-rpi4': DEFAULT_PACKAGES_bcm_2xxx_rpi4 + DEFAULT_PACKAGES_COMMON,
     'xilinx-zynqmp': DEFAULT_PACKAGES_xilinx_zynqmp + DEFAULT_PACKAGES_COMMON,
     'xilinx-zynq': DEFAULT_PACKAGES_xilinx_zynq + DEFAULT_PACKAGES_COMMON,
+    'nxp-imx8': DEFAULT_PACKAGES_nxp_imx8 + DEFAULT_PACKAGES_COMMON,
 }
 
 OSTREE_INITRD_PACKAGES = '''
