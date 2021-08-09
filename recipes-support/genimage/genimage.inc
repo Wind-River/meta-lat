@@ -92,6 +92,7 @@ SRC_URI = "\
            file://genimage/doc/target_xilinx-zynqmp.README.md.in \
            file://genimage/doc/target_nxp-imx8.README.md.in \
            file://genimage/doc/target_marvell-cn96xx.README.md.in \
+           file://genimage/doc/target_nxp-s32g2xx.README.md.in \
            file://METADATA.in \
            file://README.md \
            file://setup.py \
@@ -278,6 +279,9 @@ python __anonymous () {
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'aarch64 noarch nxp_imx8')
     elif machine == 'marvell-cn96xx':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'marvell_cn96xx noarch octeontx2')
+    elif machine == 'nxp-s32g2xx':
+        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch nxp_s32g2xx')
+
     elif machine == 'intel-x86-64':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'corei7_64 intel_x86_64 noarch')
         d.setVar('DEB_PACKAGE_FEED_ARCHS', 'corei7-64 intel_x86_64 all')

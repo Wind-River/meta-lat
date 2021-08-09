@@ -9,6 +9,7 @@ The images are built from Wind River Linux Assembly Tool Application SDK
         xilinx-zynq
         nxp-imx8
         marvell-cn96xx
+        nxp-s32g2xx
 
 ## How to run an instance of container with docker
         $ docker load -i DEPLOYDIR/@IMAGE_NAME@.docker-image.tar.bz2
