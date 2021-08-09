@@ -53,7 +53,7 @@ export OSTREE_REPO
 export OSTREE_BOOTLOADER
 export WKS_FULL_PATH
 
-IMAGE_CMD_otaimg () {
+IMAGE_CMD:otaimg () {
 	if ${@bb.utils.contains('IMAGE_FSTYPES', 'otaimg', 'true', 'false', d)}; then
 		if [ -z "$OSTREE_REPO" ]; then
 			bbfatal "OSTREE_REPO should be set in your local.conf"

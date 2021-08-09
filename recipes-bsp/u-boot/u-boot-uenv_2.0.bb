@@ -339,7 +339,7 @@ do_compile() {
     fi
 }
 
-FILES_${PN} += "/boot/boot.scr \
+FILES:${PN} += "/boot/boot.scr \
     /boot/boot.itb \
 "
 

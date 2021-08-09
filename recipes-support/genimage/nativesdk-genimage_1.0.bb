@@ -16,7 +16,7 @@
 #
 include genimage.inc
 
-RDEPENDS_${PN} = " \
+RDEPENDS:${PN} = " \
                   nativesdk-dnf \
                   nativesdk-rpm \
                   nativesdk-apt \
@@ -57,7 +57,7 @@ RDEPENDS_${PN} = " \
 "
 
 # Required by do_rootfs's intercept_scripts in sdk
-RDEPENDS_${PN} += "nativesdk-gdk-pixbuf \
+RDEPENDS:${PN} += "nativesdk-gdk-pixbuf \
                    nativesdk-gtk+3 \
                    nativesdk-kmod \
 "
@@ -68,13 +68,13 @@ SRC_URI += "\
 
 inherit nativesdk
 
-do_install_append() {
+do_install:append() {
 	mkdir -p ${D}${SDKPATHNATIVE}/environment-setup.d
 	install -m 0755 ${WORKDIR}/add_path.sh ${D}${SDKPATHNATIVE}/environment-setup.d
 	install -m 0755 ${WORKDIR}/bash_tab_completion.sh ${D}${SDKPATHNATIVE}/environment-setup.d
 }
 
-FILES_${PN} = "${SDKPATHNATIVE}"
+FILES:${PN} = "${SDKPATHNATIVE}"
 
 python __anonymous () {
     override = d.getVar('OVERRIDE')

@@ -115,7 +115,7 @@ OCI_IMAGE_LABELS ?= ""
 OCI_IMAGE_ENV_VARS ?= ""
 
 do_unpack[vardeps] += "MACHINE PACKAGE_FEED_BASE_PATHS PACKAGE_FEED_ARCHS PACKAGE_FEED_URIS PACKAGE_CLASSES OSTREE_OSNAME"
-do_unpack_append() {
+do_unpack:append() {
     bb.build.exec_func('do_write_py_template', d)
     bb.build.exec_func('do_copy_src', d)
     bb.build.exec_func('do_create_cross_cmd_wrapper', d)
@@ -213,7 +213,7 @@ python do_write_py_template () {
 
 LAT_XFCE_THEMES ??= ""
 
-do_install_append() {
+do_install:append() {
 	install -d ${D}${datadir}/genimage/
 	cp -rf ${WORKDIR}/genimage/data ${D}${datadir}/genimage/
 	cp -rf ${WORKDIR}/genimage/scripts ${D}${datadir}/genimage/

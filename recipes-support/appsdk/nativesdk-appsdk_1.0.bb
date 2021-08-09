@@ -16,11 +16,11 @@
 #
 include appsdk.inc
 
-RDEPENDS_${PN} = " \
+RDEPENDS:${PN} = " \
     nativesdk-genimage \
     nativesdk-python3-argcomplete \
 "
 
 inherit nativesdk
 
-FILES_${PN} = "${SDKPATHNATIVE}"
+FILES:${PN} = "${SDKPATHNATIVE}"

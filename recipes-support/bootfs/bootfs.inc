@@ -9,9 +9,9 @@ SRC_URI = "file://COPYING \
            file://bootfs.sh \
            file://bootfs_wrapper.sh \
           "
-FILESEXTRAPATHS_prepend := "${LAYER_PATH_lat-layer}/scripts:"
+FILESEXTRAPATHS:prepend := "${LAYER_PATH_lat-layer}/scripts:"
 
-FILES_${PN} += "${datadir}/bootfs \
+FILES:${PN} += "${datadir}/bootfs \
 	"
 
 do_install() {

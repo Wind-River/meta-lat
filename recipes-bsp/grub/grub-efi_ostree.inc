@@ -2,7 +2,7 @@
 # Copyright (C) 2016-2017 Wind River Systems, Inc.
 #
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/grub-efi:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/grub-efi:"
 
 SRC_URI += " \
     file://0001-Make-UEFI-watchdog-behaviour-configurable.patch \
@@ -11,17 +11,17 @@ SRC_URI += " \
 
 EFI_BOOT_PATH = "/boot/efi/EFI/BOOT"
 
-GRUB_BUILDIN_append += "tftp efinet reboot"
+GRUB_BUILDIN:append += "tftp efinet reboot"
 
-do_compile_append_class-native() {
+do_compile:append:class-native() {
         make grub-editenv
 }
 
-do_install_append_class-native() {
+do_install:append:class-native() {
     install -m 0755 grub-editenv "${D}${bindir}"
 }
 
-do_install_append_class-target() {
+do_install:append:class-target() {
     install -d ${D}${EFI_BOOT_PATH}
     install -m 0600 "${WORKDIR}/grub-runtime.cfg" "${D}${EFI_BOOT_PATH}/grub.cfg"
     sed -i "s#%DISTRO_NAME%#${DISTRO_NAME}#g" "${D}${EFI_BOOT_PATH}/grub.cfg"
@@ -41,7 +41,7 @@ do_install_append_class-target() {
     fi
 }
 
-do_deploy_append_class-target() {
+do_deploy:append:class-target() {
     install -d ${DEPLOYDIR}
 
     if [ "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', '1', '0', d)}" = "1" ]; then
@@ -55,7 +55,7 @@ do_deploy_append_class-target() {
     install -m 0600 "${D}${EFI_BOOT_PATH}/grub.cfg" "${DEPLOYDIR}"
 }
 
-FILES_${PN} += "${EFI_BOOT_PATH}"
+FILES:${PN} += "${EFI_BOOT_PATH}"
 
 addtask  deploy after do_install before do_package
 

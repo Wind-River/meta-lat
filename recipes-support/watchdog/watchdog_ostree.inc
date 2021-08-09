@@ -10,9 +10,9 @@ ARCH_WATCHDOG_SETTING = "${@get_arch_setting_watchdog(bb, d)}"
 SRC_URI += "\
 	file://clearbootflag_${ARCH_WATCHDOG_SETTING}.sh \
 "
-FILESEXTRAPATHS_prepend := "${THISDIR}:${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}:${THISDIR}/files:"
 
-do_install_append() {
+do_install:append() {
 	install -d ${D}${sbindir}
 	install -m 0755 ${WORKDIR}/clearbootflag_${ARCH_WATCHDOG_SETTING}.sh ${D}${sbindir}/clearbootflag.sh
 	if [ -e "${D}${systemd_system_unitdir}/watchdog.service" ] ; then
@@ -20,7 +20,7 @@ do_install_append() {
 	fi
 }
 
-FILES_${PN} += " \
+FILES:${PN} += " \
 	${sbindir}/clearbootflag.sh \
 "
 

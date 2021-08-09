@@ -16,10 +16,10 @@ SRC_URI+= "\
            file://0001-make-timezone-support-Hong-Kong.patch \
 "
 
-SRC_URI_append_x86-64 = " \
+SRC_URI:append:x86-64 = " \
            file://0001-deploy-Handle-a-read-only-boot-efi.patch \
 "
 
-do_configure_prepend() {
+do_configure:prepend() {
     sed -i -e 's#@OSTREE_OSNAME@#${OSTREE_OSNAME}#g' ${S}/src/libostree/ostree-impl-system-generator.c
 }

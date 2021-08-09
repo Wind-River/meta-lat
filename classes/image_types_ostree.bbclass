@@ -193,7 +193,7 @@ create_tarball_and_ostreecommit() {
         fi
 }
 
-IMAGE_CMD_ostree () {
+IMAGE_CMD:ostree () {
 	gpg_path="${GPG_PATH}"
 	if [ -z "$gpg_path" ] ; then
 		gpg_path="${TMPDIR}/.gnupg"

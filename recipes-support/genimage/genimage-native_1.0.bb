@@ -89,7 +89,7 @@ DEBS_DEPENDS += " \
     lxdm:do_package_write_deb \
     gsettings-desktop-schemas:do_package_write_deb \
 "
-DEBS_DEPENDS_append_intel-x86-64 = " \
+DEBS_DEPENDS:append:intel-x86-64 = " \
     vboxguestdrivers:do_package_write_deb \
     syslinux:do_populate_sysroot \
 "
@@ -100,14 +100,14 @@ RPMS_DEPENDS += " \
     lxdm:do_package_write_rpm \
     gsettings-desktop-schemas:do_package_write_rpm \
 "
-RPMS_DEPENDS_append_intel-x86-64 = " \
+RPMS_DEPENDS:append:intel-x86-64 = " \
     vboxguestdrivers:do_package_write_rpm \
     syslinux:do_populate_sysroot \
 "
 
 # Make sure the existence of ostree initramfs image
 do_install[depends] += "initramfs-ostree-image:do_image_complete"
-do_install_append() {
+do_install:append() {
     mkdir -p ${D}${base_prefix}/environment-setup.d
     install -m 0755 ${WORKDIR}/bash_tab_completion.sh ${D}${base_prefix}/environment-setup.d
     sed "s/@MACHINE@/${MACHINE}/g" ${WORKDIR}/environment-appsdk-native > ${D}${base_prefix}/environment-appsdk-native

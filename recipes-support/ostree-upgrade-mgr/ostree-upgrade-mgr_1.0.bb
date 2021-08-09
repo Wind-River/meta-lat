@@ -6,14 +6,14 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=12f884d2ae1ff87c09e5b7ccc2c4ca7e"
 
 S = "${WORKDIR}"
 
-RDEPENDS_${PN} += "util-linux-lsblk"
+RDEPENDS:${PN} += "util-linux-lsblk"
 
 SRC_URI = "file://COPYING \
            file://ostree_upgrade.sh \
 	   file://ostree_reset.sh \
           "
 
-FILES_${PN} += "/usr/bin/ostree_upgrade.sh \
+FILES:${PN} += "/usr/bin/ostree_upgrade.sh \
 	/usr/bin/ostree_reset.sh \
 	"
 
@@ -23,9 +23,9 @@ do_install() {
 	install -m 0755 ${S}/ostree_reset.sh ${D}/usr/bin/ostree_reset.sh
 }
 
-RDEPENDS_${PN} += "watchdog"
+RDEPENDS:${PN} += "watchdog"
 
-pkg_postinst_ontarget_${PN}() {
+pkg_postinst_ontarget:${PN}() {
 	if [ ! -d /var/home ] ; then
 		mkdir -p /var/home
 	fi

@@ -13,7 +13,7 @@ SRC_URI = "\
 
 inherit setuptools3
 
-do_unpack_append() {
+do_unpack:append() {
     bb.build.exec_func('do_copy_src', d)
 }
 

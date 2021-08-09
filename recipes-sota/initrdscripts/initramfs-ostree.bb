@@ -11,7 +11,7 @@ PR = "r9"
 
 OSTREE_ALLOW_RM_VAR ??= ""
 
-RDEPENDS_${PN} = "util-linux-sfdisk gptfdisk e2fsprogs-mke2fs bash"
+RDEPENDS:${PN} = "util-linux-sfdisk gptfdisk e2fsprogs-mke2fs bash"
 
 do_configure() {
 }
@@ -54,6 +54,6 @@ do_install() {
 #inherit allarch
 INHIBIT_DEFAULT_DEPS = "1"
 
-FILES_${PN} = " /init /init.luks-ostree /dev /install /lat-installer.sh"
+FILES:${PN} = " /init /init.luks-ostree /dev /install /lat-installer.sh"
 
 COMPATIBLE_HOST = "(arm|aarch64|i.86|x86_64|powerpc).*-linux"

@@ -26,7 +26,7 @@ DEPENDS = " \
 
 inherit native
 
-do_install_append() {
+do_install:append() {
 	install -d ${D}${base_bindir}
 	install -m 0755 ${D}${bindir}/appsdk ${D}${base_bindir}/appsdk
 	create_wrapper ${D}${bindir}/appsdk PATH='$(dirname `readlink -fn $0`):$PATH'
@@ -35,7 +35,7 @@ do_install_append() {
 do_install[nostamp] = "1"
 
 # Workaround manifest missing failure
-python do_prepare_recipe_sysroot_prepend () {
+python do_prepare_recipe_sysroot:prepend () {
     machine = d.getVar('MACHINE')
     if machine == 'bcm-2xxx-rpi4':
         d.setVar('TARGET_ARCH', 'aarch64')

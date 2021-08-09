@@ -35,13 +35,13 @@ OSTREE_REMOTE_URL ??= ""
 # The selection of the wks file is:
 #   Bootloader - ab/noab
 
-OSTREE_ARCH_WKS_x86 ??= "ostree-grub"
-OSTREE_ARCH_WKS_x86-64 ??= "ostree-grub"
+OSTREE_ARCH_WKS:x86 ??= "ostree-grub"
+OSTREE_ARCH_WKS:x86-64 ??= "ostree-grub"
 
-OSTREE_ARCH_WKS_arm ??= "ostree-uboot-sd"
-OSTREE_ARCH_WKS_armv7 ??= "ostree-uboot-sd"
-OSTREE_ARCH_WKS_armv7ve ??= "ostree-uboot-sd"
-OSTREE_ARCH_WKS_aarch64 ??= "ostree-uboot-sd"
+OSTREE_ARCH_WKS:arm ??= "ostree-uboot-sd"
+OSTREE_ARCH_WKS:armv7 ??= "ostree-uboot-sd"
+OSTREE_ARCH_WKS:armv7ve ??= "ostree-uboot-sd"
+OSTREE_ARCH_WKS:aarch64 ??= "ostree-uboot-sd"
 
 OSTREE_AB_WKS ??= "${@oe.utils.conditional('OSTREE_USE_AB', '1', '-ab', '-noab', d)}"
 
@@ -71,7 +71,7 @@ def get_fluxdata_size(d):
     bb.debug(1, 'returning %d' % (base_size))
     return base_size
 
-python do_write_wks_template_prepend () {
+python do_write_wks_template:prepend () {
     fluxdata_dir = d.expand("${WORKDIR}/rootfs_ota_var")
     if os.path.exists(fluxdata_dir):
         template_body = d.getVar('_WKS_TEMPLATE')
@@ -112,12 +112,12 @@ OSTREE_WKS_FLUX_SIZE ??= ""
 OSTREE_FLUX_PART ??= "${@bb.utils.contains('DISTRO_FEATURES', 'luks', 'luksfluxdata', 'fluxdata',d)}"
 
 # Name of the boot loader to include in the file system
-OSTREE_BOOTLOADER_x86 ??= 'grub'
-OSTREE_BOOTLOADER_x86-64 ??= 'grub'
-OSTREE_BOOTLOADER_arm ??= 'u-boot'
-OSTREE_BOOTLOADER_armv7 ??= 'u-boot'
-OSTREE_BOOTLOADER_armv7ve ??= 'u-boot'
-OSTREE_BOOTLOADER_aarch64 ??= 'u-boot'
+OSTREE_BOOTLOADER:x86 ??= 'grub'
+OSTREE_BOOTLOADER:x86-64 ??= 'grub'
+OSTREE_BOOTLOADER:arm ??= 'u-boot'
+OSTREE_BOOTLOADER:armv7 ??= 'u-boot'
+OSTREE_BOOTLOADER:armv7ve ??= 'u-boot'
+OSTREE_BOOTLOADER:aarch64 ??= 'u-boot'
 
 # Define any special partitions required where loaders, firmware etc
 # live It is intended that these are defined by the BSP as needed
@@ -131,18 +131,18 @@ OSTREE_SD_UBOOT_WIC4 ??= ""
 # the boot loader specific to the BSP and the OSTREE_CONSOLE_AUX
 # should end with a SPACE
 OSTREE_CONSOLE_PRI ??= "console=tty1"
-OSTREE_CONSOLE_PRI_arm ??= "console=\${console},\${baudrate}"
-OSTREE_CONSOLE_PRI_armv7 ??= "console=\${console},\${baudrate}"
-OSTREE_CONSOLE_PRI_armv7ve ??= "console=\${console},\${baudrate}"
-OSTREE_CONSOLE_PRI_aarch64 ??= "console=\${console},\${baudrate}"
+OSTREE_CONSOLE_PRI:arm ??= "console=\${console},\${baudrate}"
+OSTREE_CONSOLE_PRI:armv7 ??= "console=\${console},\${baudrate}"
+OSTREE_CONSOLE_PRI:armv7ve ??= "console=\${console},\${baudrate}"
+OSTREE_CONSOLE_PRI:aarch64 ??= "console=\${console},\${baudrate}"
 
 OSTREE_CONSOLE_AUX ??= "console=ttyS0,115200 "
-OSTREE_CONSOLE_AUX_x86 ??= "console=ttyS0,115200 "
-OSTREE_CONSOLE_AUX_x86-64 ??= "console=ttyS0,115200 "
-OSTREE_CONSOLE_AUX_arm ??= "console=tty0 "
-OSTREE_CONSOLE_AUX_armv7 ??= "console=tty0 "
-OSTREE_CONSOLE_AUX_armv7ve ??= "console=tty0 "
-OSTREE_CONSOLE_AUX_aarch64 ??= "console=tty0 "
+OSTREE_CONSOLE_AUX:x86 ??= "console=ttyS0,115200 "
+OSTREE_CONSOLE_AUX:x86-64 ??= "console=ttyS0,115200 "
+OSTREE_CONSOLE_AUX:arm ??= "console=tty0 "
+OSTREE_CONSOLE_AUX:armv7 ??= "console=tty0 "
+OSTREE_CONSOLE_AUX:armv7ve ??= "console=tty0 "
+OSTREE_CONSOLE_AUX:aarch64 ??= "console=tty0 "
 
 OSTREE_CONSOLE ??= "${OSTREE_CONSOLE_AUX}${OSTREE_CONSOLE_PRI}"
 
