@@ -146,6 +146,12 @@ DEFAULT_PACKAGES_intel_socfpga_64 = '''
     intel-rsu
 '''.split()
 
+DEFAULT_PACKAGES_ti_j72xx = '''
+    u-boot-uenv
+    kernel-devicetree
+    kernel-image-image
+'''.split()
+
 # default rootfs: ${LAT_DEFAULT_IMAGE}
 DEFAULT_PACKAGES = {
     'intel-x86-64': DEFAULT_PACKAGES_intel_x86_64 + DEFAULT_PACKAGES_COMMON,
@@ -156,6 +162,7 @@ DEFAULT_PACKAGES = {
     'marvell-cn96xx': DEFAULT_PACKAGES_marvell_cn96xx + DEFAULT_PACKAGES_COMMON,
     'nxp-s32g2xx': DEFAULT_PACKAGES_nxp_s32g2xx + DEFAULT_PACKAGES_COMMON,
     'intel-socfpga-64': DEFAULT_PACKAGES_intel_socfpga_64 + DEFAULT_PACKAGES_COMMON,
+    'ti-j72xx': DEFAULT_PACKAGES_ti_j72xx + DEFAULT_PACKAGES_COMMON,
 }
 
 OSTREE_INITRD_PACKAGES = '''

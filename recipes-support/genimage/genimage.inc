@@ -94,6 +94,7 @@ SRC_URI = "\
            file://genimage/doc/target_marvell-cn96xx.README.md.in \
            file://genimage/doc/target_nxp-s32g2xx.README.md.in \
            file://genimage/doc/target_intel-socfpga-64.README.md.in \
+           file://genimage/doc/target_ti-j72xx.README.md.in \
            file://METADATA.in \
            file://README.md \
            file://setup.py \
@@ -284,6 +285,8 @@ python __anonymous () {
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch nxp_s32g2xx')
     elif machine == 'intel-socfpga-64':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 intel_socfpga_64 noarch')
+    elif machine == 'ti-j72xx':
+        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa72 noarch ti_j72xx')
     elif machine == 'intel-x86-64':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'corei7_64 intel_x86_64 noarch')
         d.setVar('DEB_PACKAGE_FEED_ARCHS', 'corei7-64 intel_x86_64 all')

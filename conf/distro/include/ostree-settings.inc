@@ -201,6 +201,7 @@ OSTREE_SUPPORTED_ARM64_MACHINES ??= " \
     marvell-cn96xx \
     nxp-s32g2xx \
     intel-socfpga-64 \
+    ti-j72xx \
 "
 
 OSTREE_SUPPORTED_ARM32_MACHINES ??= " \
