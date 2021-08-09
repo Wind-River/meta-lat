@@ -222,4 +222,4 @@ IMAGE_CMD:otaimg () {
 	fi
 }
 
-IMAGE_TYPEDEP_otaimg = "ostree"
+IMAGE_TYPEDEP:otaimg = "ostree"
