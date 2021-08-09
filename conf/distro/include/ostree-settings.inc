@@ -198,6 +198,7 @@ OSTREE_SUPPORTED_ARM64_MACHINES ??= " \
     bcm-2xxx-rpi4 \
     xilinx-zynqmp \
     nxp-imx8 \
+    marvell-cn96xx \
 "
 
 OSTREE_SUPPORTED_ARM32_MACHINES ??= " \

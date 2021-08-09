@@ -120,6 +120,11 @@ DEFAULT_PACKAGES_nxp_imx8 = '''
     ptpd
 '''.split()
 
+DEFAULT_PACKAGES_marvell_cn96xx = '''
+    kernel-image-image
+    u-boot-uenv
+'''.split()
+
 # default rootfs: ${LAT_DEFAULT_IMAGE}
 DEFAULT_PACKAGES = {
     'intel-x86-64': DEFAULT_PACKAGES_intel_x86_64 + DEFAULT_PACKAGES_COMMON,
@@ -127,6 +132,7 @@ DEFAULT_PACKAGES = {
     'xilinx-zynqmp': DEFAULT_PACKAGES_xilinx_zynqmp + DEFAULT_PACKAGES_COMMON,
     'xilinx-zynq': DEFAULT_PACKAGES_xilinx_zynq + DEFAULT_PACKAGES_COMMON,
     'nxp-imx8': DEFAULT_PACKAGES_nxp_imx8 + DEFAULT_PACKAGES_COMMON,
+    'marvell-cn96xx': DEFAULT_PACKAGES_marvell_cn96xx + DEFAULT_PACKAGES_COMMON,
 }
 
 OSTREE_INITRD_PACKAGES = '''
