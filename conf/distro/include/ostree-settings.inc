@@ -200,6 +200,7 @@ OSTREE_SUPPORTED_ARM64_MACHINES ??= " \
     nxp-imx8 \
     marvell-cn96xx \
     nxp-s32g2xx \
+    intel-socfpga-64 \
 "
 
 OSTREE_SUPPORTED_ARM32_MACHINES ??= " \
