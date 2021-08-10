@@ -213,12 +213,6 @@ class GenImage(GenXXX):
 
         env = self.data['wic'].copy()
         env['WORKDIR'] = workdir
-        if self.machine in constant.SUPPORTED_ARM_MACHINES:
-            env.update({'OSTREE_SD_BOOT_ALIGN':'4',
-                        'OSTREE_SD_UBOOT_WIC1':'',
-                        'OSTREE_SD_UBOOT_WIC2':'',
-                        'OSTREE_SD_UBOOT_WIC3':'',
-                        'OSTREE_SD_UBOOT_WIC4':''})
         image_wic.set_wks_in_environ(**env)
 
         image_wic.create()
