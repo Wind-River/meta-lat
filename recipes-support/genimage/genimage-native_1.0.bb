@@ -201,17 +201,16 @@ python __anonymous () {
     if machine == 'bcm-2xxx-rpi4':
         d.appendVarFlag('do_install', 'depends', ' u-boot:do_deploy')
     elif machine == 'intel-x86-64':
-        d.appendVar('OVERRIDES', ':{0}:x86-64'.format(machine))
+        d.appendVar('OVERRIDES', ':x86-64:{0}'.format(machine))
         d.appendVarFlag('do_install', 'depends', ' ovmf:do_deploy')
     elif machine == 'intel-socfpga-64':
-        d.appendVar('OVERRIDES', ':{0}:intel-socfpga-64'.format(machine))
         d.appendVarFlag('do_install', 'depends', ' s10-u-boot-scr:do_deploy')
         d.appendVarFlag('do_install', 'depends', ' u-boot-socfpga:do_deploy')
 
     if machine in (d.getVar('OSTREE_SUPPORTED_ARM64_MACHINES') or "").split():
-        d.appendVar('OVERRIDES', ':{0}:aarch64'.format(machine))
+        d.appendVar('OVERRIDES', ':aarch64:{0}'.format(machine))
     elif machine in (d.getVar('OSTREE_SUPPORTED_ARM32_MACHINES') or "").split():
-        d.appendVar('OVERRIDES', ':{0}:arm'.format(machine))
+        d.appendVar('OVERRIDES', ':arm:{0}'.format(machine))
 
     if machine in (d.getVar('OSTREE_SUPPORTED_ARM_MACHINES') or "").split():
         d.appendVarFlag('do_install', 'depends', ' u-boot-uenv:do_deploy')

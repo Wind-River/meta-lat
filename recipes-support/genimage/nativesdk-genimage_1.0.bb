@@ -80,11 +80,11 @@ python __anonymous () {
     override = d.getVar('OVERRIDE')
     machine = d.getVar('MACHINE')
     if machine in (d.getVar('OSTREE_SUPPORTED_ARM64_MACHINES') or "").split():
-        d.appendVar('OVERRIDES', ':{0}:aarch64'.format(machine))
+        d.appendVar('OVERRIDES', ':aarch64:{0}'.format(machine))
     elif machine in (d.getVar('OSTREE_SUPPORTED_ARM32_MACHINES') or "").split():
-        d.appendVar('OVERRIDES', ':{0}:arm'.format(machine))
+        d.appendVar('OVERRIDES', ':arm:{0}'.format(machine))
     elif machine == 'intel-x86-64':
-        d.appendVar('OVERRIDES', ':{0}:x86-64'.format(machine))
+        d.appendVar('OVERRIDES', ':x86-64:{0}'.format(machine))
 
     d.setVar("DEFAULT_LOCAL_RPM_PACKAGE_FEED", "")
     d.setVar("DEFAULT_LOCAL_DEB_PACKAGE_FEED", "")
