@@ -64,7 +64,7 @@ Now burn the image onto the micro SD card:
 The <boardtype> is evb or rdb2 which depends on your hardware.
 
     For ustart image
-    $ zcat deploy/@IMAGE_NAME@.ustart-<boardtype>.img.gz | sudo dd of=/dev/sdX bs=1M status=progress
+    $ zcat deploy/@IMAGE_NAME@-<boardtype>.ustart.img.gz | sudo dd of=/dev/sdX bs=1M status=progress
 
     For wic image
     $ zcat deploy/@IMAGE_NAME@-<boardtype>.wic | sudo dd of=/dev/sdX bs=1M status=progress

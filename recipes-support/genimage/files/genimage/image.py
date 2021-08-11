@@ -20,6 +20,7 @@ import os
 import os.path
 import logging
 import shutil
+from tempfile import NamedTemporaryFile
 
 from genimage import utils
 from genimage import constant
@@ -150,7 +151,7 @@ class CreateInitramfs(Image):
 
 class CreateWicImage(Image):
     def _set_allow_keys(self):
-        self.allowed_keys.update({"wks_file"})
+        self.allowed_keys.update({"wks_file", "post_script"})
 
     def _add_keys(self):
         self.wks_full_path = ""
@@ -217,6 +218,32 @@ class CreateWicImage(Image):
                                % (cmd, res, output))
 
         self._create_symlinks()
+
+        self._post_wic()
+
+    def _post_wic(self):
+        if not self.post_script:
+            return
+
+        logger.debug("Executing '%s' postprocess script..." % self.post_script)
+        scriptFile = NamedTemporaryFile(delete=True, dir=".")
+        with open(scriptFile.name, 'w') as f:
+            f.write("#!/usr/bin/env bash\n")
+            f.write(self.post_script + "\n")
+        os.chmod(scriptFile.name, 0o777)
+        scriptFile.file.close()
+
+        wic_env = os.environ.copy()
+        wic_env['IMAGE_ROOTFS'] = self.target_rootfs
+        wic_env['DEPLOY_DIR_IMAGE'] = self.deploydir
+        wic_env['WORKDIR'] = self.workdir
+        wic_env['IMAGE_NAME'] = self.image_name
+        wic_env['MACHINE'] = self.machine
+        wic_env['DATETIME'] = self.date
+        res, output = utils.run_cmd(scriptFile.name, shell=True, env=wic_env)
+        if res:
+            raise Exception("Executing %s postprocess wic failed\nExit code %d. Output:\n%s"
+                               % (self.post_script, res, output))
 
     def _create_symlinks(self):
         for suffix_dst, suffix_src in [(".wic", ".rootfs.wic"),
@@ -530,7 +557,7 @@ class CreateOstreeOTA(Image):
 class CreateBootfs(Image):
     def _set_allow_keys(self):
         self.allowed_keys.remove('target_rootfs')
-        self.allowed_keys.update({'ostree_osname', 'boot_params'})
+        self.allowed_keys.update({'ostree_osname', 'boot_params', 'post_script'})
 
     def _add_keys(self):
         self.date = utils.get_today()
@@ -552,6 +579,31 @@ class CreateBootfs(Image):
                                % (cmd, res, output))
 
         self._rename_and_symlink()
+
+        self._post_ustart()
+
+    def _post_ustart(self):
+        if not self.post_script:
+            return
+
+        logger.debug("Executing '%s' postprocess script..." % self.post_script)
+        scriptFile = NamedTemporaryFile(delete=True, dir=".")
+        with open(scriptFile.name, 'w') as f:
+            f.write("#!/usr/bin/env bash\n")
+            f.write(self.post_script + "\n")
+        os.chmod(scriptFile.name, 0o777)
+        scriptFile.file.close()
+
+        ustart_env = os.environ.copy()
+        ustart_env['DEPLOY_DIR_IMAGE'] = self.deploydir
+        ustart_env['WORKDIR'] = self.workdir
+        ustart_env['IMAGE_NAME'] = self.image_name
+        ustart_env['MACHINE'] = self.machine
+        ustart_env['DATETIME'] = self.date
+        res, output = utils.run_cmd(scriptFile.name, shell=True, env=ustart_env)
+        if res:
+            raise Exception("Executing %s postprocess ustart failed\nExit code %d. Output:\n%s"
+                               % (self.post_script, res, output))
 
     def _rename_and_symlink(self):
         for suffix in ["ustart.img.gz", "ustart.img.bmap"]:

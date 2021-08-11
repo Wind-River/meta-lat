@@ -128,6 +128,8 @@ class GenImage(GenXXX):
         self.data['rootfs-pre-scripts'] = ['echo "run script before do_rootfs in $IMAGE_ROOTFS"']
         self.data['rootfs-post-scripts'] = ['echo "run script after do_rootfs in $IMAGE_ROOTFS"']
         self.data['environments'] = ['NO_RECOMMENDATIONS="0"', 'KERNEL_PARAMS="key=value"']
+        self.data['ustart-post-script'] = constant.DEFAULT_USTART_POST_SCRIPT
+        self.data['wic-post-script'] = constant.DEFAULT_WIC_POST_SCRIPT
 
     def _parse_inputyamls(self):
         pykwalify_dir = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'], 'usr/share/genimage/data/pykwalify')
@@ -209,6 +211,7 @@ class GenImage(GenXXX):
                         target_rootfs = self.target_rootfs,
                         deploydir = self.deploydir,
                         pkg_type = self.pkg_type,
+                        post_script = self.data['wic-post-script'],
                         wks_file = wks_file)
 
         env = self.data['wic'].copy()
@@ -410,6 +413,7 @@ class GenImage(GenXXX):
                         machine=self.machine,
                         pkg_type = self.pkg_type,
                         ostree_osname=self.data["ostree"]['ostree_osname'],
+                        post_script = self.data['ustart-post-script'],
                         deploydir=self.deploydir,
                         boot_params = boot_params)
         ustart.create()
@@ -431,7 +435,10 @@ class GenImage(GenXXX):
             table.add_row(["Ostree Repo", output.strip()])
 
         if "wic" in self.image_type:
+
             cmd_wic = cmd_format % "{0}.wic".format(image_name)
+            if DEFAULT_MACHINE == "nxp-s32g2xx":
+                cmd_wic = cmd_format % "{0}-{{evb,rdb2}}.wic".format(image_name)
             output = subprocess.check_output(cmd_wic, shell=True, cwd=self.deploydir)
             table.add_row(["WIC Image", output.strip()])
 
@@ -456,6 +463,8 @@ class GenImage(GenXXX):
 
         if "ustart" in self.image_type:
             cmd_wic = cmd_format % "{0}.ustart.img.gz".format(image_name)
+            if DEFAULT_MACHINE == "nxp-s32g2xx":
+                cmd_wic = cmd_format % "{0}-{{evb,rdb2}}.ustart.img.gz".format(image_name)
             output = subprocess.check_output(cmd_wic, shell=True, cwd=self.deploydir)
             table.add_row(["Ustart Image", output.strip()])
 

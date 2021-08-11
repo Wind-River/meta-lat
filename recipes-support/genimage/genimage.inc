@@ -35,6 +35,8 @@ SRC_URI = "\
            file://genimage/data/post_rootfs/set_systemd_default_target.sh \
            file://genimage/data/post_rootfs/run.ssh_allow_empty_password \
            file://genimage/data/post_rootfs/run.ssh_allow_root_login \
+           file://genimage/data/post_ustart/nxp_s32g2xx.sh \
+           file://genimage/data/post_wic/nxp_s32g2xx.sh \
            file://genimage/data/yaml_example/feature/vboxguestdrivers.yaml \
            file://genimage/data/yaml_example/feature/xfce_desktop.yaml \
            file://genimage/data/yaml_example/feature/set_root_password.yaml \
@@ -246,6 +248,11 @@ do_install:append() {
 		    ${D}${datadir}/genimage/data/yaml_example/feature/xfce_desktop.yaml
 	fi
 }
+
+USTART_POST_SCRIPT ??= ""
+USTART_POST_SCRIPT_nxp-s32g2xx = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/nxp_s32g2xx.sh"
+WIC_POST_SCRIPT ??= ""
+WIC_POST_SCRIPT_nxp-s32g2xx = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/nxp_s32g2xx.sh"
 
 DEFAULT_DEBIAN_MIRROR ??= "http://ftp.us.debian.org/debian"
 DEFAULT_DEBIAN_DISTRO ??= "bullseye"
