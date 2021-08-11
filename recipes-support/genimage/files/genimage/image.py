@@ -119,8 +119,11 @@ class CreateInitramfs(Image):
         arch = "arm64"
         if self.machine in constant.SUPPORTED_ARM32_MACHINES:
             arch = "arm"
-        cmd = "cd %s && mkimage -A %s -O linux -T ramdisk -C none -n %s -d %s.rootfs.cpio.gz %s.rootfs.cpio.gz.u-boot" % \
-             (self.deploydir, arch, self.image_fullname, self.image_fullname, self.image_fullname)
+        extra_args = ""
+        if self.machine == "marvell-cn96xx":
+            extra_args = "-f auto"
+        cmd = "cd %s && mkimage %s -A %s -O linux -T ramdisk -C none -n %s -d %s.rootfs.cpio.gz %s.rootfs.cpio.gz.u-boot" % \
+             (self.deploydir, extra_args, arch, self.image_fullname, self.image_fullname, self.image_fullname)
         utils.run_cmd_oneshot(cmd)
 
         cmd = "rm %s/%s.rootfs.cpio.gz" % (self.deploydir, self.image_fullname)
