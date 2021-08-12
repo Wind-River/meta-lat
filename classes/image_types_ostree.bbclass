@@ -382,6 +382,9 @@ IMAGE_CMD:ostree () {
 				/usr/bin/perl -p -i -e "s#^( *setenv BRANCH) .*#\$1 ${OSTREE_BRANCHNAME}# if (\$_ !~ /oBRANCH/) " usr/lib/ostree-boot/boot.scr.raw
 			fi
 			mkimage -A arm -T script -O linux -d usr/lib/ostree-boot/boot.scr.raw usr/lib/ostree-boot/boot.scr
+			if [ -f $DEPLOY_DIR_IMAGE/boot.itb ]; then
+				mkimage -A arm -T script -O linux -f auto -C none -d usr/lib/ostree-boot/boot.scr.raw usr/lib/ostree-boot/boot.itb
+			fi
 			rm -f usr/lib/ostree-boot/boot.scr.raw
 		fi
 		mkdir -p boot

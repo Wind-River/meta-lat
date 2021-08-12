@@ -45,6 +45,10 @@ update_boot_scr() {
     perl -p -i -e "s#instab=[^ ]* #instab=$ab #" $rootfs/boot/boot.scr.raw
 
     mkimage -A arm -T script -O linux -d $rootfs/boot/boot.scr.raw $rootfs/boot/boot.scr
+    if [ -e $rootfs/boot/boot.itb ] ; then
+        mkimage -A arm -T script -O linux -f auto -C none -d $rootfs/boot/boot.scr.raw $rootfs/boot/boot.itb
+    fi
+
     rm -f $rootfs/boot/boot.scr.raw
 }
 

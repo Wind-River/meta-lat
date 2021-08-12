@@ -192,6 +192,9 @@ IMAGE_CMD:otaimg () {
 					/usr/bin/perl -p -i -e "s#^( *setenv BRANCH) .*#\$1 ${OSTREE_BRANCHNAME}# if (\$_ !~ /oBRANCH/) " ${WORKDIR}/rootfs_ota_uboot/boot.scr.raw
 				fi
 				mkimage -A arm -T script -O linux -d ${WORKDIR}/rootfs_ota_uboot/boot.scr.raw ${WORKDIR}/rootfs_ota_uboot/boot.scr
+				if [ -e $WORKDIR/rootfs_ota_uboot/boot.itb ] ; then
+					mkimage -A arm -T script -O linux -f auto -C none -d $WORKDIR/rootfs_ota_uboot/boot.scr.raw $WORKDIR/rootfs_ota_uboot/boot.itb
+				fi
 				rm -f ${WORKDIR}/rootfs_ota_uboot/boot.scr.raw
 			fi
 		fi
