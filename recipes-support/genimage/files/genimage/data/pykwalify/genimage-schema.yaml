@@ -39,6 +39,10 @@ mapping:
     include: gpg_map
   system:
     include: system_seq
+  ustart-post-script:
+    type: str
+  wic-post-script:
+    type: str
 
 schema;system_seq:
   type: seq
@@ -176,4 +180,14 @@ schema;wic_map:
     OSTREE_WKS_FLUX_SIZE:
       type: str
     OSTREE_WKS_ROOT_SIZE:
+      type: str
+    OSTREE_SD_BOOT_ALIGN:
+      type: str
+    OSTREE_SD_UBOOT_WIC1:
+      type: str
+    OSTREE_SD_UBOOT_WIC2:
+      type: str
+    OSTREE_SD_UBOOT_WIC3:
+      type: str
+    OSTREE_SD_UBOOT_WIC4:
       type: str
