@@ -506,7 +506,7 @@ class GenYoctoImage(GenImage):
     """
     def _parse_default(self):
         super(GenYoctoImage, self)._parse_default()
-        self.data['remote_pkgdatadir'] = DEFAULT_REMOTE_PKGDATADIR[self.pkg_type]
+        self.data['remote_pkgdatadir'] = DEFAULT_REMOTE_PKGDATADIR[self.pkg_type] if utils.is_sdk() else ""
         self.data['features'] =  DEFAULT_IMAGE_FEATURES
         self.data["ostree"] = constant.DEFAULT_OSTREE_DATA
 
