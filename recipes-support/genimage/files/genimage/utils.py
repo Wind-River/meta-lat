@@ -476,7 +476,10 @@ def get_mem_size(pkg_type, image_type, extra_file=None):
     return str(size)
 
 def get_yocto_var(key):
-    yocto_env = os.path.join(sysroot_dir, "pkgdata", DEFAULT_MACHINE, ".yocto_vars.env")
+    if is_sdk():
+        yocto_env = os.path.join(sysroot_dir, "pkgdata", DEFAULT_MACHINE, ".yocto_vars.env")
+    elif is_build():
+        yocto_env = os.path.join(sysroot_dir, "../pkgdata", DEFAULT_MACHINE, ".yocto_vars.env")
     if not os.path.join(yocto_env):
         logger.error("Yocto Env File '%s' not found", yocto_env)
         return None
