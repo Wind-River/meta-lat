@@ -182,29 +182,32 @@ Example:
 ```
 $ exampleyamls @PKG_TYPE@
 $ cat exampleyamls/kickstart/lat-installer.ks
+$ cat exampleyamls/kickstart/lat-installer-static-ipv4.ks
 ```
 
 ### Setup a web server
 ```
 $ python3 -m http.server 8888 --directory exampleyamls/kickstart/
 ```
-Use browser to access http://HOST_IP:8888/lat-installer.ks
+Use browser to access http://HOST_IP:8888/lat-installer.ks and
+http://HOST_IP:8888/lat-installer--static-ipv4.ks
 
-### Generate LAT image with kickstart support
+### DHCP Kickstart
+#### Generate LAT image with kickstart support
 While calling 'appsdk genimage', use option --install-kickstart-url to
 get kickstart file, use option --install-net-mode and --install-net-params
 to assure the network is accessible to download kickstart during installation.
 ```
-$ appsdk --log-dir log genimage --type iso --type pxe --type ustart \
+$ appsdk --log-dir log genimage --type pxe --type ustart \
                                 --install-kickstart-url http://HOST_IP:8888/lat-installer.ks \
                                 --install-net-mode dhcp \
                                 --install-net-params eth0 \
                                 exampleyamls/@IMAGE_NAME@-intel-x86-64.yaml
 ```
 
-### Use QEMU to boot (KVM + EFI + PXE)
+#### Use QEMU to boot (KVM + EFI + PXE)
 Refers deploy/PXE-for-EFI_@IMAGE_NAME@.README.md
-Create a QEMU simulator with 2 disks and 4 network interfaces
+Create a QEMU simulator with 2 disks and 3 network interfaces
 
 ```
 $ qemu-img create -f raw boot-image-qemu.hddimg 16G
@@ -220,11 +223,11 @@ $ qemu-system-x86_64 -m 5174 \
         -net nic -net user,tftp=./deploy/pxe_tftp_@IMAGE_NAME@,bootfile=EFI/BOOT/bootx64.efi \
         -device virtio-net-pci,netdev=net0 -netdev user,id=net0 \
         -device virtio-net-pci,netdev=net1 -netdev user,id=net1 \
-        -device virtio-net-pci,netdev=net2 -netdev user,id=net2 \
         -cpu kvm64 -enable-kvm -nographic
+
 ```
 
-### Login QEMU
+#### Login QEMU
 ```
 root@localhost:~# ifconfig
 eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
@@ -244,16 +247,6 @@ eth2: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         RX packets 0  bytes 0 (0.0 B)
         RX errors 0  dropped 0  overruns 0  frame 0
         TX packets 6  bytes 612 (612.0 B)
-        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
-
-eth3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
-        inet 192.168.2.10  netmask 255.255.255.0  broadcast 192.168.2.255
-        inet6 fec0::5054:ff:fe12:3456  prefixlen 64  scopeid 0x40<site>
-        inet6 fe80::5054:ff:fe12:3456  prefixlen 64  scopeid 0x20<link>
-        ether 52:54:00:12:34:56  txqueuelen 1000  (Ethernet)
-        RX packets 1  bytes 110 (110.0 B)
-        RX errors 0  dropped 0  overruns 0  frame 0
-        TX packets 34  bytes 2222 (2.1 KiB)
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 
 lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
@@ -283,6 +276,77 @@ root@localhost:~# blkid
 /dev/sda4: LABEL="otaroot" UUID="557bd026-9f4f-47b0-a5e4-50e5eefcdafa" BLOCK_SIZE="4096" TYPE="ext4" PARTLABEL="otaroot" PARTUUID="3ede4347-dda2-419f-b097-a41e2e7e7eb8"
 /dev/sda5: LABEL="fluxdata" UUID="13f41e4f-e1e9-451b-824c-848e171b8da6" BLOCK_SIZE="4096" TYPE="ext4" PARTLABEL="fluxdata" PARTUUID="5bdfc1b6-ea3f-42f1-a7b9-a89728925521"
 /dev/sda1: PARTLABEL="bios" PARTUUID="ec9527bd-da13-44ce-9c66-5940cfdd10d7"
+
+```
+
+### Static IPv4 Kickstart
+#### Generate LAT image with kickstart support
+While calling 'appsdk genimage', use option --install-kickstart-url to
+get kickstart file, use option --install-net-mode and --install-net-params
+to assure the network is accessible to download kickstart during installation.
+```
+$ appsdk --log-dir log genimage --type iso --type ustart \
+                                --install-kickstart-url http://HOST_IP:8888/lat-installer-static-ipv4.ks \
+                                --install-net-mode static-ipv4 \
+                                --install-net-params ip=192.168.7.2::192.168.7.1:255.255.255.0 \
+                                exampleyamls/@IMAGE_NAME@-intel-x86-64.yaml
+```
+
+#### Use QEMU TAP to boot (KVM + EFI + ISO)
+Refers deploy/@IMAGE_NAME@-intel-x86-64-cd.iso.README.md
+Create a QEMU simulator with 1 disk and 1 network interface
+
+```
+$ qemu-img create -f raw boot-image-qemu.hddimg 16G
+$ cp -fa deploy/ovmf.qcow2 OVMF_CODE.fd
+$ cp -fa deploy/ovmf.vars.qcow2 OVMF_VARS.fd
+$ sudo ${OECORE_NATIVE_SYSROOT}/usr/share/poky/scripts/runqemu-ifup `id -u` `id -g` ${OECORE_NATIVE_SYSROOT}/usr/bin
+
+# Installing with ISO
+$ qemu-system-x86_64 -m 2048 \
+        -device virtio-net-pci,netdev=net0 -netdev tap,id=net0,ifname=tap0,script=no,downscript=no \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
+        -cdrom ./deploy/wrlinux-image-small-intel-x86-64-cd.iso \
+        -cpu kvm64 -enable-kvm \
+        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
+        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
+        -no-reboot -nographic
+
+# Booting installed target without ISO
+$ qemu-system-x86_64 -m 2048 \
+        -device virtio-net-pci,netdev=net0 -netdev tap,id=net0,ifname=tap0,script=no,downscript=no \
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
+        -cpu kvm64 -enable-kvm \
+        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
+        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd -nographic
+
+
+# Manually clean up QEMU TAP after qemu-system-x86_64 exits(Ctrl+a+x)
+$ sudo ${OECORE_NATIVE_SYSROOT}/usr/share/poky/scripts/runqemu-ifdown tap0 ${OECORE_NATIVE_SYSROOT}/usr/bin
+```
+
+#### Login QEMU
+```
+root@intel-x86-64:~# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.7.2  netmask 255.255.255.0  broadcast 192.168.7.255
+        inet6 fe80::5054:ff:fe12:3456  prefixlen 64  scopeid 0x20<link>
+        ether 52:54:00:12:34:56  txqueuelen 1000  (Ethernet)
+        RX packets 16  bytes 1605 (1.5 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 49  bytes 4876 (4.7 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 
 ```
 

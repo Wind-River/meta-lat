@@ -147,7 +147,7 @@ def _main_run_internal(args):
                 f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % constant.DEFAULT_IMAGE)
 
         kickstart_dir = os.path.join(outdir, "kickstart")
-        kickstart_src = os.path.join(native_sysroot, 'usr/share/genimage/data/kickstart/lat-installer.ks')
+        kickstart_src = os.path.join(native_sysroot, 'usr/share/genimage/data/kickstart/lat-installer*.ks')
         cmd = "mkdir -p {0} && cp -f {1} {2}/".format(kickstart_dir, kickstart_src, kickstart_dir)
         utils.run_cmd_oneshot(cmd)
 

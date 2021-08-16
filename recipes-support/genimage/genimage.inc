@@ -74,6 +74,7 @@ SRC_URI = "\
            file://genimage/data/pxe_boot/bootfile-bios.in \
            file://genimage/data/kickstart/kickstart.README.md.in \
            file://genimage/data/kickstart/lat-installer.ks \
+           file://genimage/data/kickstart/lat-installer-static-ipv4.ks \
            file://genimage/scripts/run.do_image_ostree \
            file://genimage/scripts/run.do_image_otaimg \
            file://genimage/scripts/run.do_image_wic \
