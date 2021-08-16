@@ -81,11 +81,10 @@ def _exampleyamls_sysdef(args):
                 src = os.path.join(root, name)
                 with open(src, "r+") as f:
                     content = f.read()
-                    f.seek(0)
                     content = content.replace("@MACHINE@", DEFAULT_MACHINE)
-                    f.write(content)
                 dst = os.path.join(root, name[:-3])
-                os.rename(src, dst)
+                open(dst, "w").write(content)
+                utils.remove(src)
                 logger.debug("%s -> %s", src, dst)
 
 def _main_run_internal(args):
