@@ -37,6 +37,8 @@ do_install[nostamp] = "1"
 # Workaround manifest missing failure
 python do_prepare_recipe_sysroot:prepend () {
     machine = d.getVar('MACHINE')
-    if machine == 'bcm-2xxx-rpi4':
+    if machine in (d.getVar('OSTREE_SUPPORTED_ARM64_MACHINES') or '').split():
         d.setVar('TARGET_ARCH', 'aarch64')
+    elif machine in (d.getVar('OSTREE_SUPPORTED_ARM32_MACHINES') or '').split():
+        d.setVar('TARGET_ARCH', 'arm')
 }
