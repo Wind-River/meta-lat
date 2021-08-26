@@ -611,7 +611,7 @@ eval `grep ^DEPLOY_DIR_IMAGE $ENVFILE`
 eval `grep ^IMAGE_BASENAME $ENVFILE`
 eval `grep ^BOOT_ $ENVFILE`
 eval `grep ^STAGING_DIR= $ENVFILE`
-eval `grep ^OSTREE_ $ENVFILE | perl -p -e '($a,$b) = split(/=/,$_,2); $a =~ s/-/_/g; $_ = "$a=$b"'`
+eval `grep ^OSTREE_ $ENVFILE | sed -e 's#:#_#g' | perl -p -e '($a,$b) = split(/=/,$_,2); $a =~ s/-/_/g; $_ = "$a=$b"'`
 eval `grep ^OSTREE_CONSOLE= $ENVFILE | sed -e 's:\\\\::g' -e "s:\":':g"`
 eval `grep ^DISTRO_FEATURES= $ENVFILE`
 eval `grep ^BOOTFS_EXTRA_CMD= $ENVFILE`
