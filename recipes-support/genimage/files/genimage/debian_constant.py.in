@@ -75,7 +75,7 @@ cp -rf $OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/bootx64.efi $DEPLOY_DIR/bootx64.
 cp -rf $OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/bootx64.efi $DEPLOY_DIR/grub-efi-bootx64.efi
 cp -rf $OECORE_TARGET_SYSROOT/boot/efi $IMAGE_ROOTFS/boot/
 cp -rf $IMAGE_ROOTFS/boot/*-amd64 $DEPLOY_DIR
-KERNEL=`ls $DEPLOY_DIR/vmlinuz-*-amd64`
+KERNEL=`ls -t $DEPLOY_DIR/vmlinuz-*-amd64 | head -n 1`
 ln -snf --relative $KERNEL  $DEPLOY_DIR/bzImage
 rm $IMAGE_ROOTFS/root -rf
 mkdir -p $IMAGE_ROOTFS/root
@@ -94,7 +94,7 @@ mkdir -p $IMAGE_ROOTFS/boot/efi/EFI/BOOT
 cp -rf ${DEPLOY_DIR_IMAGE}/grub-efi-bootx64.efi $IMAGE_ROOTFS/boot/efi/EFI/BOOT/bootx64.efi
 cp -rf ${DEPLOY_DIR_IMAGE}/grub.cfg $IMAGE_ROOTFS/boot/efi/EFI/BOOT/
 cp -rf $IMAGE_ROOTFS/boot/*-amd64 $DEPLOY_DIR
-KERNEL=`ls $DEPLOY_DIR/vmlinuz-*-amd64`
+KERNEL=`ls -t $DEPLOY_DIR/vmlinuz-*-amd64 | head -n 1`
 ln -snf --relative $KERNEL  $DEPLOY_DIR/bzImage
 rm $IMAGE_ROOTFS/root -rf
 mkdir -p $IMAGE_ROOTFS/root
