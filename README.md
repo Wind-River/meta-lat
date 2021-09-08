@@ -14,6 +14,7 @@ Currently it supports three types of package feeds.
 $ mkdir <project>
 $ cd <project>
 $ git clone https://github.com/Wind-River/meta-lat.git
+$ git clone git://git.yoctoproject.org/meta-virtualization
 $ git clone git://git.openembedded.org/meta-openembedded
 $ git clone git://git.pokylinux.org/poky.git
 
@@ -34,6 +35,8 @@ BBLAYERS ?= " \
     <project>/meta-openembedded/meta-filesystems \
     <project>/meta-openembedded/meta-python \
     <project>/meta-openembedded/meta-oe \
+    <project>/meta-openembedded/meta-networking \
+    <project>/meta-openembedded/meta-virtualization \
     <project>/meta-lat \
 "
 ```
