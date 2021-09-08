@@ -36,6 +36,9 @@ BBLAYERS ?= " \
     <project>/meta-openembedded/meta-filesystems \
     <project>/meta-openembedded/meta-python \
     <project>/meta-openembedded/meta-oe \
+    <project>/meta-openembedded/meta-xfce \
+    <project>/meta-openembedded/meta-gnome \
+    <project>/meta-openembedded/meta-multimedia \
     <project>/meta-openembedded/meta-networking \
     <project>/meta-openembedded/meta-virtualization \
     <project>/meta-lat \
