@@ -26,6 +26,7 @@ INIT_MANAGER = "systemd"
 require conf/distro/ostree.conf
 require conf/distro/lat.conf
 MACHINE = "intel-x86-64"
+PACKAGE_CLASSES = "package_rpm"
 PACKAGE_FEED_URIS = "http://<web-server-url>/lat"
 ENDOF
 
