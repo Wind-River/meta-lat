@@ -32,6 +32,7 @@ Edit conf/bblayers.conf to include other layers
 BBLAYERS ?= " \
     <project>/oe-core/meta \
     <project>/meta-openembedded/meta-filesystems \
+    <project>/meta-openembedded/meta-python \
     <project>/meta-openembedded/meta-oe \
     <project>/meta-lat \
 "
