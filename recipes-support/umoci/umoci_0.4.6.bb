@@ -21,8 +21,8 @@ export GO111MODULE="off"
 
 BBCLASSEXTEND = "native nativesdk"
 
-INSANE_SKIP_${PN} += "already-stripped"
-INSANE_SKIP_${PN}-dev = "file-rdeps"
+INSANE_SKIP:${PN} += "already-stripped"
+INSANE_SKIP:${PN}-dev = "file-rdeps"
 
 inherit features_check
 REQUIRED_DISTRO_FEATURES = "lat"

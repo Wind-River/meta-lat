@@ -5,7 +5,7 @@
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0-only;md5=801f80980d171dd6425610833a22dbe6"
 
-RDEPENDS_${PN} = "bash"
+RDEPENDS:${PN} = "bash"
 
 SRC_URI += "git://github.com/lwfinger/rtl8723bs_bt.git \
 	   "
@@ -24,6 +24,6 @@ do_install(){
 	install -m 0755 start_bt.sh ${D}/opt/rtl8723bs_bt
 }
 
-FILES_${PN} = "${nonarch_base_libdir}/firmware/* \
+FILES:${PN} = "${nonarch_base_libdir}/firmware/* \
 	     /opt/rtl8723bs_bt \
 	     "

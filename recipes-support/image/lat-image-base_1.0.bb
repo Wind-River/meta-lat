@@ -10,13 +10,13 @@ NO_RECOMMENDATIONS = "1"
 SDKIMAGE_LINGUAS = ""
 
 # Implementation of Full Image generator with Application SDK
-TOOLCHAIN_HOST_TASK_append = " \
+TOOLCHAIN_HOST_TASK:append = " \
     nativesdk-wic \
     nativesdk-genimage \
     nativesdk-bootfs \
     nativesdk-appsdk \
 "
-TOOLCHAIN_TARGET_TASK_append = " \
+TOOLCHAIN_TARGET_TASK:append = " \
     qemuwrapper-cross \
     syslinux-misc \
     syslinux-isolinux \
@@ -68,7 +68,7 @@ copy_ostree_initramfs_to_sdk() {
 }
 
 IMAGE_CLASSES += "qemuboot"
-do_populate_sdk_prepend() {
+do_populate_sdk:prepend() {
     localdata = bb.data.createCopy(d)
     if localdata.getVar('MACHINE') == 'bcm-2xxx-rpi4':
         localdata.appendVar('QB_OPT_APPEND', ' -bios @DEPLOYDIR@/qemu-u-boot-bcm-2xxx-rpi4.bin')
@@ -129,7 +129,7 @@ IMAGE_INSTALL = "\
     "
 
 # Only need tar.bz2 for container image
-IMAGE_FSTYPES_remove = " \
+IMAGE_FSTYPES:remove = " \
     live wic wic.bmap ostreepush otaimg \
 "
 

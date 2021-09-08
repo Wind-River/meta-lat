@@ -11,7 +11,7 @@ SRC_URI =  " \
     file://auto-start-containers \
 "
 
-RDEPENDS_${PN} = " \
+RDEPENDS:${PN} = " \
     bash \
     docker \
 "
@@ -19,7 +19,7 @@ RDEPENDS_${PN} = " \
 inherit allarch systemd
 
 SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE_${PN} = "load-docker-images.service"
+SYSTEMD_SERVICE:${PN} = "load-docker-images.service"
 
 do_install () {
     install -d ${D}${libexecdir}/
@@ -34,7 +34,7 @@ do_install () {
     install -d ${D}/var/docker-images/
 }
 
-FILES_${PN} += "${systemd_unitdir}/system /var/docker-images"
+FILES:${PN} += "${systemd_unitdir}/system /var/docker-images"
 
 inherit features_check
 REQUIRED_DISTRO_FEATURES = "lat"

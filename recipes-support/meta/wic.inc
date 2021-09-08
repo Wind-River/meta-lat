@@ -35,4 +35,4 @@ do_install() {
     install -m 755 ${WORKDIR}/wic_wrapper.sh ${D}${bindir}/wic
 }
 
-INSANE_SKIP_${PN} = "file-rdeps"
+INSANE_SKIP:${PN} = "file-rdeps"

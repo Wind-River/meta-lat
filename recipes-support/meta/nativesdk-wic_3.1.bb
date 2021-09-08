@@ -1,6 +1,6 @@
 include wic.inc
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
     nativesdk-python3 \
     nativesdk-parted \
     nativesdk-syslinux \
@@ -19,9 +19,9 @@ RDEPENDS_${PN} += " \
     nativesdk-chrpath \
 "
 
-FILES_${PN} += "${SDKPATHNATIVE}"
+FILES:${PN} += "${SDKPATHNATIVE}"
 
-do_install_append() {
+do_install:append() {
     ln -snf -r ${D}${datadir}/poky/meta/recipes-core/systemd/systemd-systemctl/systemctl ${D}${bindir}/systemctl
 }
 
