@@ -10,9 +10,16 @@ Currently it supports three types of package feeds.
 - external-debian: Debian package feeds
 
 ## Build
+### Clone away
+$ mkdir <project>
+$ cd <project>
+$ git clone https://github.com/Wind-River/meta-lat.git
+$ git clone git://git.openembedded.org/meta-openembedded
+$ git clone git://git.pokylinux.org/poky.git
 
 ### Set local.conf
 ```
+$ . <project>/poky/oe-init-build-env <build>
 cat << ENDOF >> conf/local.conf
 INIT_MANAGER = "systemd"
 require conf/distro/ostree.conf
@@ -20,6 +27,14 @@ require conf/distro/lat.conf
 MACHINE = "intel-x86-64"
 PACKAGE_FEED_URIS = "http://<web-server-url>/lat"
 ENDOF
+
+Edit conf/bblayers.conf to include other layers
+BBLAYERS ?= " \
+    <project>/oe-core/meta \
+    <project>/meta-openembedded/meta-filesystems \
+    <project>/meta-openembedded/meta-oe \
+    <project>/meta-lat \
+"
 ```
 
 ### Build
