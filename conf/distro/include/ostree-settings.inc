@@ -27,7 +27,7 @@ OSTREE_GPGDIR ??= "${OSTREE_KEYS_DIR}/rpm_keys"
 
 # Configuration of image upgrade and install variables
 
-OSTREE_USE_AB ??= "1"
+OSTREE_USE_AB ??= "0"
 OSTREE_REMOTE_NAME ??= "${OSTREE_OSNAME}"
 OSTREE_REMOTE_URL ??= ""
 
