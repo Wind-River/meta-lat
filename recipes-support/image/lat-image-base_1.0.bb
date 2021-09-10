@@ -18,8 +18,12 @@ TOOLCHAIN_HOST_TASK:append = " \
 "
 TOOLCHAIN_TARGET_TASK:append = " \
     qemuwrapper-cross \
+"
+
+TOOLCHAIN_TARGET_TASK:append:x86-64 = " \
     syslinux-misc \
     syslinux-isolinux \
+    syslinux-pxelinux \
 "
 
 POPULATE_SDK_PRE_TARGET_COMMAND += "copy_pkgdata_to_sdk;"
