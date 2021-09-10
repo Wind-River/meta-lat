@@ -116,6 +116,8 @@ OCI_IMAGE_LABELS ?= ""
 OCI_IMAGE_ENV_VARS ?= ""
 
 do_unpack[vardeps] += "MACHINE PACKAGE_FEED_BASE_PATHS PACKAGE_FEED_ARCHS PACKAGE_FEED_URIS PACKAGE_CLASSES OSTREE_OSNAME"
+do_unpack[vardeps] += "DEBIAN_CUSTOMIZE_FEED_URI DEFAULT_DEBIAN_MIRROR"
+
 do_unpack:append() {
     bb.build.exec_func('do_write_py_template', d)
     bb.build.exec_func('do_copy_src', d)
