@@ -133,6 +133,14 @@ IMAGE_FSTYPES:remove = " \
     live wic wic.bmap ostreepush otaimg \
 "
 
+python () {
+    machine = d.getVar('MACHINE')
+    if machine == 'intel-x86-64':
+        d.appendVarFlag('do_populate_sdk', 'depends', ' ovmf:do_deploy')
+    elif machine == 'bcm-2xxx-rpi4':
+        d.appendVarFlag('do_populate_sdk', 'depends', ' rpi-bootfiles:do_deploy u-boot:do_deploy')
+}
+
 IMAGE_FEATURES += "package-management"
 
 inherit core-image features_check
