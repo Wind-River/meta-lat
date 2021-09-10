@@ -95,8 +95,6 @@ DEFAULT_PACKAGES_bcm_2xxx_rpi4 = '''
 '''.split()
 
 DEFAULT_PACKAGES_intel_x86_64 = '''
-    iucode-tool intel-microcode
-    rtl8723bs-bt
     lmsensors
     grub-efi
 '''.split()
