@@ -137,6 +137,14 @@ def _main_run_internal(args):
                 f.write("system:\n")
                 f.write("- contains:\n")
                 f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % deb_constant.DEFAULT_IMAGE)
+
+            yaml_file = os.path.join(outdir, "%s-intel-x86-64.yaml" % deb_constant.DEFAULT_IMAGE)
+            with open(yaml_file, "a") as f:
+                f.write("system:\n")
+                f.write("- contains:\n")
+                f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % deb_constant.DEFAULT_INITRD_NAME)
+
+
         else:
             cmd = "genyaml -d -o {0} --pkg-type {1} --type iso --name lat-image-multiple".format(outdir, args.pkg_type)
             utils.run_cmd_oneshot(cmd)
