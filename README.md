@@ -1141,11 +1141,4 @@ revision: HEAD
 ```
 
 
-## Maintenance
-
-This layer is maintained by:
-
-```
-Hongxu Jia <hongxu.jia@windriver.com>
-Qi Chen <qi.chen@windriver.com>
-```
+## [Maintenance](https://github.com/Wind-River/meta-lat/blob/main/MAINTAINERS.md)
