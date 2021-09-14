@@ -63,6 +63,12 @@ def install_contains(guest_yamls, args):
                 logger.error(output)
                 logger.error("Generate sub container failed")
                 sys.exit(1)
+        elif "initramfs" in image_type:
+            rc, output = utils.run_cmd("geninitramfs -d %s %s" % (yaml_file, extra_options), shell=True)
+            if rc != 0:
+                logger.error(output)
+                logger.error("Generate sub initramfs failed")
+                sys.exit(1)
         else:
             logger.error("The contains section does not support %s", image_type)
             sys.exit(1)
