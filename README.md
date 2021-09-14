@@ -11,12 +11,14 @@ Currently it supports three types of package feeds.
 
 ## Build
 ### Clone away
+```
 $ mkdir <project>
 $ cd <project>
 $ git clone https://github.com/Wind-River/meta-lat.git
 $ git clone git://git.yoctoproject.org/meta-virtualization
 $ git clone git://git.openembedded.org/meta-openembedded
 $ git clone git://git.pokylinux.org/poky.git
+```
 
 ### Set local.conf
 ```
