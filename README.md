@@ -1143,4 +1143,5 @@ revision: HEAD
 ```
 
 
-## [Maintenance](https://github.com/Wind-River/meta-lat/blob/main/MAINTAINERS.md)
+## Maintenance
+[Maintainer/Support policy](https://github.com/Wind-River/meta-lat/blob/main/MAINTAINERS.md)
