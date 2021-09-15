@@ -42,7 +42,7 @@ BBLAYERS ?= " \
     <project>/meta-openembedded/meta-gnome \
     <project>/meta-openembedded/meta-multimedia \
     <project>/meta-openembedded/meta-networking \
-    <project>/meta-openembedded/meta-virtualization \
+    <project>/meta-virtualization \
     <project>/meta-lat \
 "
 ```
