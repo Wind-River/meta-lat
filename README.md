@@ -1,6 +1,25 @@
 # meta-lat
 
 This layer provides LAT (Linux Assembly Tool).
+```
+Use this tool to perform a number of tasks to help manage your images,
+such as building and publishing RPM packages, generating images from
+package feeds for specific hardware, generating an updated SDK, and
+verifying the sanity of the SDK build. In addition, you can add or
+remove packages, and specify any pre- and post-build (do_build)
+instructions for the build, which lets you customize your image to
+meet your needs.
+
+This tool uses *.yaml input files to define many aspects of the build,
+packages and package-related configuration for a variety of uses.
+It provides validation for the *.yaml input files that define your intended
+project output to help identify any incorrect or misspelled options.
+
+With the exampleyamls positional argument, you can generate a list
+of different sample *.yaml files, which you can use as a basis for
+customizing your builds. These reusable files provide a data reference
+for all your image customizations.
+```
 
 LAT is a tool that assembles various types of images using binary package feeds.
 Currently it supports three types of package feeds.
