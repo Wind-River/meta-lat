@@ -287,7 +287,7 @@ optional arguments:
   --rootfs-pre-script ROOTFS_PRE_SCRIPT
                         Specify extra script to run before do_rootfs
   --env ENV             Specify extra environment to export before do_rootfs: --env NAME=VALUE
-  --no-clean            Do not cleanup generated rootfs in workdir
+  --no-clean            Do not cleanup previously generated rootfs in workdir
   --no-validate         Do not validate parameters in Input yaml files
   -g GPGPATH, --gpgpath GPGPATH
                         Specify gpg homedir, it overrides 'gpg_path' in Yaml, default is /tmp/.lat_gnupg

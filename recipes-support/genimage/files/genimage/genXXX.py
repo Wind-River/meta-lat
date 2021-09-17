@@ -97,7 +97,7 @@ def set_parser(parser=None, supported_types=None):
         help='Specify extra environment to export before do_rootfs: --env NAME=VALUE',
         action='append').completer = complete_env
     parser.add_argument("--no-clean",
-        help = "Do not cleanup generated rootfs in workdir", action="store_true", default=False)
+        help = "Do not cleanup previously generated rootfs in workdir", action="store_true", default=False)
     parser.add_argument("--no-validate",
         help = "Do not validate parameters in Input yaml files", action="store_true", default=False)
 
@@ -322,10 +322,10 @@ class GenXXX(object, metaclass=ABCMeta):
         image_workdir = os.path.join(self.workdir, self.image_name)
         utils.fake_root(workdir=image_workdir)
         os.environ['PSEUDO_IGNORE_PATHS'] = self.deploydir
-        # Cleanup all generated rootfs dir by default
+        # Cleanup previously generated rootfs dir by default
         if not self.args.no_clean:
             cmd = "rm -rf ./rootfs ./pseudo"
-            atexit.register(utils.run_cmd_oneshot, cmd=cmd, cwd=image_workdir)
+            utils.run_cmd_oneshot(cmd, cwd=image_workdir)
 
     def do_post(self):
         pass
