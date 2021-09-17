@@ -16,7 +16,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-latest=`ls /etc/sysdef/run_on_upgrade.d/ -1 -v -r | head -n 1`
+for d in `ls /etc/sysdef/run_on_upgrade.d/ -1 -v -r`; do
+  if [ -e /etc/sysdef/run_on_upgrade.d/${d}/containers.dat -a ! -e /etc/sysdef/run_on_upgrade.d/${d}/10_update_containers.sh.stamp ]; then
+    latest=${d}
+  fi
+done
+if [ -z "${latest}" ]; then
+    echo "No valid containers.dat found in /etc/sysdef/run_on_upgrade.d/"
+    exit 1
+fi
+
 dirname="/etc/sysdef/run_on_upgrade.d/${latest}"
 dat="${dirname}/containers.dat"
 while read -r line; do
