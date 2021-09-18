@@ -318,8 +318,8 @@ class GenXXX(object, metaclass=ABCMeta):
             logger.debug("Save Yaml FIle to : %s" % (self.output_yaml))
 
     def do_prepare(self):
-        utils.mkdirhier(self.workdir)
         image_workdir = os.path.join(self.workdir, self.image_name)
+        utils.mkdirhier(image_workdir)
         utils.fake_root(workdir=image_workdir)
         os.environ['PSEUDO_IGNORE_PATHS'] = self.deploydir
         # Cleanup previously generated rootfs dir by default
