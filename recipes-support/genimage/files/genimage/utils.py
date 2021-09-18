@@ -126,6 +126,12 @@ def run_cmd(cmd, shell=False, print_output=True, env=None, cwd=None):
         if process.poll() is not None:
             break
 
+    # Read the remaining logs from stdout after process terminates
+    output = process.stdout.read()
+    if output:
+        logger.debug(output.rstrip("\n"))
+        outputs += output
+
     rc = process.poll()
     logger.debug("rc %d" % rc)
     return rc, outputs
