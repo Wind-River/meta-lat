@@ -144,7 +144,8 @@ def _main_run_internal(args):
                 f.write("- contains:\n")
                 f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % deb_constant.DEFAULT_INITRD_NAME)
 
-
+            cmd = "cp -rf {0}/debian_feature {1}/feature".format(yamlexample_dir, outdir)
+            utils.run_cmd_oneshot(cmd)
         else:
             cmd = "genyaml -d -o {0} --pkg-type {1} --type iso --name lat-image-multiple".format(outdir, args.pkg_type)
             utils.run_cmd_oneshot(cmd)

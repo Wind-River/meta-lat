@@ -1,0 +1,19 @@
+rootfs-pre-scripts:
+- |-
+  cat > $IMAGE_ROOTFS/etc/apt/apt.conf.d/00debug-apt << SCRIPT_ENDOF
+  Debug
+  {
+    pkgProblemResolver "true";
+    pkgProblemResolver::ShowScores "true";
+    pkgPackageManager "true"; // OrderList/Configure debugging
+    RunScripts "true";      // debug invocation of external scripts
+    pkgPolicy "true";
+    Acquire::Ftp "true";    // Show ftp command traffic
+    Acquire::Http "true";   // Show http command traffic
+    Acquire::Https "true";   // Show https debug
+    Acquire::gpgv "true";   // Show the gpgv traffic
+    Acquire::cdrom "true";   // Show cdrom debug output
+    Acquire::Transaction "true";
+    Acquire::Progress "true";
+  };
+  SCRIPT_ENDOF
