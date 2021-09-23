@@ -17,7 +17,7 @@ schema;package_str:
 
 schema;machine_str:
   type: str
-  enum: ['intel-x86-64', 'bcm-2xxx-rpi4', 'xilinx-zynq', 'xilinx-zynqmp', 'nxp-imx8', 'marvell-cn96xx', 'nxp-s32g2xx', 'intel-socfpga-64', 'ti-j72xx']
+  enum: ['intel-x86-64', 'bcm-2xxx-rpi4', 'xilinx-zynq', 'xilinx-zynqmp', 'nxp-imx6', 'nxp-imx8', 'marvell-cn96xx', 'nxp-s32g2xx', 'intel-socfpga-64', 'ti-j72xx']
   nullable: False
 
 schema;package_feeds_seq:

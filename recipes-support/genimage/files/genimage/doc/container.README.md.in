@@ -7,6 +7,7 @@ The images are built from Wind River Linux Assembly Tool Application SDK
         bcm-2xxx-rpi4
         xilinx-zynqmp
         xilinx-zynq
+        nxp-imx6
         nxp-imx8
         marvell-cn96xx
         nxp-s32g2xx
