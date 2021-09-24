@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 for d in `ls /etc/sysdef/run_on_upgrade.d/ -1 -v -r`; do
-  if [ -e /etc/sysdef/run_on_upgrade.d/${d}/containers.dat -a ! -e /etc/sysdef/run_on_upgrade.d/${d}/10_update_containers.sh.stamp ]; then
+  if [ -e /etc/sysdef/run_on_upgrade.d/${d}/containers.dat ]; then
     latest=${d}
   fi
 done

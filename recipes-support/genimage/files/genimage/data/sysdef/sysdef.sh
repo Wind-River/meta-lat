@@ -76,7 +76,12 @@ get_bundle_dir() {
     if [ $type = "run-once" ]; then
         bundle_dir="$sysdefdir/run_once.d"
     elif [ $type = "run-on-upgrade" ]; then
-        local latest=`ls $sysdefdir/run_on_upgrade.d/ -1 -v -r | head -n 1`
+        local latest=""
+        for d in `ls /etc/sysdef/run_on_upgrade.d/ -1 -v -r`; do
+            if [ -e /etc/sysdef/run_on_upgrade.d/${d}/containers.dat ]; then
+                latest=${d}
+            fi
+        done
         bundle_dir="$sysdefdir/run_on_upgrade.d/$latest"
     elif [ $type = "run-always" ]; then
         bundle_dir="$sysdefdir/run_always.d"
