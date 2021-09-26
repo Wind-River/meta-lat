@@ -162,6 +162,9 @@ setenv cntv 30
 setenv bdef 30
 setenv switchab if test \\\${bpart} = B\\;then setenv bpart A\\;else setenv bpart B\\;fi
 if fatload \${devtype} \${devnum}:1 \$loadaddr boot_cnt 4;then
+ if test "\${no_fatwrite}" = yes && test "\${devtype}" = mmc; then
+  mmc dev \${devnum} && mmc read \${loadaddr} 0x400 0x1
+ fi
  if itest.l 52573030 == *\$loadaddr;then setenv cntv 31
  elif itest.l 52573031 == *\$loadaddr;then setenv cntv 32
  elif itest.l 52573032 == *\$loadaddr;then setenv cntv 33
@@ -173,7 +176,11 @@ else
  setenv cntv 31
 fi
 mw.l \${initrd_addr} 5257\${bdef}\${cntv}
-fatwrite \${devtype} \${devnum}:1 \${initrd_addr} boot_cnt 4
+if test "\${no_fatwrite}" != yes; then
+ fatwrite \${devtype} \${devnum}:1 \${initrd_addr} boot_cnt 4
+elif test "\${devtype}" = mmc; then
+ mmc dev \${devnum} && mmc write \${initrd_addr} 0x400 0x1
+fi
 if test -n \${oURL}; then
  setenv URL "\${oURL}"
 else
@@ -270,6 +277,10 @@ else
     echo
     echo
     if sleep 3; then
+      if test "\${no_fatwrite}" = yes && test "\${devtype}" = mmc; then
+        mw.l \${initrd_addr} 52573030
+        mmc dev \${devnum} && mmc write \${initrd_addr} 0x400 0x1
+      fi
       run netinst
     else
       exit
@@ -296,6 +307,9 @@ if test \${skip_script_wd} != yes; then setenv wdttimeout 120000; fi
 setenv loadkernel ext4load \${devtype} \${devnum}:\${mmcpart} \${loadaddr} \${ostver}/vmlinuz
 setenv loadramdisk ext4load \${devtype} \${devnum}:\${mmcpart} \${initrd_addr} \${ostver}/initramfs
 setenv bootargs "\${fdtargs} \${bootpart} ostree=/ostree/\${ostver} \${rootpart} ${OSTREE_CONSOLE} \${smp} flux=fluxdata\${labelpre}"
+if test "\${no_fatwrite}" = yes && test "\${devtype}" = mmc; then
+ setenv bootargs "\${bootargs} no_fatwrite=yes"
+fi
 if test ! -n \${use_fdtdtb} || test \${use_fdtdtb} -lt 1; then
  setenv loaddtb ext4load \${devtype} \${devnum}:\${mmcpart} \${fdt_addr} \${ostver}/\${fdt_file};run loaddtb
 fi
