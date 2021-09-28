@@ -443,6 +443,7 @@ print_part_layout() {
 				if [ $PARTSIZE = 0 ] ; then
 					FSZ=$(du -sm bootfs |awk '{print $1}')
 					FSZ=$(($FSZ + $FSZ/10*8))
+					PARTSIZE=$FSZ
 				else
 					FSZ=$PARTSIZE
 				fi
