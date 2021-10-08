@@ -311,7 +311,9 @@ if test "\${no_fatwrite}" = yes && test "\${devtype}" = mmc; then
  setenv bootargs "\${bootargs} no_fatwrite=yes"
 fi
 if test ! -n \${use_fdtdtb} || test \${use_fdtdtb} -lt 1; then
- setenv loaddtb ext4load \${devtype} \${devnum}:\${mmcpart} \${fdt_addr} \${ostver}/\${fdt_file};run loaddtb
+ if test -n \${fdt_file}; then
+  setenv loaddtb ext4load \${devtype} \${devnum}:\${mmcpart} \${fdt_addr} \${ostver}/\${fdt_file};run loaddtb
+ fi
 fi
 run loadramdisk
 run loadkernel
