@@ -94,7 +94,7 @@ Then http://<web-server-url>/lat is accessible
 
 ### App SDK
 ```
-wget http://<web-server-url>/lat/sdk/poky-xxx-glibc-x86_64-intel_x86_64-lat-image-base-sdk.sh
+wget http://<web-server-url>/lat/sdk/lat-sdk-poky-intel-x86-64-1.0.sh
 ```
 
 
@@ -108,7 +108,7 @@ Check sdk.host.manifest and sdk.target.manifest
 
 ### Install the SDK to <dir>
 ```
-$ ./poky-*-lat-image-base-sdk.sh -y -d <dir>
+$ ./lat-sdk-poky-intel-x86-64-1.0.sh -y -d <dir>
 ```
 
 ### Enable SDK
@@ -1084,7 +1084,7 @@ $ bitbake world appsdk-native && bitbake lat-image-base -cpopulate_sdk && bitbak
 ### 4. Install AppSDK
 #### 4.1 Install SDK
 ```
-$ ./poky-*-glibc-x86_64-intel_x86_64-lat-image-base-sdk.sh -y -d stx
+$ ./lat-sdk-poky-intel-x86-64-1.0.sh -y -d stx
 $ cd stx
 ```
 

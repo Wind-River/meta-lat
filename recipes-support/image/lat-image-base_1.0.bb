@@ -8,6 +8,9 @@ LICENSE = "MIT"
 NO_RECOMMENDATIONS = "1"
 
 SDKIMAGE_LINGUAS = ""
+TOOLCHAIN_OUTPUTNAME = "${SDK_NAME}-${SDK_VERSION}"
+SDK_NAME = "lat-sdk-${DISTRO}-${MACHINE}"
+SDK_VERSION = "${PV}"
 
 # Implementation of Full Image generator with Application SDK
 TOOLCHAIN_HOST_TASK:append = " \
