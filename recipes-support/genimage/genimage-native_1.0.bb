@@ -94,6 +94,7 @@ DEBS_DEPENDS:append:intel-x86-64 = " \
     vboxguestdrivers:do_package_write_deb \
     syslinux:do_populate_sysroot \
     lmsensors:do_package_write_deb \
+    rrdtool:do_package_write_deb \
 "
 RPMS_DEPENDS += " \
     startup-container:do_package_write_rpm \
@@ -107,6 +108,7 @@ RPMS_DEPENDS:append:intel-x86-64 = " \
     vboxguestdrivers:do_package_write_rpm \
     syslinux:do_populate_sysroot \
     lmsensors:do_package_write_rpm \
+    rrdtool:do_package_write_rpm \
 "
 
 # Make sure the existence of ostree initramfs image
