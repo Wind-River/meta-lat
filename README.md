@@ -87,7 +87,7 @@ $ bitbake lat-image-base -cpopulate_sdk
 ### Setup rpm repo on http server
 Setup a web server (such as httpd, apache2), and create a symlink to deploy dir
 ```
-$ ln -snf path-to-build/tmp-glibc/deploy /var/www/html/lat
+$ ln -snf path-to-build/tmp/deploy /var/www/html/lat
 ```
 
 Then http://<web-server-url>/lat is accessible
@@ -1025,14 +1025,14 @@ $ bitbake world appsdk-native && bitbake package-index build-sysroots
 
 ### Run appsdk
 ```
-$ tmp-glibc/sysroots/x86_64/usr/bin/appsdk -h
+$ tmp/sysroots/x86_64/usr/bin/appsdk -h
 ```
 
 ### Enable bash completion of appsdk (optional, host bash >= 4.2)
 The bash completion of appsdk requires host bash support for
 complete -D, which was introduced in bash 4.2
 ```
-$ bash --rcfile tmp-glibc/sysroots/x86_64/environment-appsdk-native
+$ bash --rcfile tmp/sysroots/x86_64/environment-appsdk-native
 $ appsdk <TAB>
 -d            exampleyamls  genimage      genrpm        -h            --log-dir     -q
 --debug       gencontainer  geninitramfs  genyaml       --help        publishrpm    --quiet
