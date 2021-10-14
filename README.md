@@ -224,7 +224,7 @@ appsdk - INFO: Deploy Directory: path-to-outdir/exampleyamls
 +-------------------+------------------------------------------+
 | System Definition | sysdef/add-system-user.yaml              |
 |  Yamls            | sysdef/add-user-home.yaml                |
-|                   | sysdef/contains-lat-image-base.yaml      |
+|                   | sysdef/contains-container-base.yaml      |
 |                   | sysdef/set-dns.yaml                      |
 |                   | sysdef/set-hostname.yaml                 |
 |                   | sysdef/set-ntp.yaml                      |
@@ -352,15 +352,15 @@ It is similar with 'appsdk genimage -h', the differ is no -t/--type and
 $ appsdk gencontainer
 appsdk - INFO: Deploy Directory: path-to-outdir/deploy
 +------------------------+-----------------------------------------------------+
-| Docker Image           | lat-image-base-intel-x86-64.docker-image.tar.bz2 -> |
-|                        | lat-image-base-intel-x86-64-20201012135125.docker-  |
+| Docker Image           | container-base-intel-x86-64.docker-image.tar.bz2 -> |
+|                        | container-base-intel-x86-64-20201012135125.docker-  |
 |                        | image.tar.bz2                                       |
 +------------------------+-----------------------------------------------------+
-| OCI Image Rootfs       | lat-image-base-intel-x86-64.rootfs-oci              |
+| OCI Image Rootfs       | container-base-intel-x86-64.rootfs-oci              |
 +------------------------+-----------------------------------------------------+
-| Container Image Doc    | lat-image-base-intel-x86-64.container.README.md     |
+| Container Image Doc    | container-base-intel-x86-64.container.README.md     |
 +------------------------+-----------------------------------------------------+
-| Yaml file for genimage | lat-image-base-intel-x86-64.startup-container.yaml  |
+| Yaml file for genimage | container-base-intel-x86-64.startup-container.yaml  |
 | to load and run        |                                                     |
 +------------------------+-----------------------------------------------------+
 ```
@@ -679,7 +679,7 @@ $ tree exampleyamls/sysdef/
 exampleyamls/sysdef/
 |-- add-system-user.yaml
 |-- add-user-home.yaml
-|-- contains-lat-image-base.yaml
+|-- contains-container-base.yaml
 |-- files
 |   |-- docker_daemon.jason
 |   |-- sudoers_sudo
@@ -725,7 +725,7 @@ The first set of scripts includes:
 
   * The yaml that generates an image which contains a sub container image,
     a nest build will be run ahead of the main build
-    See contains-lat-image-base.yaml
+    See contains-container-base.yaml
 
 The customer should refer these yamls and scripts to manipulate
 their own, take exampleyamls/sysdef/add-system-user.yaml for example,
@@ -889,10 +889,10 @@ Examples:
     ->        docker run -itd --name core-image-full core-image-full /bin/sh
     ->        systemctl start start-container@core-image-full.service
 
-  lat-image-base load=/var/docker-images/lat-image-base-intel-x86-64.docker-image.tar.bz2
-    ->        docker load -i /var/docker-images/lat-image-base-intel-x86-64.docker-image.tar.bz2
-    ->        docker run -itd --name lat-image-base
-    ->        systemctl start start-container@lat-image-base.service
+  container-base load=/var/docker-images/container-base-intel-x86-64.docker-image.tar.bz2
+    ->        docker load -i /var/docker-images/container-base-intel-x86-64.docker-image.tar.bz2
+    ->        docker run -itd --name container-base
+    ->        systemctl start start-container@container-base.service
 ```
 
 #### Long Live Containers Work Flow
@@ -970,7 +970,7 @@ by command 'skopeo copy', it will be used by docker load
   - startup-container
   - docker
   rootfs-post-scripts:
-  - echo "lat-image-base load=/var/docker-images/lat-image-base-intel-x86-64.docker-image.tar.bz2 image=lat-image-base-intel-x86-64"  >> $IMAGE_ROOTFS/etc/sysdef/run_on_upgrade.d/containers.dat
+  - echo "container-base load=/var/docker-images/container-base-intel-x86-64.docker-image.tar.bz2 image=container-base-intel-x86-64"  >> $IMAGE_ROOTFS/etc/sysdef/run_on_upgrade.d/containers.dat
   - echo "ubuntu-tar load=/var/docker-images/ubuntu.docker-image.tar.bz2" >> $IMAGE_ROOTFS/etc/sysdef/run_on_upgrade.d/containers.dat
   - echo "core-image-full import=/var/docker-images/core-image-full-intel-x86-64.tar.bz2 run-cmd=/bin/sh" >> $IMAGE_ROOTFS/etc/sysdef/run_on_upgrade.d/containers.dat
   - skopeo copy --src-tls-verify=false --insecure-policy docker://pek-lpdfs01:5000/ubuntu docker-archive:$IMAGE_ROOTFS/var/docker-images/ubuntu.docker-image.tar.bz2:ubuntu-tar
@@ -981,7 +981,7 @@ by command 'skopeo copy', it will be used by docker load
     - exampleyamls/sysdef/run_always.d/10_start_containers.sh
   - files:
     - file:
-        src: deploy/lat-image-base-intel-x86-64.docker-image.tar.bz2
+        src: deploy/container-base-intel-x86-64.docker-image.tar.bz2
         dst: /var/docker-images/
         mode: 644
     - file:
@@ -1102,7 +1102,7 @@ $ appsdk exampleyamls --pkg-type external-debian
 +-----------+-------------------------------------------------+
 | Yaml Type |                      Name                       |
 +===========+=================================================+
-| Image     | debian-lat-image-base-intel-x86-64.yaml         |
+| Image     | debian-container-base-intel-x86-64.yaml         |
 |           | debian-image-base-intel-x86-64.yaml             |
 |           | debian-initramfs-ostree-image-intel-x86-64.yaml |
 |           |                                                 |
@@ -1111,7 +1111,7 @@ $ appsdk exampleyamls --pkg-type external-debian
 
 #### 5.2 Debian based container image
 ```
-$ appsdk --log-dir log gencontainer exampleyamls/debian-lat-image-base-intel-x86-64.yaml
+$ appsdk --log-dir log gencontainer exampleyamls/debian-container-base-intel-x86-64.yaml
 ```
 
 #### 5.3 Debian based initramfs image with LAT installer
