@@ -97,7 +97,7 @@ S = "${WORKDIR}/sources"
 
 inherit setuptools3
 
-LAT_DEFAULT_IMAGE ?= "${LAT_IMAGE_BASE}"
+LAT_DEFAULT_IMAGE ??= "lat-image-base"
 
 OCI_IMAGE_AUTHOR ?= "${PATCH_GIT_USER_NAME}"
 OCI_IMAGE_AUTHOR_EMAIL ?= "${PATCH_GIT_USER_EMAIL}"

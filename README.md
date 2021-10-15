@@ -79,9 +79,9 @@ tmp/deploy/rpm/noarch/repodata/repomd.xml
 
 Above ls only list required repodata
 
-#### Create lat-image-base appsdk
+#### Create LAT SDK
 ```
-$ bitbake lat-image-base -cpopulate_sdk
+$ bitbake lat-sdk
 ```
 
 ### Setup rpm repo on http server
@@ -1073,12 +1073,12 @@ $ echo 'DEFAULT_DEBIAN_MIRROR = "http://ftp.cn.debian.org/debian"' >>  conf/loca
 #### 3.5 Build
 ##### 3.5.1 Build with minimal rpms
 ```
-$ bitbake appsdk-native && bitbake lat-image-base -cpopulate_sdk && bitbake package-index build-sysroots
+$ bitbake appsdk-native && bitbake lat-sdk && bitbake package-index build-sysroots
 ```
 
 ##### 3.5.2 Build with full rpms
 ```
-$ bitbake world appsdk-native && bitbake lat-image-base -cpopulate_sdk && bitbake package-index build-sysroots
+$ bitbake world appsdk-native && bitbake lat-sdk && bitbake package-index build-sysroots
 ```
 
 ### 4. Install AppSDK

@@ -153,7 +153,7 @@ python () {
 
 IMAGE_FEATURES += "package-management"
 
-inherit core-image features_check
+inherit core-image features_check populate_sdk
 REQUIRED_DISTRO_FEATURES = "ostree lat"
 
 # Make sure the existence of ostree initramfs image

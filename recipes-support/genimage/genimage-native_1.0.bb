@@ -77,7 +77,6 @@ EXAMPLEYAMLS_DEPENDS = " \
     core-image-full-cmdline:do_rootfs \
     core-image-minimal:do_rootfs \
     core-image-sato:do_rootfs \
-    ${LAT_IMAGE_BASE}:do_rootfs \
     ${@bb.utils.contains('PACKAGE_CLASSES','package_rpm','${RPMS_DEPENDS}','',d)} \
     ${@bb.utils.contains('PACKAGE_CLASSES','package_deb','${DEBS_DEPENDS}','',d)} \
 "
