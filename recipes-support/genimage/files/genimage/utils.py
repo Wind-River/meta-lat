@@ -464,7 +464,7 @@ def get_mem_size(pkg_type, image_type, extra_file=None):
             size += 4096
     else:
         if pkg_type in ["rpm", "deb"]:
-            size += 512
+            size += 768
         else:
             size += 2048
 
