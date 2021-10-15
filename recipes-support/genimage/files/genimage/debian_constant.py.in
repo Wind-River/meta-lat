@@ -135,7 +135,7 @@ SCRIPT_ENDOF\
 '''.format(CHROOT_PATH)
 
 OSTREE_INITRD_PACKAGES = '''
-    base-passwd bash busybox
+    base-passwd bash busybox parted
     udhcpc bzip2 ca-certificates
     curl dosfstools e2fsprogs
     findutils gawk glib-networking

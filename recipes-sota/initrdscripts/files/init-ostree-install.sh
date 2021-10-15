@@ -1094,6 +1094,8 @@ elif [ "$INSTFMT" != 0 ] ; then
 	fi
 fi
 
+partprobe ${fs_dev}
+
 if [ -n "${KS}" ]; then
 	./lat-installer.sh pre-install
 	if [ $? -ne 0 ]; then
