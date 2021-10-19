@@ -1132,12 +1132,11 @@ $ appsdk --log-dir log genimage exampleyamls/debian-image-base-intel-x86-64.yaml
 
 ## Dependencies
 
-This layer depends on the openembedded-core, meta-openembedded, meta-intel
-and meta-virtualization.
+This layer depends on the poky, meta-openembedded and meta-virtualization.
 
 This layer depends on:
 ```
-URI: git://git.openembedded.org/openembedded-core
+URI: git://git.pokylinux.org/poky.git
 branch: master
 revision: HEAD
 
@@ -1151,10 +1150,6 @@ layers: meta-oe
         meta-xfce
         meta-gnome
         meta-multimedia
-
-URI: git://git.yoctoproject.org/meta-intel.git
-branch: master
-revision: HEAD
 
 URI: git://git.yoctoproject.org/meta-virtualization
 branch: master
