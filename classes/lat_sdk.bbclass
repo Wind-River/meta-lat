@@ -45,6 +45,7 @@ copy_pkgdata() {
     )
 }
 
+do_copy_pkgdata_to_deploy_repo[nostamp] = "1"
 do_copy_pkgdata_to_deploy_repo() {
     for class in ${PACKAGE_CLASSES}; do
         class=`echo $class | sed -e 's/package_//'`
