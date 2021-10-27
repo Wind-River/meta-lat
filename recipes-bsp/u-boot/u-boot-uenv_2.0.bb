@@ -146,7 +146,7 @@ fi
 if test ! -n \${devnum}; then
  setenv devnum 0
 fi
-fatsize \${devtype} \${devnum}:1 no_ab
+fatload \${devtype} \${devnum}:1 \${loadaddr} no_ab
 if test \${filesize} = 1;then setenv ex;setenv B \$A;fi
 setenv mmcpart \$A
 setenv rootpart ostree_root=LABEL=otaroot\${labelpre}
