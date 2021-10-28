@@ -16,6 +16,7 @@ OSTREE_NET_INSTALL ??= "1"
 OSTREE_NETINST_ARGS ??= "instab=${OSTREE_USE_AB}"
 OSTREE_NETINST_BRANCH ??= "core-image-minimal"
 OSTREE_NETINST_DEV ??= "/dev/mmcblk0"
+OSTREE_BSP_ARGS ??= ""
 
 bootscr_env_import() {
     cat <<EOF > ${WORKDIR}/uEnv.txt
@@ -119,9 +120,9 @@ run loadramdisk
 run loaddtb
 run loadkernel
 if test \${bdef} = 31 && test "\${ex}" != "_b"; then
-setenv bootargs \${bootargs2} \${bootpart} \${rootpart} ${OSTREE_CONSOLE} \${smp} flux=fluxdata\${labelpre}
+setenv bootargs \${bootargs2} \${bootpart} \${rootpart} ${OSTREE_CONSOLE} ${OSTREE_BSP_ARGS} \${smp} flux=fluxdata\${labelpre}
 else
-setenv bootargs \${bootargs} \${bootpart} \${rootpart} ${OSTREE_CONSOLE} \${smp} flux=fluxdata\${labelpre}
+setenv bootargs \${bootargs} \${bootpart} \${rootpart} ${OSTREE_CONSOLE} ${OSTREE_BSP_ARGS} \${smp} flux=fluxdata\${labelpre}
 fi
 ${OSTREE_UBOOT_CMD} \${loadaddr} \${initrd_addr} \${fdt_addr}
 EOF
@@ -211,7 +212,7 @@ setenv instdef "$NETINST_ARGS"
 if test -n \${ninstargs}; then
  setenv netinst "\${ninstargs}"
 else
- setenv netinst "\${netinstpre}fatload \${devtype} \${devnum}:1 \${loadaddr} ${OSTREE_KERNEL};fatload \${devtype} \${devnum}:1 \${initrd_addr} initramfs; setenv bootargs \\"\${fdtargs} \${instdef} \${exinargs}\\";${OSTREE_UBOOT_CMD} \${loadaddr} \${initrd_addr} \${fdt_addr}"
+ setenv netinst "\${netinstpre}fatload \${devtype} \${devnum}:1 \${loadaddr} ${OSTREE_KERNEL};fatload \${devtype} \${devnum}:1 \${initrd_addr} initramfs; setenv bootargs \\"\${fdtargs} \${instdef} ${OSTREE_BSP_ARGS} \${exinargs}\\";${OSTREE_UBOOT_CMD} \${loadaddr} \${initrd_addr} \${fdt_addr}"
 fi
 setenv autoinst echo "!!!Autostarting network install, you have 5 seconds to reset the board!!!"\;sleep 5\;run netinst
 if test "\${no_autonetinst}" != 1 && test -n \${URL} ; then
@@ -306,7 +307,7 @@ fi
 if test \${skip_script_wd} != yes; then setenv wdttimeout 120000; fi
 setenv loadkernel ext4load \${devtype} \${devnum}:\${mmcpart} \${loadaddr} \${ostver}/vmlinuz
 setenv loadramdisk ext4load \${devtype} \${devnum}:\${mmcpart} \${initrd_addr} \${ostver}/initramfs
-setenv bootargs "\${fdtargs} \${bootpart} ostree=/ostree/\${ostver} \${rootpart} ${OSTREE_CONSOLE} \${smp} flux=fluxdata\${labelpre}"
+setenv bootargs "\${fdtargs} \${bootpart} ostree=/ostree/\${ostver} \${rootpart} ${OSTREE_CONSOLE} ${OSTREE_BSP_ARGS} \${smp} flux=fluxdata\${labelpre}"
 if test "\${no_fatwrite}" = yes && test "\${devtype}" = mmc; then
  setenv bootargs "\${bootargs} no_fatwrite=yes"
 fi
