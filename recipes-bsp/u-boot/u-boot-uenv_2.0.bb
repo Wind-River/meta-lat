@@ -141,12 +141,13 @@ setenv A 5
 setenv B 7
 setenv ex _b
 setenv filesize 99
-if test ! -n \${devtype}; then
+if test ! -n "\${devtype}"; then
  setenv devtype mmc
 fi
-if test ! -n \${devnum}; then
+if test ! -n "\${devnum}"; then
  setenv devnum 0
 fi
+setenv devcmd \${devtype}
 fatload \${devtype} \${devnum}:1 \${loadaddr} no_ab
 if test \${filesize} = 1;then setenv ex;setenv B \$A;fi
 setenv mmcpart \$A
@@ -163,8 +164,8 @@ setenv cntv 30
 setenv bdef 30
 setenv switchab if test \\\${bpart} = B\\;then setenv bpart A\\;else setenv bpart B\\;fi
 if fatload \${devtype} \${devnum}:1 \$loadaddr boot_cnt 4;then
- if test "\${no_fatwrite}" = yes && test "\${devtype}" = mmc; then
-  mmc dev \${devnum} && mmc read \${loadaddr} 0x400 0x1
+ if test "\${no_fatwrite}" = yes; then
+  \${devcmd} dev \${devnum} && \${devcmd} read \${loadaddr} 0x400 0x1
  fi
  if itest.l 52573030 == *\$loadaddr;then setenv cntv 31
  elif itest.l 52573031 == *\$loadaddr;then setenv cntv 32
@@ -179,8 +180,8 @@ fi
 mw.l \${initrd_addr} 5257\${bdef}\${cntv}
 if test "\${no_fatwrite}" != yes; then
  fatwrite \${devtype} \${devnum}:1 \${initrd_addr} boot_cnt 4
-elif test "\${devtype}" = mmc; then
- mmc dev \${devnum} && mmc write \${initrd_addr} 0x400 0x1
+else
+ \${devcmd} write \${initrd_addr} 0x400 0x1
 fi
 if test -n \${oURL}; then
  setenv URL "\${oURL}"
@@ -278,9 +279,9 @@ else
     echo
     echo
     if sleep 3; then
-      if test "\${no_fatwrite}" = yes && test "\${devtype}" = mmc; then
+      if test "\${no_fatwrite}" = yes; then
         mw.l \${initrd_addr} 52573030
-        mmc dev \${devnum} && mmc write \${initrd_addr} 0x400 0x1
+        \${devcmd} dev \${devnum} && \${devcmd} write \${initrd_addr} 0x400 0x1
       fi
       run netinst
     else
@@ -308,7 +309,7 @@ if test \${skip_script_wd} != yes; then setenv wdttimeout 120000; fi
 setenv loadkernel ext4load \${devtype} \${devnum}:\${mmcpart} \${loadaddr} \${ostver}/vmlinuz
 setenv loadramdisk ext4load \${devtype} \${devnum}:\${mmcpart} \${initrd_addr} \${ostver}/initramfs
 setenv bootargs "\${fdtargs} \${bootpart} ostree=/ostree/\${ostver} \${rootpart} ${OSTREE_CONSOLE} ${OSTREE_BSP_ARGS} \${smp} flux=fluxdata\${labelpre}"
-if test "\${no_fatwrite}" = yes && test "\${devtype}" = mmc; then
+if test "\${no_fatwrite}" = yes; then
  setenv bootargs "\${bootargs} no_fatwrite=yes"
 fi
 if test ! -n \${use_fdtdtb} || test \${use_fdtdtb} -lt 1; then
