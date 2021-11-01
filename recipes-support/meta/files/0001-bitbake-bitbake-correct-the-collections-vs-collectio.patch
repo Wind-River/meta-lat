@@ -1,0 +1,65 @@
+From 4387ce00c0f92a994fd91501c69edafe6d3c2a7e Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Mon, 1 Nov 2021 08:48:09 +0800
+Subject: [PATCH] bitbake: bitbake: correct the collections vs collections.abc
+
+This becomes a hard error in python 3.10.
+
+(Bitbake rev: ae219e1f7460077f4492b31ac91cef4cf9b17277)
+
+Signed-off-by: Alexander Kanavin <alex@linutronix.de>
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+
+Upstream-Status: Backport
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ bitbake/lib/bb/data_smart.py   | 2 +-
+ bitbake/lib/bb/persist_data.py | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/bitbake/lib/bb/data_smart.py b/bitbake/lib/bb/data_smart.py
+index 7f1b6dc..bb576e9 100644
+--- a/bitbake/lib/bb/data_smart.py
++++ b/bitbake/lib/bb/data_smart.py
+@@ -17,7 +17,7 @@ BitBake build tools.
+ # Based on functions from the base bb module, Copyright 2003 Holger Schurig
+ 
+ import copy, re, sys, traceback
+-from collections import MutableMapping
++from collections.abc import MutableMapping
+ import logging
+ import hashlib
+ import bb, bb.codeparser
+diff --git a/bitbake/lib/bb/persist_data.py b/bitbake/lib/bb/persist_data.py
+index 5f4fbe3..56c983f 100644
+--- a/bitbake/lib/bb/persist_data.py
++++ b/bitbake/lib/bb/persist_data.py
+@@ -12,6 +12,7 @@ currently, providing a key/value store accessed by 'domain'.
+ #
+ 
+ import collections
++import collections.abc
+ import contextlib
+ import functools
+ import logging
+@@ -19,7 +20,7 @@ import os.path
+ import sqlite3
+ import sys
+ import warnings
+-from collections import Mapping
++from collections.abc import Mapping
+ 
+ sqlversion = sqlite3.sqlite_version_info
+ if sqlversion[0] < 3 or (sqlversion[0] == 3 and sqlversion[1] < 3):
+@@ -29,7 +30,7 @@ if sqlversion[0] < 3 or (sqlversion[0] == 3 and sqlversion[1] < 3):
+ logger = logging.getLogger("BitBake.PersistData")
+ 
+ @functools.total_ordering
+-class SQLTable(collections.MutableMapping):
++class SQLTable(collections.abc.MutableMapping):
+     class _Decorators(object):
+         @staticmethod
+         def retry(*, reconnect=True):
+-- 
+2.17.1
+
