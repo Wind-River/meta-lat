@@ -14,6 +14,7 @@ The images are built from Wind River Linux Assembly Tool Application SDK
         intel-socfpga-64
         ti-j72xx
         nxp-ls1028
+        nxp-ls1043
         nxp-lx2xxx
         axxiaarm64
         axxiaarm

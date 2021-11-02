@@ -172,6 +172,14 @@ DEFAULT_PACKAGES_nxp_ls1028 = '''
     iproute2-tc
 '''.split()
 
+DEFAULT_PACKAGES_nxp_ls1043 = '''
+    u-boot-uenv
+    kernel-image-image
+    kernel-devicetree
+    linuxptp
+    fmc
+'''.split()
+
 DEFAULT_PACKAGES_nxp_lx2xxx = '''
     u-boot-uenv
     kernel-image-image
@@ -209,6 +217,7 @@ DEFAULT_PACKAGES = {
     'intel-socfpga-64': DEFAULT_PACKAGES_intel_socfpga_64 + DEFAULT_PACKAGES_COMMON,
     'ti-j72xx': DEFAULT_PACKAGES_ti_j72xx + DEFAULT_PACKAGES_COMMON,
     'nxp-ls1028': DEFAULT_PACKAGES_nxp_ls1028 + DEFAULT_PACKAGES_COMMON,
+    'nxp-ls1043': DEFAULT_PACKAGES_nxp_ls1043 + DEFAULT_PACKAGES_COMMON,
     'nxp-lx2xxx': DEFAULT_PACKAGES_nxp_lx2xxx + DEFAULT_PACKAGES_COMMON,
     'axxiaarm64': DEFAULT_PACKAGES_axxiaarm64 + DEFAULT_PACKAGES_COMMON,
     'axxiaarm': DEFAULT_PACKAGES_axxiaarm + DEFAULT_PACKAGES_COMMON,

@@ -99,6 +99,7 @@ SRC_URI = "\
            file://genimage/doc/target_intel-socfpga-64.README.md.in \
            file://genimage/doc/target_ti-j72xx.README.md.in \
            file://genimage/doc/target_nxp-ls1028.README.md.in \
+           file://genimage/doc/target_nxp-ls1043.README.md.in \
            file://genimage/doc/target_nxp-lx2xxx.README.md.in \
            file://genimage/doc/target_axxiaarm64.README.md.in \
            file://genimage/doc/target_axxiaarm.README.md.in \
@@ -303,6 +304,8 @@ python __anonymous () {
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa72 noarch ti_j72xx')
     elif machine == 'nxp-ls1028':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa72 noarch nxp_ls1028')
+    elif machine == 'nxp-ls1043':
+        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch nxp_ls1043')
     elif machine == 'nxp-lx2xxx':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa72 noarch nxp_lx2xxx')
     elif machine == 'axxiaarm64':
