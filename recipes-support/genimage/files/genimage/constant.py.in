@@ -184,6 +184,12 @@ DEFAULT_PACKAGES_nxp_lx2xxx = '''
     restool
 '''.split()
 
+DEFAULT_PACKAGES_axxiaarm64 = '''
+    u-boot-uenv
+    kernel-image-uimage
+    kernel-devicetree
+'''.split()
+
 # default rootfs: ${LAT_DEFAULT_IMAGE}
 DEFAULT_PACKAGES = {
     'intel-x86-64': DEFAULT_PACKAGES_intel_x86_64 + DEFAULT_PACKAGES_COMMON,
@@ -198,6 +204,7 @@ DEFAULT_PACKAGES = {
     'ti-j72xx': DEFAULT_PACKAGES_ti_j72xx + DEFAULT_PACKAGES_COMMON,
     'nxp-ls1028': DEFAULT_PACKAGES_nxp_ls1028 + DEFAULT_PACKAGES_COMMON,
     'nxp-lx2xxx': DEFAULT_PACKAGES_nxp_lx2xxx + DEFAULT_PACKAGES_COMMON,
+    'axxiaarm64': DEFAULT_PACKAGES_axxiaarm64 + DEFAULT_PACKAGES_COMMON,
 }
 
 OSTREE_INITRD_PACKAGES = '''
