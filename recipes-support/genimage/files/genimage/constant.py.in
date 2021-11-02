@@ -172,6 +172,18 @@ DEFAULT_PACKAGES_nxp_ls1028 = '''
     iproute2-tc
 '''.split()
 
+DEFAULT_PACKAGES_nxp_lx2xxx = '''
+    u-boot-uenv
+    kernel-image-image
+    kernel-devicetree
+    i2c-tools
+    can-utils
+    dce
+    odp
+    ofp
+    restool
+'''.split()
+
 # default rootfs: ${LAT_DEFAULT_IMAGE}
 DEFAULT_PACKAGES = {
     'intel-x86-64': DEFAULT_PACKAGES_intel_x86_64 + DEFAULT_PACKAGES_COMMON,
@@ -185,6 +197,7 @@ DEFAULT_PACKAGES = {
     'intel-socfpga-64': DEFAULT_PACKAGES_intel_socfpga_64 + DEFAULT_PACKAGES_COMMON,
     'ti-j72xx': DEFAULT_PACKAGES_ti_j72xx + DEFAULT_PACKAGES_COMMON,
     'nxp-ls1028': DEFAULT_PACKAGES_nxp_ls1028 + DEFAULT_PACKAGES_COMMON,
+    'nxp-lx2xxx': DEFAULT_PACKAGES_nxp_lx2xxx + DEFAULT_PACKAGES_COMMON,
 }
 
 OSTREE_INITRD_PACKAGES = '''
