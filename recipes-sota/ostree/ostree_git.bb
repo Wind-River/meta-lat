@@ -6,7 +6,7 @@ inherit autotools-brokensep pkgconfig systemd gobject-introspection
 
 INHERIT:remove:class-native = "systemd"
 
-SRC_URI = "gitsm://github.com/ostreedev/ostree.git;branch=main \
+SRC_URI = "gitsm://github.com/ostreedev/ostree.git;branch=main;protocol=https \
            file://system-export.sh \
            file://sample.conf \
            file://0001-fsck-Throw-and-error-and-return-non-zero-for-non-ver.patch \

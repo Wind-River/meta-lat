@@ -1,6 +1,6 @@
 LIC_FILES_CHKSUM:class-nativesdk = "file://src/${GO_IMPORT}/COPYING;md5=3b83ef96387f14655fc854ddc3c6bd57"
 SRC_URI:class-nativesdk = " \
-    git://${GO_IMPORT}; \
+    git://${GO_IMPORT};protocol=https;branch=main \
 "
 
 SRCREV:class-nativesdk = "${SRCREV_umoci}"
