@@ -11,7 +11,7 @@ SRC_URI += " \
 
 EFI_BOOT_PATH = "/boot/efi/EFI/BOOT"
 
-GRUB_BUILDIN:append += "tftp efinet reboot"
+GRUB_BUILDIN += "tftp efinet reboot"
 
 do_compile:append:class-native() {
         make grub-editenv
