@@ -9,7 +9,7 @@ NO_RECOMMENDATIONS = "1"
 
 SDKIMAGE_LINGUAS = ""
 TOOLCHAIN_OUTPUTNAME = "${SDK_NAME}-${SDK_VERSION}"
-SDK_NAME = "lat-sdk-${DISTRO}-${MACHINE}"
+SDK_NAME = "${BPN}-${DISTRO}-${MACHINE}"
 
 do_populate_sdk:prepend() {
     d.setVar('PACKAGE_INSTALL', 'packagegroup-base')
