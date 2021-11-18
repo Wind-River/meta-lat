@@ -72,6 +72,9 @@ This should result in a system booted to the u-boot menu.
 Create a disk image
     $ qemu-img create -f raw boot-image-qemu.hddimg 14G
 
+Prepare u-boot images
+    $ cp -f deploy/qemu-u-boot-bcm-2xxx-rpi4.bin qemu-u-boot-bcm-2xxx-rpi4.bin
+
 Burn the image onto disk image:
     $ dd if=deploy/@IMAGE_NAME@.wic of=boot-image-qemu.hddimg conv=notrunc
 
