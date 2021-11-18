@@ -55,7 +55,7 @@ do_copy_pkgdata_to_deploy_repo() {
         mv $deploydir/pkgdata.tar.bz2.sha256sum $deploydir/.pkgdata.tar.bz2.sha256sum
     done
 }
-addtask copy_pkgdata_to_deploy_repo
+addtask copy_pkgdata_to_deploy_repo before do_populate_sdk
 
 POPULATE_SDK_PRE_TARGET_COMMAND += "copy_ostree_initramfs_to_sdk;"
 copy_ostree_initramfs_to_sdk() {
