@@ -146,7 +146,7 @@ python do_write_qemuboot_conf_for_genimage() {
     localdata.setVar('IMAGE_LINK_NAME', 'qemuboot_template')
     if localdata.getVar('MACHINE') == 'bcm-2xxx-rpi4':
         localdata.appendVar('QB_OPT_APPEND', ' -bios @DEPLOYDIR@/qemu-u-boot-bcm-2xxx-rpi4.bin')
-    localdata.setVar('QB_MEM', '-m 512')
+    localdata.setVar('QB_MEM', '-m 1024')
 
     bb.build.exec_func('do_write_qemuboot_conf', localdata)
 }

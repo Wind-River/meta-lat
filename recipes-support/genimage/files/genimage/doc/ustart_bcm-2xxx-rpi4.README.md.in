@@ -82,7 +82,7 @@ For Qemu No Graphic:
 
     $ qemu-system-aarch64 -machine virt -cpu cortex-a57 \
         -device virtio-net-device,netdev=net0 -netdev user,id=net0 \
-        -m 512 \
+        -m 1024 \
         -bios qemu-u-boot-bcm-2xxx-rpi4.bin \
         -nographic \
         -drive id=disk0,file=boot-image-qemu.hddimg,if=none,format=raw -device virtio-blk-device,drive=disk0
@@ -91,7 +91,7 @@ Or Qemu Graphic (XFCE desktop):
 
     $ qemu-system-aarch64 -machine virt -cpu cortex-a57 \
         -device virtio-net-device,netdev=net0 -netdev user,id=net0 \
-        -m 512 \
+        -m 1024 \
         -bios qemu-u-boot-bcm-2xxx-rpi4.bin \
         -device virtio-gpu-pci -serial stdio \
         -device qemu-xhci -device usb-tablet -device usb-kbd \
@@ -106,8 +106,8 @@ Create a SLiRP user network
 `-device virtio-net-device,netdev=net0 -netdev user,id=net0`
 
 #### Qemu Memory
-Set guest startup RAM size, 512MB
-`-m 512`
+Set guest startup RAM size, 1024MB
+`-m 1024`
 
 #### Qemu Image
 Use virtio-blk-device to load image

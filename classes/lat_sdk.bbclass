@@ -59,7 +59,7 @@ do_populate_sdk:prepend() {
     localdata = bb.data.createCopy(d)
     if localdata.getVar('MACHINE') == 'bcm-2xxx-rpi4':
         localdata.appendVar('QB_OPT_APPEND', ' -bios @DEPLOYDIR@/qemu-u-boot-bcm-2xxx-rpi4.bin')
-    localdata.setVar('QB_MEM', '-m 512')
+    localdata.setVar('QB_MEM', '-m 1024')
 
     if localdata.getVar('MACHINE') in ['bcm-2xxx-rpi4', 'intel-x86-64']:
         bb.build.exec_func('do_write_qemuboot_conf', localdata)
