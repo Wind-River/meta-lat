@@ -1,0 +1,29 @@
+#
+# Copyright (c) 2021 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+packages:
+- openssh
+rootfs-post-scripts:
+- $OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_rootfs/run.ssh_allow_empty_password
+- $OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_rootfs/run.ssh_allow_root_login
+- |-
+  perform_passwd_expire() {
+    local rootdir="$1"
+    local opts="$2"
+    echo "Performing equivalent of passwd --expire with [$opts]"
+    # Directly set sp_lstchg to 0 without using the passwd command: Only root can do that
+    local username=`echo "$opts" | awk '{ print $NF }'`
+    local user_exists="`grep "^$username:" $rootdir/etc/passwd || true`"
+    if test "x$user_exists" != "x"; then
+      sed -i 's/^\('$username':[^:]*\):[^:]*:/\1:0:/' $rootdir/etc/shadow
+      local passwd_lastchanged="`grep "^$username:" $rootdir/etc/shadow | cut -d: -f3`"
+      if test "x$passwd_lastchanged" != "x0"; then
+        echo "passwd --expire operation did not succeed."
+      fi
+    else
+      echo "user $username doesn't exist, not expiring its password"
+    fi
+  }
+  perform_passwd_expire "${IMAGE_ROOTFS}" "root"
