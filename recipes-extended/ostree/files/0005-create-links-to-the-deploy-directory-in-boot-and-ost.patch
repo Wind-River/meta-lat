@@ -1,0 +1,166 @@
+From 6e26db4dca72816ec7e3ff5369cfff08376fa342 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Mon, 29 Nov 2021 14:58:16 +0800
+Subject: [PATCH 5/7] create links to the deploy directory in /boot and /ostree
+
+Rework 0001-ostree-bootloader-uboot.c-Create-links-to-the-deploy.patch
+to implement function ostree_bootloader_create_link_to_sysroot to create
+links to the deploy directory in /boot and /ostree for both of grub and uboot
+
+Having service links in the deploy directory allows a boot loader to
+be more throughly locked down.  For example:
+
+% ls -l rootfs_ota_boot/? |awk '{print $1" "$9" "$10" "$11}'
+lrwxrwxrwx rootfs_ota_boot/1 -> ostree/lat_os-f650e47c2868b887de6e739dc32271c654b049e4e8d61c420d69426afb544455
+lrwxrwxrwx rootfs_ota_boot/2 -> ostree/lat_os-f650e47c2868b887de6e739dc32271c654b049e4e8d61c420d69426afb544455
+
+ls -l rootfs_ota/ostree/? |awk '{print $1" "$9" "$10" "$11}'
+lrwxrwxrwx rootfs_ota/ostree/1 -> boot.0/lat_os/f650e47c2868b887de6e739dc32271c654b049e4e8d61c420d69426afb544455/0
+lrwxrwxrwx rootfs_ota/ostree/2 -> boot.0/lat_os/f650e47c2868b887de6e739dc32271c654b049e4e8d61c420d69426afb544455/1
+
+The kernel arguments are not taken from the ostree "hints" in this
+case, because the configuration is much more locked down.
+The boot loader will use the service links and other variables to
+select a rollback or primary boot choices.
+
+Upstream-Status: pending
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ src/libostree/ostree-bootloader-grub2.c |  7 +++
+ src/libostree/ostree-bootloader-uboot.c |  7 +++
+ src/libostree/ostree-sysroot-deploy.c   | 68 +++++++++++++++++++++++++
+ src/libostree/ostree-sysroot.h          |  7 +++
+ 4 files changed, 89 insertions(+)
+
+diff --git a/src/libostree/ostree-bootloader-grub2.c b/src/libostree/ostree-bootloader-grub2.c
+index 0ef751dc..091adbfb 100644
+--- a/src/libostree/ostree-bootloader-grub2.c
++++ b/src/libostree/ostree-bootloader-grub2.c
+@@ -339,6 +339,13 @@ _ostree_bootloader_grub2_write_config (OstreeBootloader      *bootloader,
+ {
+   OstreeBootloaderGrub2 *self = OSTREE_BOOTLOADER_GRUB2 (bootloader);
+ 
++  if(!ostree_bootloader_create_link_to_sysroot (self->sysroot, bootversion, cancellable, error))
++    {
++      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
++                  "ostree_bootloader_create_link_to_sysroot failed");
++      return FALSE;
++    }
++
+   /* Autotests can set this envvar to select which code path to test, useful for OS installers as well */
+   gboolean use_system_grub2_mkconfig = TRUE;
+ #ifdef USE_BUILTIN_GRUB2_MKCONFIG
+diff --git a/src/libostree/ostree-bootloader-uboot.c b/src/libostree/ostree-bootloader-uboot.c
+index 4cf86246..56b8c119 100644
+--- a/src/libostree/ostree-bootloader-uboot.c
++++ b/src/libostree/ostree-bootloader-uboot.c
+@@ -174,6 +174,13 @@ _ostree_bootloader_uboot_write_config (OstreeBootloader *bootloader,
+ {
+   OstreeBootloaderUboot *self = OSTREE_BOOTLOADER_UBOOT (bootloader);
+ 
++  if(!ostree_bootloader_create_link_to_sysroot (self->sysroot, bootversion, cancellable, error))
++    {
++      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
++                  "ostree_bootloader_create_link_to_sysroot failed");
++      return FALSE;
++    }
++
+   /* This should follow the symbolic link to the current bootversion. */
+   g_autofree char *config_contents =
+     glnx_file_get_contents_utf8_at (self->sysroot->sysroot_fd, uboot_config_path, NULL,
+diff --git a/src/libostree/ostree-sysroot-deploy.c b/src/libostree/ostree-sysroot-deploy.c
+index 777decc8..de6d6b41 100644
+--- a/src/libostree/ostree-sysroot-deploy.c
++++ b/src/libostree/ostree-sysroot-deploy.c
+@@ -3387,3 +3387,71 @@ ostree_sysroot_deployment_set_mutable (OstreeSysroot     *self,
+ 
+   return TRUE;
+ }
++
++gboolean
++ostree_bootloader_create_link_to_sysroot (OstreeSysroot                 *sysroot,
++                                          int                            bootversion,
++                                          GCancellable                  *cancellable,
++                                          GError                       **error)
++{
++
++  g_autoptr(GPtrArray) loader_configs = NULL;
++  if (!_ostree_sysroot_read_boot_loader_configs (sysroot, bootversion,
++                                                 &loader_configs,
++                                                 cancellable, error))
++    return FALSE;
++
++  for (guint i = 0; i < loader_configs->len; i++)
++    {
++      OstreeBootconfigParser *config = loader_configs->pdata[i];
++      const char *options;
++      const char *kernel;
++
++      kernel = ostree_bootconfig_parser_get (config, "linux");
++      if (!kernel)
++        {
++          g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
++                      "No kernel found");
++          return FALSE;
++
++        }
++
++      g_autofree char * bootdir = strndup (kernel, strrchr(kernel, '/') - kernel);
++      g_autofree char *lbootdir = g_strdup_printf ("boot/%i", i + 1);
++      unlinkat(sysroot->sysroot_fd, lbootdir, 0);
++      if (symlinkat(bootdir + 1, sysroot->sysroot_fd, lbootdir) < 0)
++        {
++          g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
++                       "Could not link boot directory.");
++          return FALSE;
++        }
++
++      options = ostree_bootconfig_parser_get (config, "options");
++      if (!options)
++        {
++          g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
++                      "No options found");
++          return FALSE;
++        }
++
++      g_auto(GStrv) opts = g_strsplit (options, " ", -1);
++      for (char **iter = opts; *iter; iter++)
++        {
++          const char *opt = *iter;
++          if (g_str_has_prefix (opt, "ostree=/ostree/"))
++            {
++              g_autofree char *boot_link = g_strdup (opt + strlen ("ostree=/ostree/"));
++              g_autofree char *linkdir = g_strdup_printf ("ostree/%i", i + 1);
++              unlinkat(sysroot->sysroot_fd, linkdir, 0);
++              if (symlinkat(boot_link, sysroot->sysroot_fd, linkdir) < 0)
++                {
++                  g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
++                               "Could not link boot directory.");
++                  return FALSE;
++                }
++            }
++        }
++    }
++
++  return TRUE;
++}
+diff --git a/src/libostree/ostree-sysroot.h b/src/libostree/ostree-sysroot.h
+index 036b81e8..158fadff 100644
+--- a/src/libostree/ostree-sysroot.h
++++ b/src/libostree/ostree-sysroot.h
+@@ -302,4 +302,11 @@ gboolean ostree_sysroot_simple_write_deployment (OstreeSysroot      *sysroot,
+                                                  GCancellable       *cancellable,
+                                                  GError            **error);
+ 
++_OSTREE_PUBLIC
++gboolean ostree_bootloader_create_link_to_sysroot (OstreeSysroot                 *sysroot,
++                                          int                            bootversion,
++                                          GCancellable                  *cancellable,
++                                          GError                       **error);
++
++
+ G_END_DECLS
+-- 
+2.27.0
+

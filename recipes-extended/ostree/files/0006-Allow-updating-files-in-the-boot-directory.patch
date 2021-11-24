@@ -1,0 +1,88 @@
+From 17260b3fc3a4187a983c6d37210018736e93363c Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Wed, 1 Dec 2021 10:57:16 +0800
+Subject: [PATCH 6/7] Allow updating files in the /boot directory
+
+This patch adds support for copying all files from the deployment's
+/usr/lib/ostree-boot directory to the relevant /boot/ostree/$os-$bootcsum/
+directory. This feature can be enabled by 'touch .ostree-bootcsumdir-source'
+in /usr/lib/ostree-boot.
+
+Upstream-Status: Inappropriate [LAT specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ src/libostree/ostree-sysroot-deploy.c | 57 +++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
+
+diff --git a/src/libostree/ostree-sysroot-deploy.c b/src/libostree/ostree-sysroot-deploy.c
+index de6d6b41..039f5f50 100644
+--- a/src/libostree/ostree-sysroot-deploy.c
++++ b/src/libostree/ostree-sysroot-deploy.c
+@@ -1911,6 +1911,63 @@ install_deployment_kernel (OstreeSysroot   *sysroot,
+       g_ptr_array_add (overlay_initrds, g_steal_pointer (&destpath));
+     }
+ 
++    if (fstatat (kernel_layout->boot_dfd, ".ostree-bootcsumdir-source", &stbuf, 0) == 0)
++    {
++      g_auto(GLnxDirFdIterator) dfd_iter = { 0, };
++      if (!glnx_dirfd_iterator_init_at (kernel_layout->boot_dfd, ".", FALSE, &dfd_iter, error))
++        return FALSE;
++
++      while (TRUE)
++        {
++          struct dirent *dent;
++
++          if (!glnx_dirfd_iterator_next_dent (&dfd_iter, &dent, cancellable, error))
++            return FALSE;
++          if (dent == NULL)
++            break;
++
++          /* Skip special files - vmlinuz-* and initramfs-* are handled separately */
++          if (g_str_has_prefix (dent->d_name, "vmlinuz-") || g_str_has_prefix (dent->d_name, "initramfs-"))
++            continue;
++
++          if (fstatat (bootcsum_dfd, dent->d_name, &stbuf, AT_SYMLINK_NOFOLLOW) != 0)
++            {
++              if (errno != ENOENT)
++                {
++                  glnx_set_prefix_error_from_errno (error, "fstatat %s", dent->d_name);
++                  return FALSE;
++                }
++
++              if (fstatat (dfd_iter.fd, dent->d_name, &stbuf, AT_SYMLINK_NOFOLLOW) != 0)
++                {
++                  glnx_set_error_from_errno (error);
++                  return FALSE;
++                }
++              if (S_ISDIR (stbuf.st_mode))
++                {
++                  if (!copy_dir_recurse (kernel_layout->boot_dfd, bootcsum_dfd, dent->d_name,
++                                                     sysroot->debug_flags, cancellable, error))
++                    return FALSE;
++                }
++              else
++                {
++                  if (!install_into_boot (repo, sepolicy,kernel_layout->boot_dfd, dent->d_name,
++                                            bootcsum_dfd, dent->d_name,
++                                            cancellable, error))
++                    return FALSE;
++                }
++            }
++        }
++    }
++    else
++    {
++      if (errno != ENOENT)
++        {
++          glnx_set_prefix_error_from_errno (error, "fstatat %s", ".ostree-bootcsumdir-source");
++          return FALSE;
++         }
++     }
++
+   g_autofree char *contents = NULL;
+   if (!glnx_fstatat_allow_noent (deployment_dfd, "usr/lib/os-release", &stbuf, 0, error))
+     return FALSE;
+-- 
+2.27.0
+

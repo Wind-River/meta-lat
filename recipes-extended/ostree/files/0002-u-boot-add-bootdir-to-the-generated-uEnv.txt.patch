@@ -1,0 +1,62 @@
+From 3bcf67c9aea51734eb31ae227e4538d6efa9661b Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Wed, 1 Dec 2021 10:43:46 +0800
+Subject: [PATCH 2/7] u-boot: add 'bootdir' to the generated uEnv.txt
+
+When doing a full copy of:
+
+$deployment/usr/lib/ostree-boot -> /boot/ostree/$os-$bootcsum/
+
+U-Boot bootscript can use the 'bootdir' to find, for example,
+the Device Tree (dtb) file, as in:
+
+load ${dtype} ${disk}:${bootpart} ${a_fdt} ${bootdir}${dtbname}
+
+Or u-boot external bootscript:
+
+load ${dtype} ${disk}:${bootpart} ${a_scr} ${bootdir}${scriptname}
+
+It could also be possible to point 'bootdir' directly to the
+$deployment/usr/lib/ostree-boot, but this would add unnecessary
+restrictions on what file system can be used for rootfs as u-boot,
+for example, can not read from BTRFS. So having
+bootdir=/boot/ostree/$os-$bootcsum/ is a better approach here, as
+/boot can be on a separate partition with its own file system type.
+
+Signed-off-by: Gatis Paeglis <gatis.paeglis@qt.io>
+
+Add index for non-default bootdirs in uEnv.txt.
+
+Signed-off-by: Jiang Lu <lu.jiang@windriver.com>
+
+Upstream-Status: Pending
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ src/libostree/ostree-bootloader-uboot.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/libostree/ostree-bootloader-uboot.c b/src/libostree/ostree-bootloader-uboot.c
+index 7e23001e..4cf86246 100644
+--- a/src/libostree/ostree-bootloader-uboot.c
++++ b/src/libostree/ostree-bootloader-uboot.c
+@@ -113,6 +113,7 @@ create_config_from_boot_loader_entries (OstreeBootloaderUboot     *self,
+   g_autoptr(GPtrArray) boot_loader_configs = NULL;
+   OstreeBootconfigParser *config;
+   const char *val;
++  g_autofree char *bootdir = NULL;
+ 
+   if (!_ostree_sysroot_read_boot_loader_configs (self->sysroot, bootversion, &boot_loader_configs,
+                                                  cancellable, error))
+@@ -136,6 +137,9 @@ create_config_from_boot_loader_entries (OstreeBootloaderUboot     *self,
+         }
+       g_ptr_array_add (new_lines, g_strdup_printf ("kernel_image%s=/boot%s", index_suffix, val));
+ 
++      bootdir = strndup (val, strrchr(val, '/') - val);
++      g_ptr_array_add (new_lines, g_strdup_printf ("bootdir%s=%s/", index_suffix, bootdir));
++
+       val = ostree_bootconfig_parser_get (config, "initrd");
+       if (val)
+         g_ptr_array_add (new_lines, g_strdup_printf ("ramdisk_image%s=/boot%s", index_suffix, val));
+-- 
+2.27.0
+
