@@ -527,7 +527,7 @@ class ExternalDebian(object):
             src = os.path.join(os.environ['DEBOOTSTRAP_DIR'], "scripts/bullseye")
             utils.copyfile(src, deb_script)
 
-        cmd = "debootstrap --no-check-gpg --arch=amd64 --components={0} {1} {2} {3}".format(
+        cmd = "debootstrap --no-check-gpg --arch=amd64 --merged-usr --components={0} {1} {2} {3}".format(
                                                                             ','.join(self.bootstrap_components),
                                                                              self.bootstrap_distro,
                                                                              self.target_rootfs,
