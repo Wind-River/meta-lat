@@ -1,39 +1,32 @@
-From bb436699f8852e9502b4dea620be5e5192b5aecc Mon Sep 17 00:00:00 2001
+From c96a3458c461717497866eb92e94b84287455fce Mon Sep 17 00:00:00 2001
 From: Hongxu Jia <hongxu.jia@windriver.com>
-Date: Fri, 4 Jun 2021 11:10:33 +0800
-Subject: [PATCH 1/6] Port lot patches to debian
+Date: Tue, 30 Nov 2021 02:37:41 +0000
+Subject: [PATCH] Port lot patches to debian
 
 Upstream-Status: Inappropriate [lat specific]
 
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
 ---
- debian/patches/series | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ debian/patches/series | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
 diff --git a/debian/patches/series b/debian/patches/series
-index b73e566a..c2073351 100644
+index b73e566a..aa28b401 100644
 --- a/debian/patches/series
 +++ b/debian/patches/series
-@@ -1 +1,19 @@
+@@ -1 +1,12 @@
  debian/Skip-test-pull-repeated-during-CI.patch
 +lat/0001-fsck-Throw-and-error-and-return-non-zero-for-non-ver.patch
 +lat/0001-boot-Replace-deprecated-StandardOutput-syslog-with-j.patch
 +lat/0001-Drop-use-of-volatile.patch
-+lat/0001-ostree-first-2-patch.patch
-+lat/0002-ostree-secure-boot-support-for-no-change-to-grub.cfg.patch
-+lat/0003-Allow-updating-files-in-the-boot-directory.patch
 +lat/0004-u-boot-add-bootdir-to-the-generated-uEnv.txt.patch
 +lat/0005-uboot-add-non-default-for-bootdirs-to-uEnv.txt.patch
-+lat/0006-ostree-swap-bootentry-atomically.patch
-+lat/0007-using-bash-specifically.patch
-+lat/0008-create-boot-symlink-based-on-relative-path.patch
-+lat/0009-retrieve-correct-boot-prefix-at-runtime.patch
 +lat/0011-tweak-regex-of-ostree-system-generator.patch
 +lat/0012-deploy-using-etc-in-runtime-as-merge-source.patch
-+lat/0001-ostree-bootloader-uboot.c-Create-links-to-the-deploy.patch
 +lat/0001-ostree-sysroot-deploy-if-OSTREE_ETC_MERGE_DIR-none-s.patch
-+lat/0001-make-timezone-support-Hong-Kong.patch
++lat/0001-create-links-to-the-deploy-directory-in-boot-and-ost.patch
++lat/0001-Allow-updating-files-in-the-boot-directory.patch
 +lat/0001-deploy-Handle-a-read-only-boot-efi.patch
 -- 
-2.17.1
+2.30.2
 
