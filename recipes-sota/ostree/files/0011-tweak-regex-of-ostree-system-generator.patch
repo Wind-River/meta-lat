@@ -3,8 +3,8 @@ From: Hongxu Jia <hongxu.jia@windriver.com>
 Date: Wed, 20 Jun 2018 10:22:09 +0800
 Subject: [PATCH 11/12] tweak regex of ostree-system-generator
 
-The ostree has boot params ostree="/boot/0/ostree" on grub,
-or ostree="/ostree/0" on uboot which is a synlink point to
+The ostree has boot params ostree="/ostree/1" on grub
+and uboot which is a synlink point to
 the dir contains "boot.0/OSTREE_OSNAME/***".
 
 So tweak regex of ostree-system-generator.
