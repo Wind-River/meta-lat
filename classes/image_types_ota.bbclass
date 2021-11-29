@@ -138,8 +138,8 @@ IMAGE_CMD:otaimg () {
 			ostree admin --sysroot=${PHYS_SYSROOT} deploy --os=${OSTREE_OSNAME} ${OSTREE_BRANCHNAME}
 		fi
 
-		if [ -d ${PHYS_SYSROOT}/boot/0/ostree/boot/efi ] ; then
-			cp -a ${PHYS_SYSROOT}/boot/0/ostree/boot/efi ${PHYS_SYSROOT}/boot
+		if [ -d ${PHYS_SYSROOT}/ostree/1/boot/efi ] ; then
+			cp -a ${PHYS_SYSROOT}/ostree/1/boot/efi ${PHYS_SYSROOT}/boot
 		fi
 
 		if [ "${OSTREE_BOOTLOADER}" = "u-boot" ]; then

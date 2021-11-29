@@ -1243,8 +1243,8 @@ if [ "$INSTAB" = "1" ] ; then
 fi
 
 # Replace/install boot loader
-if [ -e ${PHYS_SYSROOT}/boot/0/boot/efi/EFI ] ; then
-	cp -r  ${PHYS_SYSROOT}/boot/0/boot/efi/EFI ${PHYS_SYSROOT}/boot/efi/
+if [ -e ${PHYS_SYSROOT}/boot/1/efi/EFI ] ; then
+	cp -r  ${PHYS_SYSROOT}/boot/1/efi/EFI ${PHYS_SYSROOT}/boot/efi/
 	echo "# GRUB Environment Block" > ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
 	if [ "$INSTAB" != "1" ] ; then
 	    printf "ab=0\n" >> ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
@@ -1310,18 +1310,12 @@ if [ "$INSTFLUX" != "1" ] ; then
 else
 	mount -o $mount_flags LABEL=fluxdata /var1
 fi
-if [ -d ${PHYS_SYSROOT}/boot/0/ostree/var ] ; then
-	tar -C ${PHYS_SYSROOT}/boot/0/ostree/var/ --xattrs --xattrs-include='*' -cf - . | \
-	tar --xattrs --xattrs-include='*' -xf - -C /var1 2> /dev/null
-elif [ -d ${PHYS_SYSROOT}/ostree/1/var ] ; then
+if [ -d ${PHYS_SYSROOT}/ostree/1/var ] ; then
 	tar -C ${PHYS_SYSROOT}/ostree/1/var/ --xattrs --xattrs-include='*' -cf - . | \
 	tar --xattrs --xattrs-include='*' -xf - -C /var1 2> /dev/null
 fi
-if [ -d ${PHYS_SYSROOT}/boot/0/ostree/usr/homedirs/home ] ; then
-	tar -C ${PHYS_SYSROOT}/boot/0/ostree/usr/homedirs/home --xattrs --xattrs-include='*' -cf - . | \
-	tar --xattrs --xattrs-include='*' -xf - -C /var1/home 2> /dev/null
-elif [ -d ${PHYS_SYSROOT}/boot/1/ostree/usr/homedirs/home ] ; then
-	tar -C ${PHYS_SYSROOT}/boot/1/ostree/usr/homedirs/home --xattrs --xattrs-include='*' -cf - . | \
+if [ -d ${PHYS_SYSROOT}/ostree/1/usr/homedirs/home ] ; then
+	tar -C ${PHYS_SYSROOT}/ostree/1/usr/homedirs/home --xattrs --xattrs-include='*' -cf - . | \
 	tar --xattrs --xattrs-include='*' -xf - -C /var1/home 2> /dev/null
 fi
 

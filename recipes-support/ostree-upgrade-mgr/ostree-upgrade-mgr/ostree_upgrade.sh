@@ -305,7 +305,7 @@ ostree_upgrade() {
 	check=`ostree config get upgrade.noflux 2>/dev/null`
 	if [ "$check" = 1 ] ; then
 		if [ -n "${updir}" -a -n "${upcommit}" ] ; then
-			sed -i -e  's/^LABEL=fluxdata.*//' $UPGRADE_ROOTFS_DIR/boot/0/etc/fstab
+			sed -i -e  's/^LABEL=fluxdata.*//' $UPGRADE_ROOTFS_DIR/ostree/0/etc/fstab
 		fi
 	fi
 }
