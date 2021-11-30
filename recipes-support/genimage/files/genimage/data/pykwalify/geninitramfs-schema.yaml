@@ -33,6 +33,8 @@ mapping:
     include: environments_seq
   gpg:
     include: gpg_map
+  debootstrap-mirror:
+    include: debootstrap_str
 
 schema;image_type_seq:
   type: seq

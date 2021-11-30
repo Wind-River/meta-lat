@@ -444,10 +444,10 @@ def get_debootstrap_input(package_feeds, debian_distros):
             distro = m.group('distro')
             comps = m.group('comps').split()
             if distro in debian_distros:
-                logger.info("Match, Mirror: %s, Distro %s, Components %s", mirror, distro, comps)
+                logger.info("Matched: Distro %s, Components %s", distro, comps)
                 return mirror, distro, comps
 
-    logger.info("Guess, Mirror: %s, Distro %s, Components %s", mirror, distro, comps)
+    logger.info("Guessed: Distro %s, Components %s",distro, comps)
     return mirror, distro, comps
 
 def get_mem_size(pkg_type, image_type, extra_file=None):

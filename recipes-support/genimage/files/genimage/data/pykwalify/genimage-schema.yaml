@@ -43,6 +43,8 @@ mapping:
     type: str
   wic-post-script:
     type: str
+  debootstrap-mirror:
+    include: debootstrap_str
 
 schema;system_seq:
   type: seq

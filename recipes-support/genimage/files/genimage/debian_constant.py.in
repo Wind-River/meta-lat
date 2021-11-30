@@ -22,6 +22,8 @@ DEFAULT_CONTAINER_NAME = "debian-container-base"
 
 DEFAULT_DEBIAN_DISTROS = "bullseye buster".split()
 
+DEFAULT_DEBIAN_MIRROR = "${DEFAULT_DEBIAN_MIRROR}"
+
 CHROOT_PATH = "/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 
 SCRIPT_DEBIAN_CUSTOMIZE_INSTALL = '''\

@@ -35,6 +35,8 @@ mapping:
     include: container_oci_map
   container_upload_cmd:
     include: container_upload_cmd
+  debootstrap-mirror:
+    include: debootstrap_str
 
 schema;image_type_seq:
   type: seq

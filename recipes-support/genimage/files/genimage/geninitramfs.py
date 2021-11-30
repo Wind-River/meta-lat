@@ -158,6 +158,7 @@ class GenExtDebInitramfs(GenInitramfs):
                                                                              deb_constant.DEFAULT_DEBIAN_DISTROS)
         self.apt_sources = "\n".join(self.data['package_feeds'])
         self.apt_preference = deb_constant.DEFAULT_APT_PREFERENCE
+        self.debian_mirror = self.data['debootstrap-mirror']
 
     def _parse_default(self):
         super(GenExtDebInitramfs, self)._parse_default()
@@ -167,6 +168,7 @@ class GenExtDebInitramfs(GenInitramfs):
         self.data['rootfs-post-scripts'] = [deb_constant.SCRIPT_DEBIAN_INITRD_REDUCE_SIZE,
                                             deb_constant.SCRIPT_DEBIAN_SET_BASH]
         self.data['environments'] = ['NO_RECOMMENDATIONS="1"', 'DEBIAN_FRONTEND=noninteractive']
+        self.data['debootstrap-mirror'] = deb_constant.DEFAULT_DEBIAN_MIRROR
 
     @show_task_info("Create External Debian Rootfs")
     def do_rootfs(self):

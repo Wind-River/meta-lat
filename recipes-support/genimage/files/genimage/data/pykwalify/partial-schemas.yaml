@@ -102,3 +102,10 @@ schema;gpg_map:
           type: str
         gpgkey:
           type: str
+
+schema;debootstrap_str:
+  type: str
+  nullable: False
+  desc: mirror of debootstrap
+  example: http://ftp.us.debian.org/debian
+
