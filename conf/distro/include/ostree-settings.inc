@@ -6,7 +6,7 @@ OSTREE_INITRAMFS_IMAGE ?= "initramfs-ostree-image"
 OSTREE_REPO ?= "${DEPLOY_DIR_IMAGE}/ostree_repo"
 
 OSTREE_BRANCHNAME ?= "${IMAGE_BASENAME}"
-OSTREE_OSNAME ?= "lat_os"
+OSTREE_OSNAME ??= "lat_os"
 # This is set to the name of the loader to include into a disk image
 # Not all BSPs will need this, so it can be unset by the BSP
 OSTREE_BOOTLOADER_INCLUDE ??= "${OSTREE_BOOTLOADER}"
