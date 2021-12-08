@@ -22,6 +22,7 @@ import glob
 from abc import ABCMeta, abstractmethod
 import argparse
 import atexit
+import signal
 from pykwalify.core import Core
 
 from genimage.utils import get_today
@@ -179,6 +180,9 @@ class GenXXX(object, metaclass=ABCMeta):
         logger.info("enviroments: %s", self.environments)
         logger.debug("Deploy Directory: %s" % self.outdir)
         logger.debug("Work Directory: %s" % self.workdir)
+
+        signal.signal(signal.SIGTERM, utils.signal_exit_handler)
+        signal.signal(signal.SIGINT, utils.signal_exit_handler)
 
     @staticmethod
     def _get_pkg_type(args):

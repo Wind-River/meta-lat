@@ -707,6 +707,9 @@ class GenExtDebImage(GenImage):
                 self.data['image_type'].append('pxe')
 
     def do_prepare(self):
+        target_rootfs = os.path.join(self.workdir, self.image_name, "rootfs")
+        utils.umount(target_rootfs)
+        atexit.register(utils.umount, target_rootfs)
         super(GenExtDebImage, self).do_prepare()
         os.environ['DEPLOY_DIR'] = self.deploydir
         os.environ['DEFAULT_INITRD_NAME'] = deb_constant.DEFAULT_INITRD_NAME

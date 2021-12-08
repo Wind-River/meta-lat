@@ -22,7 +22,7 @@ import subprocess
 import collections
 import re
 import tempfile
-import atexit
+import signal
 
 from genimage.utils import set_logger
 from genimage.constant import DEFAULT_LOCAL_DEB_PACKAGE_FEED
@@ -567,12 +567,7 @@ class ExternalDebian(object):
         if len(pkgs) == 0:
             return
 
-        for f in ["/dev", "/dev/pts", "/proc", "/sys"]:
-            utils.mkdirhier("%s%s" % (self.target_rootfs, f))
-            cmd = "mount -o bind %s %s%s" % (f, self.target_rootfs, f)
-            utils.run_cmd_oneshot(cmd, print_output=True)
-        atexit.register(utils.umount, self.target_rootfs)
-
+        utils.mount(self.target_rootfs)
         logger.debug("Installing the following packages: %s" % ' '.join(pkgs))
 
         subcmd_args = "--no-install-recommends " if os.environ.get('NO_RECOMMENDATIONS', '0') == '1' else ""
@@ -591,10 +586,7 @@ class ExternalDebian(object):
                 raise Exception("Could not invoke apt. Command '%s' "
                          "returned %d:\n%s" % (e.cmd, e.returncode, e.output.decode("utf-8")))
 
-        for f in ["/dev/pts", "/dev", "/proc", "/sys"]:
-            cmd = "umount %s%s" % (self.target_rootfs, f)
-            utils.run_cmd_oneshot(cmd, print_output=True)
-        atexit.unregister(utils.umount)
+        utils.umount(self.target_rootfs)
 
         return
 

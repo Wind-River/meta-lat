@@ -22,6 +22,7 @@ import subprocess
 import logging
 from texttable import Texttable
 import argcomplete
+import atexit
 
 from genimage.utils import set_logger
 from genimage.utils import show_task_info
@@ -169,6 +170,14 @@ class GenExtDebInitramfs(GenInitramfs):
                                             deb_constant.SCRIPT_DEBIAN_SET_BASH]
         self.data['environments'] = ['NO_RECOMMENDATIONS="1"', 'DEBIAN_FRONTEND=noninteractive']
         self.data['debootstrap-mirror'] = deb_constant.DEFAULT_DEBIAN_MIRROR
+
+    def do_prepare(self):
+        target_rootfs = os.path.join(self.workdir, self.image_name, "rootfs")
+        utils.umount(target_rootfs)
+        atexit.register(utils.umount, target_rootfs)
+        super(GenExtDebInitramfs, self).do_prepare()
+        gpg_data = self.data["gpg"]
+        utils.check_gpg_keys(gpg_data)
 
     @show_task_info("Create External Debian Rootfs")
     def do_rootfs(self):

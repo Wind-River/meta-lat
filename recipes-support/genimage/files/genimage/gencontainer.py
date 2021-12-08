@@ -21,6 +21,7 @@ import subprocess
 import logging
 import argcomplete
 from texttable import Texttable
+import atexit
 
 from genimage.utils import set_logger
 from genimage.utils import show_task_info
@@ -168,6 +169,12 @@ class GenExtDebContainer(GenContainer):
         self.data['environments'] = ['NO_RECOMMENDATIONS="1"', 'DEBIAN_FRONTEND=noninteractive']
         self.data['container_oci']['OCI_IMAGE_ARCH'] = 'x86-64'
         self.data['debootstrap-mirror'] = deb_constant.DEFAULT_DEBIAN_MIRROR
+
+    def do_prepare(self):
+        target_rootfs = os.path.join(self.workdir, self.image_name, "rootfs")
+        utils.umount(target_rootfs)
+        atexit.register(utils.umount, target_rootfs)
+        super(GenExtDebContainer, self).do_prepare()
 
     @show_task_info("Create External Debian Rootfs")
     def do_rootfs(self):

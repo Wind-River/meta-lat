@@ -108,6 +108,18 @@ def set_logger_file(logger, log_path=None):
     fh.setFormatter(logging.Formatter(FORMAT))
     logger.addHandler(fh)
 
+current_subprocs = set()
+
+def signal_exit_handler(signal, frame):
+    logger.info("Recieve signal %d", signal)
+    for proc in current_subprocs:
+        if proc.poll() is None:
+            pgid = os.getpgid(proc.pid)
+            logger.info("Send signal %s to proc pgid %d", signal, pgid)
+            os.killpg(pgid, signal)
+
+    sys.exit(1)
+
 def run_cmd(cmd, shell=False, print_output=True, env=None, cwd=None):
     logger.debug('Running %s' % cmd)
     if env is None:
@@ -119,7 +131,10 @@ def run_cmd(cmd, shell=False, print_output=True, env=None, cwd=None):
                                stderr=subprocess.STDOUT,
                                shell=shell,
                                cwd=cwd,
+                               restore_signals=False,
+                               preexec_fn=os.setsid,
                                universal_newlines=True, env=env)
+    current_subprocs.add(process)
     while True:
         output = process.stdout.readline()
         if output:
@@ -127,6 +142,7 @@ def run_cmd(cmd, shell=False, print_output=True, env=None, cwd=None):
                 logger.debug(output.rstrip("\n"))
             outputs += output
         if process.poll() is not None:
+            current_subprocs.remove(process)
             break
 
     # Read the remaining logs from stdout after process terminates
@@ -422,8 +438,18 @@ def is_build():
     return False
 
 def umount(target_rootfs):
+   logger.debug("Release mount point under %s" % target_rootfs)
    for f in ["/dev/pts", "/dev", "/proc", "/sys"]:
-        cmd = "umount %s%s" % (target_rootfs, f)
+        mountpoint = target_rootfs + f
+        cmd = "grep -q %s /proc/mounts && umount -l %s" % (mountpoint, mountpoint)
+        run_cmd(cmd, shell=True, print_output=True)
+
+def mount(target_rootfs):
+    umount(target_rootfs)
+    logger.debug("Create mount point under %s" % target_rootfs)
+    for f in ["/dev", "/dev/pts", "/proc", "/sys"]:
+        mkdirhier("%s%s" % (target_rootfs, f))
+        cmd = "mount -o bind %s %s%s" % (f, target_rootfs, f)
         run_cmd(cmd, shell=True, print_output=True)
 
 def cleanup(image_workdir, ostree_osname):
