@@ -26,14 +26,19 @@ import genimage.utils as utils
 logger = logging.getLogger('appsdk')
 
 def install_contains(guest_yamls, args):
-    extra_options = "-w %s/sub_workdir -o %s" % (args.workdir, args.outdir)
+    extra_options = "-w %s/sub_workdir --log-dir %s/sub_workdir/log -o %s" % (args.workdir, args.workdir, args.outdir)
     if args.no_clean:
         extra_options += " --no-clean"
     if args.no_validate:
         extra_options += " --no-validate"
+    if args.loglevel == logging.DEBUG:
+        extra_options += " --debug"
+    elif args.loglevel == logging.ERROR:
+        extra_options += " --quiet"
     output_guest_yamls = []
     for yaml_file in guest_yamls:
         logger.info("Sysdef: build nested %s", yaml_file)
+        logger.info("and save log to sub_workdir/log/log.appsdk")
         yaml_file = os.path.expandvars(yaml_file)
         with open(yaml_file) as f:
             d = yaml.load(f, Loader=yaml.FullLoader) or dict()
@@ -52,19 +57,19 @@ def install_contains(guest_yamls, args):
             if args.gpgpath:
                 extra_options += " -g %s" % self.args.gpgpath
 
-            rc, output = utils.run_cmd("genimage -d %s %s" % (yaml_file, extra_options), shell=True)
+            rc, output = utils.run_cmd("genimage %s %s" % (yaml_file, extra_options), shell=True)
             if rc != 0:
                 logger.error(output)
                 logger.error("Generate sub image failed")
                 sys.exit(1)
         elif "container" in image_type:
-            rc, output = utils.run_cmd("gencontainer -d %s %s" % (yaml_file, extra_options), shell=True)
+            rc, output = utils.run_cmd("gencontainer %s %s" % (yaml_file, extra_options), shell=True)
             if rc != 0:
                 logger.error(output)
                 logger.error("Generate sub container failed")
                 sys.exit(1)
         elif "initramfs" in image_type:
-            rc, output = utils.run_cmd("geninitramfs -d %s %s" % (yaml_file, extra_options), shell=True)
+            rc, output = utils.run_cmd("geninitramfs %s %s" % (yaml_file, extra_options), shell=True)
             if rc != 0:
                 logger.error(output)
                 logger.error("Generate sub initramfs failed")
