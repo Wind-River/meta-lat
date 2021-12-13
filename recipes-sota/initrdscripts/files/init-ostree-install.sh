@@ -1293,12 +1293,7 @@ fi
 # Caution... If someone resets the /etc/fstab with OSTree this change is lost...
 mkdir /var1
 if [ "$INSTFLUX" != "1" ] ; then
-	if [ "$BL" = "grub" ] ; then
-		sed -i -e "s#^LABEL=fluxdata.*#${PHYS_SYSROOT}/ostree/deploy/${INSTOS}/var /var none bind 0 0#" ${PHYS_SYSROOT}/boot/?/ostree/etc/fstab
-		if [ "$INSTAB" = 1 ] ; then
-			sed -i -e "s#^LABEL=fluxdata.*#${PHYS_SYSROOT}/ostree/deploy/${INSTOS}/var /var none bind 0 0#" ${PHYS_SYSROOT}_b/boot/?/ostree/etc/fstab
-		fi
-	elif [ "$BL" = "ufsd" ] ; then
+	if [ "$BL" = "grub" -o "$BL" = "ufsd" ] ; then
 		sed -i -e "s#^LABEL=fluxdata.*#${PHYS_SYSROOT}/ostree/deploy/${INSTOS}/var /var none bind 0 0#" ${PHYS_SYSROOT}/ostree/?/etc/fstab
 		if [ "$INSTAB" = 1 ] ; then
 			sed -i -e "s#^LABEL=fluxdata.*#${PHYS_SYSROOT}/ostree/deploy/${INSTOS}/var /var none bind 0 0#" ${PHYS_SYSROOT}_b/ostree/?/etc/fstab
@@ -1320,9 +1315,9 @@ if [ -d ${PHYS_SYSROOT}/ostree/1/usr/homedirs/home ] ; then
 fi
 
 if [ -n "${KS}" ]; then
-	rootfs=`ls ${PHYS_SYSROOT}/boot/?/ostree -d`
+	rootfs=`ls ${PHYS_SYSROOT}/ostree/? -d`
 	if [ "$INSTAB" = 1 ] ; then
-		rootfs="$rootfs `ls ${PHYS_SYSROOT}_b/boot/?/ostree -d`"
+		rootfs="$rootfs `ls ${PHYS_SYSROOT}_b/ostree/? -d`"
 	fi
 
 	for root in ${rootfs}; do
