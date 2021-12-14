@@ -25,6 +25,7 @@ SRC_URI = "git://git.yoctoproject.org/poky;branch=dunfell \
            file://0001-make-iso-image-support-multiple-boot-menu.patch \
            file://0001-bitbake-compat.py-remove-file-since-it-no-longer-act.patch \
            file://0001-bitbake-bitbake-correct-the-collections-vs-collectio.patch \
+           file://0001-Convert-to-new-override-syntax.patch \
            "
 
 S = "${WORKDIR}/git"

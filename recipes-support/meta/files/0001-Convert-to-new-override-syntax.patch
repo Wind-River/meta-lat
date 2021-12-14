@@ -1,0 +1,47 @@
+From 601200f335e8a191d9561b38e7e006a8830030a8 Mon Sep 17 00:00:00 2001
+From: Richard Purdie <richard.purdie@linuxfoundation.org>
+Date: Tue, 14 Dec 2021 15:01:00 +0800
+Subject: [PATCH] Convert to new override syntax
+
+This is the result of automated script conversion:
+
+scripts/contrib/convert-overrides.py <oe-core directory>
+
+converting the metadata to use ":" as the override character instead of
+"_".
+
+Upstream-Status: Backport [https://github.com/openembedded/openembedded-core/commit/42344347be29f0997cc2f7636d9603b1fe1875ae]
+
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+
+Pick scripts/oe-pkgdata-util only
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ scripts/oe-pkgdata-util | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/scripts/oe-pkgdata-util b/scripts/oe-pkgdata-util
+index 93220e3617..ee3d899262 100755
+--- a/scripts/oe-pkgdata-util
++++ b/scripts/oe-pkgdata-util
+@@ -96,7 +96,7 @@ def glob(args):
+                 pn = os.path.basename(pkgdata_file)
+                 with open(pkgdata_file, 'r') as f:
+                     for line in f:
+-                        if line.startswith("PKG_%s:" % pn):
++                        if line.startswith("PKG:%s:" % pn):
+                             renamed = line.split(': ')[1].rstrip()
+                 return renamed
+ 
+@@ -213,7 +213,7 @@ def lookup_pkglist(pkgs, pkgdata_dir, reverse):
+                 with open(pkgfile, 'r') as f:
+                     for line in f:
+                         fields = line.rstrip().split(': ')
+-                        if fields[0] == 'PKG_%s' % pkg:
++                        if fields[0] == 'PKG:%s' % pkg:
+                             mappings[pkg].append(fields[1])
+                             break
+     return mappings
+-- 
+2.27.0
+
