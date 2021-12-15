@@ -373,7 +373,6 @@ class GenXXX(object, metaclass=ABCMeta):
         pkg_globs = self.features.get("pkg_globs", None)
         if pkg_globs is not None:
             # '*-dbg, *-dev' --> '*-dbg *-dev'
-            pkg_globs = pkg_globs.replace(' ', '')
             pkg_globs = pkg_globs.replace(',', ' ')
         image_linguas = self.features.get("image_linguas", None)
 
