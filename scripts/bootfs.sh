@@ -399,7 +399,7 @@ write_wic() {
 	fi
 	if [ "$COMPRESS" = "1" ] ; then
 		echo "Compressing image and writing: ustart.img.gz"
-		pigz -f ustart*.img
+		pigz -f *ustart*.img
 	fi
 	echo "======================== SUCCESS ==============================="
 	echo "==== Write image to device with one of the command(s) below ===="
