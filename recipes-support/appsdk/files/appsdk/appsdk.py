@@ -26,6 +26,7 @@ import glob
 import logging
 import yaml
 import tempfile
+import atexit
 
 from genimage.utils import set_logger
 from genimage.utils import run_cmd
@@ -545,14 +546,26 @@ find {0} {1} -type f | xargs -n100 file | grep ":.*\(ASCII\|script\|source\).*te
         pc: PackageConfig object containing package information
         """
         pc.show(specfile)
-        
+
     def buildrpm(self, configfile, installdir, pkgarch=None, rpmdir=None, workdir=None):
         """
         Build out rpm package from installdir according to configfile.
         If configfile is a spec file, use it directly. If the config file a yaml file, construct spec file and use it.
         The generated rpm is put in rpmdir (default to $target_sdk_dir/deploy/rpms)
         """
-        utils.fake_root()
+        def exit_and_cleanup_pseudo(pseudodir):
+            logger.debug("Exit pseudo and remove %s" % pseudodir)
+            utils.exit_fake_root()
+            cmd = "rm -rf %s" % pseudodir
+            utils.run_cmd_oneshot(cmd)
+
+        if not workdir:
+            workdir = os.path.join(self.target_sdk_dir, 'workdir-packaging')
+        if not os.path.exists(workdir):
+            os.makedirs(workdir)
+
+        utils.fake_root(workdir=workdir)
+        atexit.register(exit_and_cleanup_pseudo, os.path.join(workdir, 'pseudo'))
         logger.info("Building rpm from {0} according to {1} ...".format(installdir, configfile))
 
         # sanity checks
@@ -572,10 +585,6 @@ find {0} {1} -type f | xargs -n100 file | grep ":.*\(ASCII\|script\|source\).*te
         logger.debug("rpmdir = %s" % rpmdir)
         if not os.path.exists(rpmdir):
             os.makedirs(rpmdir)
-        if not workdir:
-            workdir = os.path.join(self.target_sdk_dir, 'workdir-packaging')
-        if not os.path.exists(workdir):
-            os.makedirs(workdir)
         conf_base_name = os.path.basename(configfile).split('.')[0]
         topdir = os.path.join(workdir, conf_base_name)
         logger.debug("topdir = %s" % topdir)
