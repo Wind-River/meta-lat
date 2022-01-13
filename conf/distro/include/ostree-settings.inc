@@ -220,3 +220,6 @@ RAMDISK_EXT ?= ".${INITRAMFS_FSTYPES}"
 
 BOOTFILES ??= ""
 BOOTFILES_intel-socfpga-64 = "u-boot-dtb.img u-boot.img u-boot.itb ghrd.core.rbf"
+
+OSTREE_WIFI_PACKAGES ??= ""
+
