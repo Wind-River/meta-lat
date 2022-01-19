@@ -22,17 +22,7 @@ TOOLCHAIN_TARGET_TASK:append:x86-64 = " \
 
 POPULATE_SDK_PRE_TARGET_COMMAND += "copy_pkgdata_to_sdk;"
 copy_pkgdata_to_sdk() {
-    install -d ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/pkgdata
-    if [ -e ${DEPLOY_DIR}/${IMAGE_PKGTYPE}/.pkgdata.tar.bz2 -a -e ${DEPLOY_DIR}/${IMAGE_PKGTYPE}/.pkgdata.tar.bz2.sha256sum ]; then
-        cp ${DEPLOY_DIR}/${IMAGE_PKGTYPE}/.pkgdata.tar.bz2 \
-            ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/pkgdata/pkgdata.tar.bz2
-        cp ${DEPLOY_DIR}/${IMAGE_PKGTYPE}/.pkgdata.tar.bz2.sha256sum \
-            ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/pkgdata/pkgdata.tar.bz2.sha256sum
-    fi
-
-    if [ ! -e ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/pkgdata/pkgdata.tar.bz2 ]; then
-        copy_pkgdata ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/pkgdata
-    fi
+    copy_pkgdata ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/pkgdata
 }
 
 copy_pkgdata() {
