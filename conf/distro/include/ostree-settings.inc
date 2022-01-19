@@ -222,4 +222,16 @@ BOOTFILES ??= ""
 BOOTFILES_intel-socfpga-64 = "u-boot-dtb.img u-boot.img u-boot.itb ghrd.core.rbf"
 
 OSTREE_WIFI_PACKAGES ??= ""
-
+OSTREE_WIFI_PACKAGES_intel-x86-64 = " \
+    packagegroup-base-wifi \
+    linux-firmware-iwlwifi-6000g2a-6 \
+    linux-firmware-iwlwifi-6000g2b-6 \
+    linux-firmware-iwlwifi-135-6 \
+    linux-firmware-iwlwifi-8000c \
+    linux-firmware-iwlwifi-8265 \
+    linux-firmware-iwlwifi-7265d \
+    linux-firmware-iwlwifi-9000 \
+    linux-firmware-iwlwifi-misc \
+    kernel-module-iwlmvm \
+    kernel-module-iwlwifi \
+"
