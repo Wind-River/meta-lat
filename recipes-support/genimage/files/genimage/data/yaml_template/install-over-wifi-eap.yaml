@@ -1,0 +1,9 @@
+image_type:
+- ustart
+ostree:
+  ostree_remote_url: 'YOUR_OSTREE_REMOTE_URL'
+  install_net_params: 'wlan0'
+  install_net_mode: 'dhcp'
+system:
+- contains:
+  - exampleyamls/initramfs-ostree-image-@MACHINE@.yaml exampleyamls/feature/set-wifi-eap.yaml

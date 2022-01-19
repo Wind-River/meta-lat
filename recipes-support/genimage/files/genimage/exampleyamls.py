@@ -89,6 +89,26 @@ def _exampleyamls_sysdef(args):
                 utils.remove(src)
                 logger.debug("%s -> %s", src, dst)
 
+def _exampleyamls_install_over_wifi(yamltemplate_dir, outdir):
+    for wifi in ["psk", "eap"]:
+        src = os.path.join(yamltemplate_dir, "install-over-wifi-%s.yaml" % wifi)
+        with open(src, "r+") as f:
+            content = f.read()
+            content = content.replace("@MACHINE@", DEFAULT_MACHINE)
+
+        dst = os.path.join(outdir, "feature", "install-over-wifi-%s.yaml" % wifi)
+        open(dst, "w").write(content)
+
+def _exampleyamls_set_wifi(yamltemplate_dir, outdir):
+    for wifi in ["set-wifi-psk.yaml", "set-wifi-eap.yaml"]:
+        wifi_yaml = os.path.join(outdir, "feature", wifi)
+        with open(wifi_yaml, "w") as f:
+            f.write("machine: %s\n" % DEFAULT_MACHINE)
+            content = ["packages: "] + constant.OSTREE_WIFI_PACKAGES
+            f.write("\n- ".join(content) + "\n")
+        cmd = "cat {0}/{1} >> {2}".format(yamltemplate_dir, wifi, wifi_yaml)
+        utils.run_cmd_oneshot(cmd)
+
 def _main_run_internal(args):
     if args.pkg_type ==  "external-debian" and DEFAULT_MACHINE != "intel-x86-64":
         logger.error("The external debian image generation only works on intel-x86-64")
@@ -97,6 +117,7 @@ def _main_run_internal(args):
     outdir = os.path.join(args.outdir, 'exampleyamls')
     native_sysroot = os.environ['OECORE_NATIVE_SYSROOT']
     yamlexample_dir = os.path.join(native_sysroot, 'usr/share/genimage/data/yaml_example')
+    yamltemplate_dir = os.path.join(native_sysroot, 'usr/share/genimage/data/yaml_template')
     machine_yaml = os.path.join(yamlexample_dir, 'machine', '{0}.yaml'.format(DEFAULT_MACHINE))
     image_yamls = glob.glob(os.path.join(yamlexample_dir, 'images', '*.yaml'))
 
@@ -124,6 +145,9 @@ def _main_run_internal(args):
             utils.remove(os.path.join(outdir, "feature/startup-container.yaml"))
 
         _exampleyamls_sysdef(args)
+        _exampleyamls_set_wifi(yamltemplate_dir, outdir)
+        _exampleyamls_install_over_wifi(yamltemplate_dir, outdir)
+
     else:
         cmd = "genyaml -d -o {0} --type container --pkg-type {1}".format(outdir, args.pkg_type)
         utils.run_cmd_oneshot(cmd)

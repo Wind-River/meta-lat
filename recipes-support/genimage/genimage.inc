@@ -79,6 +79,10 @@ SRC_URI = "\
            file://genimage/data/kickstart/kickstart.README.md.in \
            file://genimage/data/kickstart/lat-installer.ks \
            file://genimage/data/kickstart/lat-installer-static-ipv4.ks \
+           file://genimage/data/yaml_template/install-over-wifi-eap.yaml \
+           file://genimage/data/yaml_template/install-over-wifi-psk.yaml \
+           file://genimage/data/yaml_template/set-wifi-eap.yaml \
+           file://genimage/data/yaml_template/set-wifi-psk.yaml \
            file://genimage/scripts/run.do_image_ostree \
            file://genimage/scripts/run.do_image_otaimg \
            file://genimage/scripts/run.do_image_wic \

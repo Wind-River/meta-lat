@@ -1,0 +1,24 @@
+rootfs-post-scripts:
+- |-
+  # For lat installer (initramfs-ostree-image)
+  if [ -f "${IMAGE_ROOTFS}/init.luks-ostree" ]; then
+    wpa_config=${IMAGE_ROOTFS}/etc/wpa_supplicant.conf
+  # For other normal image
+  else
+    mkdir -p ${IMAGE_ROOTFS}/etc/wpa_supplicant/
+    wpa_config=${IMAGE_ROOTFS}/etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+    systemctl enable wpa_supplicant@wlan0
+    ln -snf /usr/lib/systemd/system/wpa_supplicant@.service ${IMAGE_ROOTFS}/etc/systemd/system/multi-user.target.wants/wpa_supplicant@wlan0.service
+    echo 'INTERFACES="wlan0"' > ${IMAGE_ROOTFS}/etc/default/dhcpcd
+  fi
+
+  cat <<EOF >> $wpa_config
+  # WPA using EAP authentica-tion
+  network={
+    ssid="YOUR_SSID"
+    key_mgmt=WPA-EAP
+    identity="YOUR_ID"
+    password="YOUR_PWD"
+  }
+  EOF
+
