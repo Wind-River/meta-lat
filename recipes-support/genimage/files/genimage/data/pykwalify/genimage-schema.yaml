@@ -143,6 +143,7 @@ schema;ostree_map:
     ostree_remote_url:
       type: str
       desc: URL of OSTree repository for upgrade, if you bake it in, you can run ostree_upgrade.sh each time you you rebuild and publish the updates
+      func: ext_edit_default
     ostree_skip_boot_diff:
       type: str
       enum: ['0', '1', '2']

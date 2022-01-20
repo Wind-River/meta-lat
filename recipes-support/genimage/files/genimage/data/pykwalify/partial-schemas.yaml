@@ -45,12 +45,14 @@ schema;packages_seq:
   type: seq
   sequence:
     - type: str
+      func: ext_edit_default
 
 schema;external-packages_seq:
   type: seq
   sequence:
     - type: str
       unique: True
+      func: ext_edit_default
 
 schema;include-default-packages_str:
   type: str
@@ -62,11 +64,13 @@ schema;rootfs-pre-scripts_seq:
   type: seq
   sequence:
     - type: str
+      func: ext_edit_default
 
 schema;rootfs-post-scripts_seq:
   type: seq
   sequence:
     - type: str
+      func: ext_edit_default
 
 schema;environments_seq:
   type: seq

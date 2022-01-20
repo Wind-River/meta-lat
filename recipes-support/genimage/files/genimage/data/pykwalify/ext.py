@@ -33,3 +33,15 @@ def ext_file_exists(value, rule_obj, path):
         return False
 
     return True
+
+def ext_edit_default(value, rule_obj, path):
+    if value.startswith("YOUR_"):
+        logger.error("path: %s", path)
+        logger.error("Please replace %s with actual one", value)
+        return False
+    elif "YOUR_" in value:
+        logger.error("path: %s", path)
+        logger.error("Please replace YOUR_XXX with actual one in\n%s", value)
+        return False
+
+    return True
