@@ -7,7 +7,7 @@ rootfs-post-scripts:
   else
     mkdir -p ${IMAGE_ROOTFS}/etc/wpa_supplicant/
     wpa_config=${IMAGE_ROOTFS}/etc/wpa_supplicant/wpa_supplicant-wlan0.conf
-    systemctl enable wpa_supplicant@wlan0
+    mkdir -p ${IMAGE_ROOTFS}/etc/systemd/system/multi-user.target.wants/
     ln -snf /usr/lib/systemd/system/wpa_supplicant@.service ${IMAGE_ROOTFS}/etc/systemd/system/multi-user.target.wants/wpa_supplicant@wlan0.service
     echo 'INTERFACES="wlan0"' > ${IMAGE_ROOTFS}/etc/default/dhcpcd
   fi
