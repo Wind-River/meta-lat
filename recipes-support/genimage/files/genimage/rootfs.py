@@ -65,7 +65,10 @@ class Rootfs(object):
         if remote_pkgdatadir and utils.is_sdk():
             script_cmd = os.path.join(self.data_dir, 'pre_rootfs', 'update_pkgdata.sh')
             os.environ['REMOTE_PKGDATADIR'] = remote_pkgdatadir
-            self.rootfs_pre_scripts.append(script_cmd)
+            res, output = utils.run_cmd(script_cmd, shell=True)
+            if res:
+                raise Exception("Executing %s failed\nExit code %d. Output:\n%s"
+                                   % (script_cmd, res, output))
 
         PackageManager = get_pm_class(pkgtype=pkgtype)
         if remote_pkgdatadir:
