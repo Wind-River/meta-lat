@@ -54,7 +54,7 @@ if not present.
     $ . ./oe-init-build-env
     $ cat << _EOF >> conf/local.conf
 MACHINE_FEATURES += " bootloader-axxia"
-PNWHITELIST_wr-axxiaarm += 'u-boot-axxia'
+WRL_RECIPES_wr-axxiaarm += 'u-boot-axxia'
 BB_NO_NETWORK = '0'
 _EOF
     $ bitbake u-boot-axxia
