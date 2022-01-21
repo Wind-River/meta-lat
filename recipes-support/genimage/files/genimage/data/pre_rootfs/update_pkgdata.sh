@@ -21,9 +21,10 @@ set -e
 
 install_pkgdata() {
     pkgdatadir=$1
-    if [ ! -d $pkgdatadir ]; then
-        mkdir -p $pkgdatadir
+    if [ ! -d $pkgdatadir -o ! -e ${pkgdatadir}/.done ]; then
+        rm -rf $pkgdatadir && mkdir -p $pkgdatadir
         tar xf pkgdata.tar.bz2 -C $pkgdatadir
+        touch ${pkgdatadir}/.done
     fi
 }
 
