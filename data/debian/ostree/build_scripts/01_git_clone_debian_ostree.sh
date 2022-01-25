@@ -23,6 +23,6 @@ fi
 rm -rf ${dest}
 mkdir -p ${dest}
 cd $dest
-git clone --branch debian/master --single-branch https://salsa.debian.org/debian/ostree.git .
+git clone --branch debian/buster --single-branch https://salsa.debian.org/debian/ostree.git .
 git checkout debian/2019.1-1 -b debian/2019.1-1
 apt build-dep -y ostree
