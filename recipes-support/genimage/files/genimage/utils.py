@@ -27,6 +27,7 @@ import re
 from ruamel.yaml.representer import RoundTripRepresenter
 from ruamel.yaml import YAML
 import configparser
+from pykwalify.core import Core
 
 from genimage.constant import DEFAULT_MACHINE
 
@@ -522,3 +523,84 @@ def get_yocto_var(key):
 
     return val
 
+def validate_inputyamls(yaml_file, no_validate=False, pykwalify_schemas=None):
+    if no_validate:
+        logger.info("Do not validate parameters in %s", yaml_file)
+        return
+
+    if pykwalify_schemas is None:
+        logger.debug("No pykwalify schemas")
+        return
+
+    try:
+        pykwalify_dir = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'], 'usr/share/genimage/data/pykwalify')
+        extensions = [os.path.join(pykwalify_dir, 'ext.py')]
+        c = Core(source_file=yaml_file, schema_files=pykwalify_schemas, extensions=extensions)
+        c.validate(raise_exception=True)
+    except Exception as e:
+        logger.error("Load %s failed\n%s", yaml_file, e)
+        sys.exit(1)
+
+# Parse multiple yamls, return a dict data
+def parse_yamls(yaml_files, no_validate=False, pykwalify_schemas=None, quiet=False):
+    data = dict()
+    for yaml_file in yaml_files:
+        if not quiet:
+            logger.info("Input YAML File: %s" % yaml_file)
+        validate_inputyamls(yaml_file, no_validate, pykwalify_schemas)
+
+        with open(yaml_file) as f:
+            d = yaml.load(f) or dict()
+
+        for key in d:
+            if key == 'machine':
+                if d[key] != DEFAULT_MACHINE:
+                    logger.error("Load %s failed\nThe machine: %s is not supported", yaml_file, d[key])
+                    sys.exit(1)
+                continue
+
+            if key not in data:
+                data[key] = d[key]
+                continue
+
+            # Collect them from all Yaml file as many as possible
+            if key in ['packages',
+                       'external-packages',
+                       'image_type',
+                       'environments',
+                       'system',
+                       'rootfs-pre-scripts',
+                       'rootfs-post-scripts']:
+                data[key].extend(d[key])
+                if key == "image_type":
+                    if 'initramfs' in data[key] and (set(data[key]) - set(['initramfs'])):
+                        logger.error("Input YAML File: %s" % yaml_file)
+                        logger.error("image type 'initramfs' conflicts with '%s'", ' '.join(list(set(data[key]) - set(['initramfs']))))
+                        sys.exit(1)
+                    elif 'container' in data[key] and (set(data[key]) - set(['container'])):
+                        logger.error("Input YAML File: %s" % yaml_file)
+                        logger.error("image type 'container' conflicts with '%s'", ' '.join(list(set(data[key]) - set(['container']))))
+                        sys.exit(1)
+
+            # Collect and update each item of dict values
+            elif key in ['ostree',
+                         'features',
+                         'gpg',
+                         'wic']:
+                for sub_key in d[key]:
+                    if data[key].get(sub_key) and data[key][sub_key] != d[key][sub_key]:
+                        logger.warn("There are multiple %s->%s: %s vs %s, choose the latter one", key, sub_key, data[key][sub_key], d[key][sub_key])
+                    data[key][sub_key] = d[key][sub_key]
+
+            elif key in ['name',
+                         'package_type']:
+                if data[key] != d[key]:
+                    logger.error("Input YAML File: %s" % yaml_file)
+                    logger.error("There are multiple %s: %s vs %s, only one is allowed", key, data[key], d[key])
+                    sys.exit(1)
+
+            # Except packages, the duplicated param is not allowed
+            elif key in data:
+                logger.error("There is duplicated '%s' in Yaml File %s", key, yaml_file)
+                sys.exit(1)
+    return data

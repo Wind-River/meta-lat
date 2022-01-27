@@ -186,18 +186,14 @@ class GenXXX(object, metaclass=ABCMeta):
 
     @staticmethod
     def _get_pkg_type(args):
-        pkg_type = DEFAULT_IMAGE_PKGTYPE
-
-        # Collect package_type from input yamls
-        if args.input:
-            for input_glob in args.input:
-                if not glob.glob(input_glob):
-                    continue
-                for yaml_file in glob.glob(input_glob):
-                    with open(yaml_file) as f:
-                        d = yaml.load(f) or dict()
-                        if 'package_type' in d:
-                            pkg_type = d['package_type']
+        yaml_files = []
+        for input_glob in args.input:
+            if not glob.glob(input_glob):
+                logger.warning("Input yaml file '%s' does not exist" % input_glob)
+                continue
+            yaml_files.extend(glob.glob(input_glob))
+        data = utils.parse_yamls(yaml_files, quiet=True)
+        pkg_type = data.get('package_type', DEFAULT_IMAGE_PKGTYPE)
 
         # Use option --pkg-type to override
         if args.pkg_type:
@@ -209,65 +205,18 @@ class GenXXX(object, metaclass=ABCMeta):
     def _parse_default(self):
         pass
 
-    def _validate_inputyamls(self, yaml_file):
-        if self.args.no_validate:
-            logger.info("Do not validate parameters in %s", yaml_file)
-            return
-
-        try:
-            pykwalify_dir = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'], 'usr/share/genimage/data/pykwalify')
-            extensions = [os.path.join(pykwalify_dir, 'ext.py')]
-            c = Core(source_file=yaml_file, schema_files=self.pykwalify_schemas, extensions=extensions)
-            c.validate(raise_exception=True)
-        except Exception as e:
-            logger.error("Load %s failed\n%s", yaml_file, e)
-            sys.exit(1)
-
     def _parse_inputyamls(self):
         if not self.args.input:
             logger.info("No Input YAML File, use default setting")
             return
 
-        data = dict()
         yaml_files = []
         for input_glob in self.args.input:
             if not glob.glob(input_glob):
                 logger.warning("Input yaml file '%s' does not exist" % input_glob)
                 continue
             yaml_files.extend(glob.glob(input_glob))
-
-        for yaml_file in yaml_files:
-            logger.info("Input YAML File: %s" % yaml_file)
-            self._validate_inputyamls(yaml_file)
-
-            with open(yaml_file) as f:
-                d = yaml.load(f) or dict()
-
-            for key in d:
-                if key == 'machine':
-                    if d[key] != DEFAULT_MACHINE:
-                        logger.error("Load %s failed\nThe machine: %s is not supported", yaml_file, d[key])
-                        sys.exit(1)
-                    continue
-
-                if key not in data:
-                    data[key] = d[key]
-                    continue
-
-                # Collect them from all Yaml file as many as possible
-                if key in ['packages',
-                           'external-packages',
-                           'image_type',
-                           'environments',
-                           'system',
-                           'rootfs-pre-scripts',
-                           'rootfs-post-scripts']:
-                    data[key].extend(d[key])
-
-                # Except packages, the duplicated param is not allowed
-                elif key in data:
-                    logger.error("There is duplicated '%s' in Yaml File %s", key, yaml_file)
-                    sys.exit(1)
+        data = utils.parse_yamls(yaml_files, self.args.no_validate, self.pykwalify_schemas)
 
         include_default_package = self.data['include-default-packages']
         if 'include-default-packages' in data:

@@ -296,18 +296,10 @@ class GenImage(GenXXX):
             sys.exit(1)
 
         boot_params = self._get_boot_params(self.image_name, self.data["ostree"])
-        for yaml_file in self.guest_yamls:
-            with open(yaml_file) as f:
-                try:
-                    data = yaml.load(f)
-                    if "initramfs" in data["image_type"] or "container" in data["image_type"]:
-                        logger.debug("Skip %s from ISO multiple ostree images", data["name"])
-                        continue
-                    ostree = data["ostree"] if "ostree" in data else self.data["ostree"]
-                    boot_params += self._get_boot_params(data["name"], ostree)
-                except Exception as e:
-                    logger.error("Parse nest/guest Yaml %s failed\n%s", yaml_file, logging.traceback.format_exc())
-                    sys.exit(1)
+        for yaml_files in self.guest_yamls:
+            data = utils.parse_yamls(yaml_files)
+            ostree = data["ostree"] if "ostree" in data else self.data["ostree"]
+            boot_params += self._get_boot_params(data["name"], ostree)
 
         workdir = os.path.join(self.workdir, self.image_name)
         image_iso = CreateISOImage(

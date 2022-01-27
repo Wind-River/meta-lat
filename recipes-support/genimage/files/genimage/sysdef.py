@@ -40,21 +40,18 @@ def install_contains(guest_yamls, args):
     for yaml_files in guest_yamls:
         logger.info("Sysdef: build nested %s", yaml_files)
         logger.info("and save log to sub_workdir/log/log.appsdk")
-
         yaml_files = os.path.expandvars(yaml_files)
 
-        # Colloect image_type from yaml_files
-        image_type = []
+        _yaml_files = []
         for input_glob in yaml_files.split():
             if not glob.glob(input_glob):
-                logger.error("sysdef contains: Input yaml file '%s' does not exist" % input_glob)
-                sys.exit(1)
-            for yaml_file in glob.glob(input_glob):
-                logger.debug("sysdef contains, parse %s", yaml_file)
-                with open(yaml_file) as f:
-                    d = yaml.load(f, Loader=yaml.FullLoader) or dict()
-                    if 'image_type' in d:
-                        image_type.extend(d['image_type'])
+                logger.warning("Input yaml file '%s' does not exist" % input_glob)
+                continue
+            _yaml_files.extend(glob.glob(input_glob))
+
+        # Colloect image_type from yaml_files
+        data = utils.parse_yamls(_yaml_files, args.no_validate)
+        image_type = data.get('image_type', None)
 
         if not image_type:
             logger.error("The %s does not has an image_type section", yaml_files)
@@ -91,7 +88,7 @@ def install_contains(guest_yamls, args):
             logger.error("The contains section does not support %s", image_type)
             sys.exit(1)
 
-        output_guest_yamls.append(yaml_files)
+        output_guest_yamls.append(_yaml_files)
 
     return output_guest_yamls
 def install_scripts(scripts, destdir):

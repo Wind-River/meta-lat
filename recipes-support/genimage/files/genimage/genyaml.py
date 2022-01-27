@@ -134,18 +134,14 @@ class GenYaml():
         gencontainer for container
         geninitramfs for initramfs
         '''
-        image_types = []
-
-        # Colloect image_type from input yamls
-        if args.input:
-            for input_glob in args.input:
-                if not glob.glob(input_glob):
-                    continue
-                for yaml_file in glob.glob(input_glob):
-                    with open(yaml_file) as f:
-                        d = yaml.load(f, Loader=yaml.FullLoader) or dict()
-                        if 'image_type' in d:
-                            image_types.extend(d['image_type'])
+        yaml_files = []
+        for input_glob in args.input:
+            if not glob.glob(input_glob):
+                logger.warning("Input yaml file '%s' does not exist" % input_glob)
+                continue
+            yaml_files.extend(glob.glob(input_glob))
+        data = utils.parse_yamls(yaml_files, args.no_validate, quiet=True)
+        image_types = data.get('image_type', [])
 
         # Use option --type to override
         if args.type:
