@@ -278,6 +278,17 @@ class GenImage(GenXXX):
             boot_params = ' --label "OSTree Install %s" --appends "%s" ' % (image_name, boot_params)
         return boot_params
 
+    def _get_bootfs_params(self, data_ostree):
+        bootfs_params = "-s 0 "
+        # If install net mode and remote ostree url is set, enable install over network
+        if data_ostree.get('install_net_mode')and data_ostree.get('ostree_remote_url'):
+            bootfs_params += "-u {0} ".format(data_ostree['ostree_remote_url'])
+        # Otherwise install from local repo as normal
+        else:
+            bootfs_params += "-L "
+
+        return bootfs_params
+
     @show_task_info("Create ISO Image")
     def do_image_iso(self):
         if self.machine != "intel-x86-64":
@@ -405,6 +416,7 @@ class GenImage(GenXXX):
 
     @show_task_info("Create Ustart Image")
     def do_ustart_img(self):
+        bootfs_params = self._get_bootfs_params(self.data["ostree"])
         boot_params = self._get_boot_params(self.image_name, self.data["ostree"], image_type="ustart")
         workdir = os.path.join(self.workdir, self.image_name)
         ustart = CreateBootfs(
@@ -415,6 +427,7 @@ class GenImage(GenXXX):
                         ostree_osname=self.data["ostree"]['ostree_osname'],
                         post_script = self.data['ustart-post-script'],
                         deploydir=self.deploydir,
+                        bootfs_params=bootfs_params,
                         boot_params = boot_params)
         ustart.create()
 
