@@ -23,6 +23,7 @@ import collections
 import re
 import tempfile
 import signal
+import hashlib
 
 from genimage.utils import set_logger
 from genimage.constant import DEFAULT_LOCAL_DEB_PACKAGE_FEED
@@ -527,8 +528,30 @@ class ExternalDebian(object):
             src = os.path.join(os.environ['DEBOOTSTRAP_DIR'], "scripts/bullseye")
             utils.copyfile(src, deb_script)
 
-        cmd = "debootstrap --no-check-gpg --arch=amd64 --merged-usr --components={0} {1} {2} {3}".format(
+        # Hash debootstrap parameters, regenerate tarball if hash differs
+        hash_in = '{0} {1} {2} {3}'.format(self.bootstrap_components, self.target_rootfs, self.bootstrap_distro, self.bootstrap_mirror)
+        hash_object = hashlib.md5(hash_in.encode())
+        hash_hex = hash_object.hexdigest()
+        logger.debug("%s -> %s", hash_in, hash_hex)
+        bootstrap_tar = os.path.join(self.workdir, "bootstrap-{0}.tar".format(hash_hex))
+        if not os.path.exists(bootstrap_tar):
+            with tempfile.TemporaryDirectory(dir=os.path.dirname(bootstrap_tar)) as tmpdirname:
+                cmd = "debootstrap --no-check-gpg --arch=amd64 --merged-usr --components={0} --make-tarball={1} {2} {3} {4}".format(
+                                                                             ','.join(self.bootstrap_components),
+                                                                             bootstrap_tar,
+                                                                             self.bootstrap_distro,
+                                                                             tmpdirname,
+                                                                             self.bootstrap_mirror)
+                res, output = utils.run_cmd(cmd, shell=True)
+                if res != 0:
+                    logger.error(output)
+                    sys.exit(1)
+        else:
+            logger.debug("Reuse debootstrap tarball %s", bootstrap_tar)
+
+        cmd = "debootstrap --no-check-gpg --arch=amd64 --merged-usr --components={0} --unpack-tarball={1} {2} {3} {4}".format(
                                                                             ','.join(self.bootstrap_components),
+                                                                             bootstrap_tar,
                                                                              self.bootstrap_distro,
                                                                              self.target_rootfs,
                                                                              self.bootstrap_mirror)
