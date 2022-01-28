@@ -120,6 +120,18 @@ class GenYaml():
         self.pkg_type = GenImage._get_pkg_type(args)
         self.generator = genclass[self.gen_type][self.pkg_type](args)
 
+        # --url '' means empty 'package_feeds':[]
+        if args.url and not args.url[0]:
+            self.generator.data['package_feeds'] = []
+
+        # --pkg '' means empty 'packages':[]
+        if args.pkg and not args.pkg[0]:
+            self.generator.data['packages'] = []
+
+        # --pkg-external '' means empty 'external-packages':[]
+        if args.pkg_external and not args.pkg_external[0]:
+            self.generator.data['external-packages'] = []
+
         if args.output_yaml is None:
             self.generator.output_yaml = os.path.join(
                  self.generator.outdir, "%s-%s.yaml" % (self.generator.data['name'],
