@@ -10,7 +10,7 @@ packages:
 - startup-container
 - docker
 rootfs-post-scripts:
-- echo "contains-container-base load=/var/docker-images/container-base-@MACHINE@.docker-image.tar.bz2 image=container-base-@MACHINE@"  >> $IMAGE_ROOTFS/etc/sysdef/run_on_upgrade.d/containers.dat
+- echo "contains-base load=/var/docker-images/container-base-@MACHINE@.docker-image.tar.bz2 image=container-base-@MACHINE@"  >> $IMAGE_ROOTFS/etc/sysdef/run_on_upgrade.d/containers.dat
 system:
 - run_on_upgrade:
   - exampleyamls/sysdef/run_on_upgrade.d/10_update_containers.sh
