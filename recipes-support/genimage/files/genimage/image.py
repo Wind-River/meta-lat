@@ -337,7 +337,7 @@ class CreateISOImage(Image):
 
 class CreatePXE(Image):
     def _set_allow_keys(self):
-        self.allowed_keys = {'image_name', 'deploydir', 'machine', 'pkg_type', 'pxe_initrd_name', 'boot_params'}
+        self.allowed_keys = {'image_name', 'deploydir', 'machine', 'pkg_type', 'pxe_initrd_name', 'boot_params', 'pxe_rootfs'}
 
     def _add_keys(self):
         self.wks_full_path = ""
@@ -345,7 +345,16 @@ class CreatePXE(Image):
         self.image_fullname = "pxe-tftp-%s-%s" % (self.image_name, self.date)
         self.image_linkname = "pxe-tftp-%s" % (self.image_name)
         self.tftp_dir = os.path.join(self.deploydir, "pxe_tftp_%s" % self.image_name)
-        self.pxe_initrd = "{0}/{1}-{2}.cpio.gz".format(self.deploydir, self.pxe_initrd_name, self.machine)
+        self.pxe_initrd = "{0}/{1}.cpio.gz".format(self.deploydir, self.pxe_initrd_name)
+
+    def _create_pxe_cpio_gz(self):
+        cmd = "cd %s && find . | sort | cpio --reproducible -o -H newc > %s/%s.cpio" % \
+             (self.pxe_rootfs, self.tftp_dir, self.pxe_initrd_name)
+        utils.run_cmd_oneshot(cmd)
+
+        cmd = "cd %s && pigz -f -9 -n -c --rsyncable %s.cpio > %s.cpio.gz && rm %s.cpio" % \
+            (self.tftp_dir, self.pxe_initrd_name, self.pxe_initrd_name, self.pxe_initrd_name)
+        utils.run_cmd_oneshot(cmd)
 
     def create(self):
         utils.run_cmd_oneshot("rm %s -rf" % (self.tftp_dir))
@@ -353,7 +362,7 @@ class CreatePXE(Image):
         os.makedirs(os.path.join(self.tftp_dir, "EFI/BOOT"), 0o777)
         os.makedirs(os.path.join(self.tftp_dir, "pxelinux.cfg"), 0o777)
 
-        utils.run_cmd_oneshot("cp %s %s/" % (self.pxe_initrd, self.tftp_dir))
+        self._create_pxe_cpio_gz()
         utils.run_cmd_oneshot("cp %s/bzImage %s/" % (self.deploydir, self.tftp_dir))
 
         for f in ["ldlinux.c32", "libutil.c32", "menu.c32", "pxelinux.0"]:

@@ -314,39 +314,36 @@ class GenImage(GenXXX):
 
     @show_task_info("Create PXE Initramfs and Boot File")
     def do_image_pxe(self):
-        # Reuse genimage's package_feeds rather than default setting
-        package_feeds = dict()
-        package_feeds["package_feeds"] = self.data["package_feeds"]
-        scriptFile = NamedTemporaryFile(delete=True, dir=".", suffix=".yaml")
-        with open(scriptFile.name, "w") as f:
-            yaml.dump(package_feeds, f)
-            logger.debug("Temp Package Feed Yaml FIle: %s" % (scriptFile.name))
-
         # Create a initramfs with ostree_repo for PXE boot
-        pxe_initrd_name = "{0}-initrd-pxe".format(self.image_name)
-        cmd = "geninitramfs --debug --pkg-type %s --name %s %s" % (self.pkg_type, pxe_initrd_name, scriptFile.name)
-        if self.args.no_validate:
-            cmd += " --no-validate"
-        if self.args.no_clean:
-            cmd += " --no-clean"
+        pxe_rootfs = os.path.join(self.workdir, "pxe_rootfs")
+        if os.path.exists(pxe_rootfs):
+            utils.remove(os.path.join(pxe_rootfs), recurse=True)
+        utils.mkdirhier(pxe_rootfs)
 
-        if not self.data["ostree"].get('ostree_remote_url'):
-            logger.info("Do not specify ostree remote url, copy deploy/ostree_repo to pxe initrd")
-            cmd += " --rootfs-post-script 'cp -a %s/ostree_repo $IMAGE_ROOTFS'" % (self.deploydir)
+        initrd_image = "{0}/{1}-{2}.cpio.gz".format(self.deploydir, os.environ['DEFAULT_INITRD_NAME'], self.machine)
+        if not os.path.exists(initrd_image):
+            logger.error("Initramfs image %s does not exist", initrd_image)
 
-        res, output = utils.run_cmd(cmd, shell=True)
+        # Extract an existed initramfs
+        cmd = "gzip -dck %s | cpio -idm" % initrd_image
+        res, output = utils.run_cmd(cmd, shell=True, cwd=pxe_rootfs)
         if res != 0:
             logger.error(output)
-            scriptFile.file.close()
             sys.exit(1)
 
-        scriptFile.file.close()
+        if not self.data["ostree"].get('ostree_remote_url'):
+            cmd = "cp -a %s/ostree_repo %s" % (self.deploydir, pxe_rootfs)
+            res, output = utils.run_cmd(cmd, shell=True)
+            if res != 0:
+                logger.error(output)
+                sys.exit(1)
 
+        pxe_initrd_name = "{0}-initrd-pxe-{1}".format(self.image_name, self.machine)
         boot_params = self._get_boot_params(self.image_name, self.data["ostree"], image_type="pxe")
-
         pxe = CreatePXE(
                   image_name = self.image_name,
                   pxe_initrd_name = pxe_initrd_name,
+                  pxe_rootfs = pxe_rootfs,
                   boot_params = boot_params,
                   machine = self.machine,
                   deploydir = self.deploydir,
