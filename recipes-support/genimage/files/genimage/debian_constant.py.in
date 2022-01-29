@@ -63,7 +63,9 @@ chroot $IMAGE_ROOTFS usermod -p '$6$hEv/K.fPeg/$ezIWhJPrMG3WtdEwqQRdyBwdYmPZkqW2
 SCRIPT_DEBIAN_SSH_ROOT_LOGIN = '''\
 # Allow root ssh login
 export PATH={0}
-chroot $IMAGE_ROOTFS sed -i 's/^[#[:space:]]*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config\
+if [ -e $IMAGE_ROOTFS/etc/ssh/sshd_config ]; then
+    chroot $IMAGE_ROOTFS sed -i 's/^[#[:space:]]*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+fi\
 '''.format(CHROOT_PATH)
 
 SCRIPT_DEPLOY_KERNEL_GRUB_SDK = '''\
