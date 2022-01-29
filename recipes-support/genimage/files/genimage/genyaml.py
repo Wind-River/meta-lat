@@ -53,8 +53,6 @@ logger = logging.getLogger('appsdk')
 def set_parser_genyaml(parser=None):
     supported_types = [
         'wic',
-        'vmdk',
-        'vdi',
         'ostree-repo',
         'container',
         'initramfs',
@@ -63,6 +61,9 @@ def set_parser_genyaml(parser=None):
 
     if DEFAULT_MACHINE == "intel-x86-64":
         supported_types.append('iso')
+        supported_types.append('pxe')
+        supported_types.append('vmdk')
+        supported_types.append('vdi')
 
     parser = set_parser(parser, supported_types)
     parser.add_argument('-g', '--gpgpath',
