@@ -250,7 +250,9 @@ class GenImage(GenXXX):
             return boot_params
 
         if image_type in ["pxe", "iso"]:
-            boot_params += "biosplusefi=1 instl=/ostree_repo "
+            boot_params += "biosplusefi=1 "
+            if not data_ostree.get('install_net_mode') or not data_ostree.get('ostree_remote_url'):
+                boot_params += "instl=/ostree_repo "
 
         boot_params += "rdinit=/install instname=%s " % data_ostree['ostree_osname']
         boot_params += "instbr=%s instab=%s " % (image_name, data_ostree['ostree_use_ab'])
@@ -281,7 +283,7 @@ class GenImage(GenXXX):
     def _get_bootfs_params(self, data_ostree):
         bootfs_params = "-s 0 "
         # If install net mode and remote ostree url is set, enable install over network
-        if data_ostree.get('install_net_mode')and data_ostree.get('ostree_remote_url'):
+        if data_ostree.get('install_net_mode') and data_ostree.get('ostree_remote_url'):
             bootfs_params += "-u {0} ".format(data_ostree['ostree_remote_url'])
         # Otherwise install from local repo as normal
         else:
@@ -331,7 +333,7 @@ class GenImage(GenXXX):
             logger.error(output)
             sys.exit(1)
 
-        if not self.data["ostree"].get('ostree_remote_url'):
+        if not self.data["ostree"].get('ostree_remote_url') or not self.data["ostree"].get('install_net_mode'):
             cmd = "cp -a %s/ostree_repo %s" % (self.deploydir, pxe_rootfs)
             res, output = utils.run_cmd(cmd, shell=True)
             if res != 0:

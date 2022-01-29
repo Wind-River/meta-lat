@@ -277,7 +277,8 @@ class CreateISOImage(Image):
 
     def _write_wks_template(self):
         source_params = "loader=grub-efi,image_name=%s," % self.image_fullname
-        source_params += "payload_dir=%s/ostree_repo,dest_dir=ostree_repo," % self.deploydir
+        if 'instl=/ostree_repo' in self.wks_in_environ['BOOT_PARAMS']:
+            source_params += "payload_dir=%s/ostree_repo,dest_dir=ostree_repo," % self.deploydir
         if self.pkg_type == "external-debian" :
             source_params += "initrd=%s-%s.cpio.gz" % (deb_constant.DEFAULT_INITRD_NAME, self.machine)
         else:
