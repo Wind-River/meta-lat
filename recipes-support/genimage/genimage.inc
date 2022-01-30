@@ -42,7 +42,6 @@ SRC_URI = "\
            file://genimage/data/yaml_example/feature/set_root_password.yaml \
            file://genimage/data/yaml_example/feature/package_management.yaml \
            file://genimage/data/yaml_example/feature/debug-tweaks.yaml \
-           file://genimage/data/yaml_example/feature/startup-container.yaml \
            file://genimage/data/yaml_example/feature/expire-root-passwd.yaml \
            file://genimage/data/yaml_example/debian_feature/debian-verbose-log.yaml \
            file://genimage/data/yaml_example/images/core-image-minimal.yaml \
