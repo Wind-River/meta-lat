@@ -31,7 +31,6 @@ from genimage.constant import SUPPORTED_PKGTYPES
 from genimage.constant import DEFAULT_IMAGE_PKGTYPE
 from genimage.constant import SUPPORTED_ARM_MACHINES
 
-import genimage.constant as constant
 import genimage.utils as utils
 import genimage.debian_constant as deb_constant
 import genimage.constant as constant
@@ -183,23 +182,7 @@ def _main_run_internal(args):
                 f.write("- contains:\n")
                 f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % constant.DEFAULT_IMAGE)
 
-        kickstart_dir = os.path.join(outdir, "kickstart")
-        kickstart_src = os.path.join(native_sysroot, 'usr/share/genimage/data/kickstart/lat-installer*.ks')
-        cmd = "mkdir -p {0} && cp -f {1} {2}/".format(kickstart_dir, kickstart_src, kickstart_dir)
-        utils.run_cmd_oneshot(cmd)
-
-        kickstart_doc_in = os.path.join(native_sysroot, "usr/share/genimage/data/kickstart", "kickstart.README.md.in")
-        content = open(kickstart_doc_in, "r").read()
-        if args.pkg_type ==  "external-debian":
-            content = content.replace("@PKG_TYPE@", "--pkg-type external-debian")
-            content = content.replace("@IMAGE_NAME@", deb_constant.DEFAULT_IMAGE)
-        elif args.pkg_type == "rpm":
-            content = content.replace("@PKG_TYPE@", "")
-            content = content.replace("@IMAGE_NAME@", constant.DEFAULT_IMAGE)
-
-        kickstart_doc = os.path.join(outdir, "kickstart", "kickstart.README.md")
-        with open(kickstart_doc, "w") as f:
-            f.write(content)
+        utils.deploy_kickstart_example(args.pkg_type, outdir)
 
     utils.remove(os.path.join(outdir, "deploy"), recurse=True)
 

@@ -30,6 +30,8 @@ import configparser
 from pykwalify.core import Core
 
 from genimage.constant import DEFAULT_MACHINE
+import genimage.debian_constant as deb_constant
+import genimage.constant as constant
 
 def repr_str(dumper: RoundTripRepresenter, data: str):
     if '\n' in data:
@@ -604,3 +606,24 @@ def parse_yamls(yaml_files, no_validate=False, pykwalify_schemas=None, quiet=Fal
                 logger.error("There is duplicated '%s' in Yaml File %s", key, yaml_file)
                 sys.exit(1)
     return data
+
+def deploy_kickstart_example(pkg_type, outdir):
+    native_sysroot = os.environ['OECORE_NATIVE_SYSROOT']
+    kickstart_dir = os.path.join(outdir, "kickstart")
+    kickstart_src = os.path.join(native_sysroot, 'usr/share/genimage/data/kickstart/lat-installer*.ks')
+    cmd = "mkdir -p {0} && cp -f {1} {2}/".format(kickstart_dir, kickstart_src, kickstart_dir)
+    run_cmd_oneshot(cmd)
+
+    kickstart_doc_in = os.path.join(native_sysroot, "usr/share/genimage/data/kickstart", "kickstart.README.md.in")
+    content = open(kickstart_doc_in, "r").read()
+    if pkg_type ==  "external-debian":
+        content = content.replace("@PKG_TYPE@", "--pkg-type external-debian")
+        content = content.replace("@IMAGE_NAME@", deb_constant.DEFAULT_IMAGE)
+    elif pkg_type == "rpm":
+        content = content.replace("@PKG_TYPE@", "")
+        content = content.replace("@IMAGE_NAME@", constant.DEFAULT_IMAGE)
+
+    kickstart_doc = os.path.join(outdir, "kickstart", "kickstart.README.md")
+    with open(kickstart_doc, "w") as f:
+        f.write(content)
+

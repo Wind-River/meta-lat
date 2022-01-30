@@ -198,6 +198,9 @@ class GenImage(GenXXX):
                 cmd = "cp -f {0} {1}".format(qemu_data, self.deploydir)
                 utils.run_cmd_oneshot(cmd)
 
+        if self.data["ostree"]["install_kickstart_url"]:
+            utils.deploy_kickstart_example(self.pkg_type, self.deploydir)
+
     @show_task_info("Create Wic Image")
     def do_image_wic(self):
         workdir = os.path.join(self.workdir, self.image_name)
