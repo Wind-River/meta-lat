@@ -535,7 +535,7 @@ set_network() {
   # Ifupdown
   if [ -d /etc/network/interfaces.d ]; then
     if [ -f ${lat_network_ifupdown} ]; then
-      lat_interface="${target_rootfs}/etc/network/interfaces"
+      lat_interface="${target_rootfs}/etc/network/interfaces.d"
       mkdir -p ${lat_interface}
       cp ${lat_network_ifupdown} ${lat_interface}/lat_nework
       echo "Deploy ${lat_interface}"
