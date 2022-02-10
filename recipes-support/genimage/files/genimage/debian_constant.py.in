@@ -125,6 +125,7 @@ DEFAULT_PACKAGES = '''
     rsyslog
     openssh-client
     openssh-server
+    procps
     net-tools
     vim
 '''.split()
@@ -158,7 +159,7 @@ OSTREE_INITRD_PACKAGES = '''
     ostree-boot=${DEBIAN_OSTREE_VERSION}
     libostree-1-1=${DEBIAN_OSTREE_VERSION}
     tar udev util-linux fdisk mount
-    linux-image-amd64 grub2 psmisc
+    linux-image-amd64 grub2 psmisc procps
     ifupdown iproute2 isc-dhcp-client isc-dhcp-common
 '''.split()
 
