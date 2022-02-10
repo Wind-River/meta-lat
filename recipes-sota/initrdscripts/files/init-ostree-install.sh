@@ -40,6 +40,8 @@ OPTIONAL:
  instw=#			- Number of seconds to wait before erasing disk
  instab=0			- Do not use the AB layout, only use A
  instnet=0			- Do not invoke udhcpc or dhcpcd
+    				- instnet=dhcp, use dhcp ipv4
+    				- instnet=dhcp6, use dhcp ipv6
    If the above is 0, use the kernel arg:
     ip=<client-ip>::<gw-ip>:<netmask>:<hostname>:<device>:off:<dns0-ip>:<dns1-ip>
    Example:
@@ -66,6 +68,8 @@ OPTIONAL:
  instdate=datespec	        - Argument to "date -u -s" like @1577836800
  dhcpargs=DHCP_ARGS		- Args to "udhcpc -i" or "dhcpcd" like wlan0
 				  ask = Ask which interface to use
+ instifmac=INST_IF_MAC	- MAC address of the net interface, its interface is used by dhcp client
+                      	  MAC format, such as instifmac=52:54:00:12:34:56
  wifi=ssid=YOUR_SSID;psk=your_key - Setup via wpa_cli for authentication
  wifi=ssid=YOUR_SSID;psk=ask    - Ask for password at run time
  wifi=scan                      - Dynamically Construct wifi wpa_supplicant
@@ -398,21 +402,48 @@ do_dhcp() {
 			[[ "$reply" =~ ^[0-9]+$ ]] && [ "$reply" -ge 0 -a "$reply" -lt ${#iface[@]} ] && break
 		done
 		DHCPARGS="${iface[$reply]}"
+	elif [ -z "${DHCPARGS}" -a -n "${INSTIFMAC}" ] ; then
+		cd /sys/class/net/
+		for addr in $(ls */address); do
+			mac=$(cat $addr)
+			if [ $INSTIFMAC = $mac ]; then
+				DHCPARGS="${addr%%/address}"
+				break
+			fi
+		done
+		if [ -z "${DHCPARGS}" ]; then
+			fatal "No interface (mac ${INSTIFMAC}) found"
+		fi
+		cd -
 	fi
 	dhcp_done=1
 	if [ -f /sbin/wpa_supplicant -a "${DHCPARGS}" != "${DHCPARGS#w}" ] ; then
 		# Activate wifi
 		do_wifi
 	fi
-	if [ -f /sbin/udhcpc ] ; then
-		# Assume first arg is ethernet inteface
-		if [ "${DHCPARGS}" != "" ] ; then
-			/sbin/udhcpc -i ${DHCPARGS}
+	if [ "$INSTNET" = dhcp ] ; then
+		if [ -f /sbin/udhcpc ] ; then
+			# Assume first arg is ethernet inteface
+			if [ "${DHCPARGS}" != "" ] ; then
+				/sbin/udhcpc -i ${DHCPARGS}
+			else
+				/sbin/udhcpc
+			fi
 		else
-			/sbin/udhcpc
+			dhcpcd ${DHCPARGS}
 		fi
-	else
-		dhcpcd ${DHCPARGS}
+	elif [ "$INSTNET" = dhcp6 ] ; then
+		if [ -f /usr/sbin/dhclient ] ; then
+			# Assume first arg is ethernet inteface
+			if [ "${DHCPARGS}" != "" ] ; then
+				/usr/sbin/dhclient -6 -i ${DHCPARGS}
+			else
+				/usr/sbin/dhclient -6
+			fi
+		else
+			dhcpcd -6 ${DHCPARGS}
+		fi
+
 	fi
 }
 
@@ -500,6 +531,7 @@ INSTURL=${INSTURL=""}
 INSTGPG=${INSTGPG=""}
 INSTSF=${INSTSF=""}
 INSTFLUX=${INSTFLUX=""}
+INSTIFMAC=${INSTIFMAC=""}
 DHCPARGS=${DHCPARGS=""}
 WIFI=${WIFI=""}
 ECURL=${ECURL=""}
@@ -579,6 +611,8 @@ read_args() {
 				INSTFLUX=$optarg ;;
 			dhcpargs=*)
 				DHCPARGS=$optarg ;;
+			instifmac=*)
+				INSTIFMAC=$optarg ;;
 			wifi=*)
 				WIFI=$optarg ;;
 			ecurl=*)
@@ -862,7 +896,7 @@ if [ "$IP" != "" ] ; then
 	done
 fi
 
-if [ "$INSTNET" = dhcp ] ; then
+if [ "$INSTNET" = dhcp -o "$INSTNET" = dhcp6 ] ; then
 	do_dhcp
 fi
 

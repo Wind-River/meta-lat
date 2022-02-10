@@ -382,7 +382,11 @@ class CreatePXE(Image):
                 content = f.read()
                 content = content.replace("@IMAGE_NAME@", self.image_name)
                 content = content.replace("@INITRD@", os.path.basename(self.pxe_initrd))
-                content = content.replace("@BOOT_PARAMS@", self.boot_params)
+                if os.path.basename(bootfile) == "grub.cfg":
+                    # EFI grub will assign $net_default_mac
+                    content = content.replace("@BOOT_PARAMS@", self.boot_params+" instifmac=$net_default_mac ")
+                else:
+                    content = content.replace("@BOOT_PARAMS@", self.boot_params)
             with open(bootfile, "w") as f:
                 f.write(content)
 

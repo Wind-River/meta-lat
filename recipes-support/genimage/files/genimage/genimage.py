@@ -228,8 +228,8 @@ class GenImage(GenXXX):
             date_since_epoch = datetime.datetime.now().strftime('%s')
             boot_params = "instdate=@%s instw=60 " % date_since_epoch
 
-            if data_ostree['install_net_mode'] == "dhcp":
-                boot_params += "instnet=dhcp "
+            if data_ostree['install_net_mode'] in ["dhcp", "dhcp6"]:
+                boot_params += "instnet=%s " % data_ostree['install_net_mode']
                 if data_ostree['install_net_params']:
                     boot_params += "dhcpargs=%s " % data_ostree['install_net_params']
             elif data_ostree['install_net_mode'] == "static-ipv4":
