@@ -115,6 +115,14 @@ echo "intel-x86-64" > $IMAGE_ROOTFS/etc/hostname
 '''
 
 DEFAULT_PACKAGES = '''
+    ifupdown
+    iproute2
+    isc-dhcp-client
+    isc-dhcp-common
+    apt-utils
+    fdisk
+    kmod
+    rsyslog
     openssh-client
     openssh-server
     net-tools
@@ -151,6 +159,7 @@ OSTREE_INITRD_PACKAGES = '''
     libostree-1-1=${DEBIAN_OSTREE_VERSION}
     tar udev util-linux fdisk mount
     linux-image-amd64 grub2 psmisc
+    ifupdown iproute2 isc-dhcp-client isc-dhcp-common
 '''.split()
 
 DEFAULT_CONTAINER_PACKAGES = '''
