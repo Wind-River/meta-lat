@@ -11,4 +11,5 @@ LABEL install
     menu default
     menu label ^OSTree Install @IMAGE_NAME@
     kernel bzImage
+    ipappend 2
     append initrd=@INITRD@ @BOOT_PARAMS@

@@ -68,8 +68,8 @@ OPTIONAL:
  instdate=datespec	        - Argument to "date -u -s" like @1577836800
  dhcpargs=DHCP_ARGS		- Args to "udhcpc -i" or "dhcpcd" like wlan0
 				  ask = Ask which interface to use
- instifmac=INST_IF_MAC	- MAC address of the net interface, its interface is used by dhcp client
-                      	  MAC format, such as instifmac=52:54:00:12:34:56
+ BOOTIF=BOOT_IF_MAC	- MAC address of the net interface, its interface is used by dhcp client
+                      	  MAC format, such as BOOTIF=52:54:00:12:34:56 or BOOTIF=01-52-54-00-12-34-56
  wifi=ssid=YOUR_SSID;psk=your_key - Setup via wpa_cli for authentication
  wifi=ssid=YOUR_SSID;psk=ask    - Ask for password at run time
  wifi=scan                      - Dynamically Construct wifi wpa_supplicant
@@ -402,17 +402,17 @@ do_dhcp() {
 			[[ "$reply" =~ ^[0-9]+$ ]] && [ "$reply" -ge 0 -a "$reply" -lt ${#iface[@]} ] && break
 		done
 		DHCPARGS="${iface[$reply]}"
-	elif [ -z "${DHCPARGS}" -a -n "${INSTIFMAC}" ] ; then
+	elif [ -z "${DHCPARGS}" -a -n "${BOOTIF}" ] ; then
 		cd /sys/class/net/
 		for addr in $(ls */address); do
 			mac=$(cat $addr)
-			if [ $INSTIFMAC = $mac ]; then
+			if [ ${BOOTIF} = $mac ]; then
 				DHCPARGS="${addr%%/address}"
 				break
 			fi
 		done
 		if [ -z "${DHCPARGS}" ]; then
-			fatal "No interface (mac ${INSTIFMAC}) found"
+			fatal "No interface (mac ${BOOTIF}) found"
 		fi
 		cd -
 	fi
@@ -531,7 +531,7 @@ INSTURL=${INSTURL=""}
 INSTGPG=${INSTGPG=""}
 INSTSF=${INSTSF=""}
 INSTFLUX=${INSTFLUX=""}
-INSTIFMAC=${INSTIFMAC=""}
+BOOTIF=${BOOTIF=""}
 DHCPARGS=${DHCPARGS=""}
 WIFI=${WIFI=""}
 ECURL=${ECURL=""}
@@ -611,8 +611,12 @@ read_args() {
 				INSTFLUX=$optarg ;;
 			dhcpargs=*)
 				DHCPARGS=$optarg ;;
-			instifmac=*)
-				INSTIFMAC=$optarg ;;
+			BOOTIF=*)
+				# 01-52-54-00-12-34-56 -> 52-54-00-12-34-56
+				BOOTIF=${optarg#*-}
+				# 52-54-00-12-34-56 -> 52:54:00:12:34:56
+				BOOTIF=${BOOTIF//-/:}
+				;;
 			wifi=*)
 				WIFI=$optarg ;;
 			ecurl=*)
