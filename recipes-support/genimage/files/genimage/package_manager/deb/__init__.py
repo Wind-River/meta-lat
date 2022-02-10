@@ -536,7 +536,7 @@ class ExternalDebian(object):
         bootstrap_tar = os.path.join(self.workdir, "bootstrap-{0}.tar".format(hash_hex))
         if not os.path.exists(bootstrap_tar):
             with tempfile.TemporaryDirectory(dir=os.path.dirname(bootstrap_tar)) as tmpdirname:
-                cmd = "debootstrap --no-check-gpg --arch=amd64 --merged-usr --components={0} --make-tarball={1} {2} {3} {4}".format(
+                cmd = "debootstrap --variant=minbase --no-check-gpg --arch=amd64 --merged-usr --components={0} --make-tarball={1} {2} {3} {4}".format(
                                                                              ','.join(self.bootstrap_components),
                                                                              bootstrap_tar,
                                                                              self.bootstrap_distro,
@@ -549,7 +549,7 @@ class ExternalDebian(object):
         else:
             logger.debug("Reuse debootstrap tarball %s", bootstrap_tar)
 
-        cmd = "debootstrap --no-check-gpg --arch=amd64 --merged-usr --components={0} --unpack-tarball={1} {2} {3} {4}".format(
+        cmd = "debootstrap --variant=minbase --no-check-gpg --arch=amd64 --merged-usr --components={0} --unpack-tarball={1} {2} {3} {4}".format(
                                                                             ','.join(self.bootstrap_components),
                                                                              bootstrap_tar,
                                                                              self.bootstrap_distro,
