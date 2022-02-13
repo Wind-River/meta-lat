@@ -27,6 +27,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <pty.h>
+#include <errno.h>
 
 #ifndef VDISABLE
 #ifdef _POSIX_VDISABLE
@@ -182,6 +183,18 @@ static void fork_start(char **argv) {
 	}
 }
 
+static ssize_t _write(int fd, void *buf, size_t count) {
+	ssize_t n;
+	while ((n = write(fd, buf, count)) < 1) {
+		if (errno == EAGAIN) {
+			usleep(1);
+			continue;
+		}
+		return n;
+	}
+	return n;
+}
+
 static void data_loop(char **argv) {
 	fd_set rds;
 	int ret;
@@ -192,7 +205,7 @@ static void data_loop(char **argv) {
 	fork_start(argv);
 	atexit(restore_term);
 	/* Start the master program running */
-	if (write(pfd[1], "w", 1) < 1) {
+	if (_write(pfd[1], "w", 1) < 1) {
 		printf("Error Failed client initiation\n");
 		cleanup(1);
 	}
@@ -205,7 +218,7 @@ static void data_loop(char **argv) {
 			if (FD_ISSET(cfd[i], &rds)) {
 				if (read(cfd[i], buf, 1) < 0)
 					cleanup(1);
-				if (write(pty_fd, buf, 1) < 1)
+				if (_write(pty_fd, buf, 1) < 1)
 					cleanup(1);
 				ret--;
 			}
@@ -213,7 +226,7 @@ static void data_loop(char **argv) {
 		if (ret > 0 && FD_ISSET(STDIN, &rds)) {
 			if (read(STDIN, buf, 1) < 0)
 				cleanup(1);
-			if (write(pty_fd, buf, 1) < 1)
+			if (_write(pty_fd, buf, 1) < 1)
 				cleanup(1);
 			ret--;
 		}
@@ -221,10 +234,10 @@ static void data_loop(char **argv) {
 			if (read(pty_fd, buf, 1) < 0)
 				cleanup(1);
 			if (USE_STDOUT)
-				if (write(STDOUT, buf, 1) < 1)
+				if (_write(STDOUT, buf, 1) < 1)
 					cleanup(1);
 			for (j = 0; j < devices; j++) {
-				if (write(cfd[j], buf, 1) < 1)
+				if (_write(cfd[j], buf, 1) < 1)
 					cleanup(1);
 			}
 			ret--;
