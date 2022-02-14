@@ -56,7 +56,6 @@ class GenContainer(GenXXX):
 
     def __init__(self, args):
         super(GenContainer, self).__init__(args)
-        self.exclude_packages = ['systemd*']
         if not self.data['container_upload_cmd'] or self.data['container_upload_cmd'].startswith('#'):
             skopeo_opt = "--dest-tls-verify=false --insecure-policy"
             src_image = "docker-archive:{0}/{1}-{2}.docker-image.tar.bz2".format(os.path.relpath(self.deploydir), self.image_name, self.machine)
