@@ -1054,7 +1054,7 @@ fi
 udevadm settle --timeout=3
 
 cnt=50
-while [ $cnt ] ; do
+while [ "$cnt" -gt 0 ] ; do
 	blockdev --rereadpt ${dev} 2> /dev/null > /dev/null && break
 	sleep 0.1
 	cnt=$(($cnt - 1))
@@ -1101,8 +1101,10 @@ if [ "$BL" = "grub" -a "$INSTFMT" != "0" ] ; then
 			mkfs.ext4 -F -L otaroot_b ${fs_dev}${pi}
 		fi
 	fi
+
 	if [ "${INSTFLUX}" = 1 ] ; then
-		FLUXPART=$((pi+1))
+		pi=$((pi+1))
+		FLUXPART=${pi}
 		if [ $LUKS -gt 0 ] ; then
 			echo Y | luks-setup.sh -f $dashe -d ${fs_dev}${FLUXPART} -n luksfluxdata || \
 				fatal "Cannot create LUKS volume luksfluxdata"
@@ -1118,16 +1120,20 @@ elif [ "$INSTFMT" != 0 ] ; then
 	else
 		mkfs.vfat -n boot ${fs_dev}${p1}
 	fi
-	FLUXPART=9
-	mkfs.ext4 -F -L otaboot ${fs_dev}5
-	mkfs.ext4 -F -L otaroot ${fs_dev}6
+	pi=5
+	mkfs.ext4 -F -L otaboot ${fs_dev}${pi}
+	pi=$((pi+1))
+	mkfs.ext4 -F -L otaroot ${fs_dev}${pi}
 	if [ "$INSTAB" = "1" ] ; then
-		mkfs.ext4 -F -L otaboot_b ${fs_dev}7
-		mkfs.ext4 -F -L otaroot_b ${fs_dev}8
-	else
-		FLUXPART=7
+		pi=$((pi+1))
+		mkfs.ext4 -F -L otaboot_b ${fs_dev}${pi}
+		pi=$((pi+1))
+		mkfs.ext4 -F -L otaroot_b ${fs_dev}${pi}
 	fi
+
 	if [ "${INSTFLUX}" = 1 ] ; then
+		pi=$((pi+1))
+		FLUXPART=${pi}
 		mkfs.ext4 -F -L fluxdata ${fs_dev}${FLUXPART}
 	fi
 fi
