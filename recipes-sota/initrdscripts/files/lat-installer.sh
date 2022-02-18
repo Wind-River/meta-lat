@@ -17,6 +17,8 @@
 #* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #* 
 #*/
+source /lat-installer.hook
+
 lat_tmp="/tmp/lat"
 lat_cmdline="${lat_tmp}/cmdline"
 lat_network_systemd_dir="${lat_tmp}/lat_network_systemd"
@@ -395,7 +397,7 @@ ks_pre_script() {
   local i=0
 
   mkdir -p ${lat_pre_script}
-  sed -e '/^%pre/,/^%end$/!d' "${ks_file}" | while read -r line
+  sed -e '/^%pre-part/,/^%end$/d' "${ks_file}" | sed -e '/^%pre/,/^%end$/!d' | while read -r line
   do
     [ "${line::1}" = "#" -o "${line::1}" = "" -o "${line::1}" = " " ] && continue
 
@@ -479,6 +481,8 @@ parse_ks() {
       fatal "Reactive network failed"
     fi
   fi
+
+  ks_parse_hook "%pre-part" "${lat_pre_part}"
 
   ks_pre_script
 

@@ -95,6 +95,8 @@ log_error() { echo "$0[$$]: ERROR $*" >&2; }
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/lib/ostree:/usr/lib64/ostree
 
+source /lat-installer.hook
+
 lreboot() {
 	echo b > /proc/sysrq-trigger
 	while [ 1 ] ; do
@@ -910,6 +912,13 @@ if [ -n "${KS}" ]; then
 		fatal "Parse Kickstart ${KS} failed"
 	fi
 	CMDLINE=`cat /tmp/lat/cmdline` read_args
+fi
+
+if [ -n "${KS}" ]; then
+	exec_hook "%pre-part" ${lat_pre_part}
+	if [ $? -ne 0 ]; then
+		fatal "Run Kickstart Per Partitioin Script failed"
+	fi
 fi
 
 # Early curl exec
