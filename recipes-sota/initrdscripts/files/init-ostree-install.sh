@@ -770,6 +770,15 @@ grub_partition() {
 		fi
 		a="$a -n $p:$first:$end -c $p:fluxdata"
 	fi
+
+	# Create new partitions (optional), grub
+	if [ "${VSZ}" != 0  -a -n "${KS}" ]; then
+		exec_hook "%part" ${lat_create_part}
+		if [ $? -ne 0 ]; then
+			fatal "Run Kickstart Create Part Script failed"
+		fi
+	fi
+
 	sgdisk $a -p ${dev}
 }
 
@@ -809,6 +818,7 @@ ufdisk_partition() {
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
 		fi
+
 		# flux data partition
 		if [ "$VSZ" = 0 ] ; then
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'), +" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
@@ -826,7 +836,19 @@ ufdisk_partition() {
 		else
 			# Create Boot and Root A partition for whole disk
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
-			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'), +" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			if [ "$VSZ" = 0 ] ; then
+				echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'), +" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			else
+				echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			fi
+		fi
+	fi
+
+	# Create new partitions (optional), udisk
+	if [ "${VSZ}" != 0 -a -n "${KS}" ]; then
+		exec_hook "%part" ${lat_create_part}
+		if [ $? -ne 0 ]; then
+			fatal "Run Kickstart Create Part Script failed"
 		fi
 	fi
 }

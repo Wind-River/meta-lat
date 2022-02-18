@@ -484,6 +484,8 @@ parse_ks() {
 
   ks_parse_hook "%pre-part" "${lat_pre_part}"
 
+  ks_parse_hook "%part" "${lat_create_part}"
+
   ks_pre_script
 
   ks_post_script
