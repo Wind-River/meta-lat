@@ -9,6 +9,7 @@ override_dh_auto_install:
 	install -m 0755 init-ostree.sh $(CURDIR)/debian/initramfs-ostree/init
 	install -m 0755 init.luks-ostree $(CURDIR)/debian/initramfs-ostree/init.luks-ostree
 	install -m 0755 lat-installer.sh $(CURDIR)/debian/initramfs-ostree/lat-installer.sh
+	install -m 0755 lat-installer.hook $(CURDIR)/debian/initramfs-ostree/lat-installer.hook
 	sed -i -e "s#@OSTREE_OSNAME@#${OSTREE_OSNAME}#g" $(CURDIR)/debian/initramfs-ostree/install
 	sed -i -e "s#@OSTREE_OSNAME@#${OSTREE_OSNAME}#g" $(CURDIR)/debian/initramfs-ostree/init.luks-ostree
 	install -d $(CURDIR)/debian/initramfs-ostree/dev

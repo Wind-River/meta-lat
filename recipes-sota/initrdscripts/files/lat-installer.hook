@@ -1,0 +1,59 @@
+#/*
+#* 
+#* Copyright (c) 2022 Wind River Systems, Inc.
+#* 
+#* This program is free software; you can redistribute it and/or modify
+#* it under the terms of the GNU General Public License version 2 as
+#* published by the Free Software Foundation.
+#* 
+#* This program is distributed in the hope that it will be useful,
+#* but WITHOUT ANY WARRANTY; without even the implied warranty of
+#* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#* See the GNU General Public License for more details.
+#* 
+#* You should have received a copy of the GNU General Public License
+#* along with this program; if not, write to the Free Software
+#* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#* 
+#*/
+lat_tmp="/tmp/lat"
+lat_pre_part="${lat_tmp}/lat_pre_part"
+lat_create_part="${lat_tmp}/lat_create_part"
+lat_make_fs="${lat_tmp}/lat_create_fs"
+
+exec_hook() {
+  local key=${1}
+  local script_dir=${2}
+  local script=""
+  for script in `ls ${script_dir}/* 2>/dev/null`; do
+    echo "Export ${key} hook script ${script}"
+    . ${script}
+    if [ $? -ne 0 ]; then
+      fatal "Export ${key} hook script ${script} failed"
+    fi
+  done
+}
+
+ks_parse_hook() {
+  local key=${1}
+  local script_dir=${2}
+
+  local script=""
+  local i=0
+
+  mkdir -p ${script_dir}
+  sed -e "/^${key}/,/^%end$/!d" "${ks_file}" | while read -r line
+  do
+    [ "${line::1}" = "#" -o "${line::1}" = "" ] && continue
+
+    # ${line} starts with ${key}
+    if [ "${line#${key}}" != "${line}" ]; then
+      script="${script_dir}/${i}_script"
+    elif [ "${line::4}" = "%end" ]; then
+      chmod a+x ${script}
+      i=$((i+1))
+    elif [ "${line::4}" != "%end" ]; then
+      echo "$line" >> ${script}
+    fi
+  done
+}

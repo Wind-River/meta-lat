@@ -5,6 +5,7 @@ SRC_URI = "file://init-ostree.sh \
 	file://init-ostree-install.sh \
 	file://init.luks-ostree \
 	file://lat-installer.sh \
+	file://lat-installer.hook \
 "
 
 PR = "r9"
@@ -46,6 +47,7 @@ do_install() {
 	install -d ${D}/dev
 	mknod -m 622 ${D}/dev/console c 5 1
 	install -m 0755 ${WORKDIR}/lat-installer.sh ${D}/lat-installer.sh
+	install -m 0755 ${WORKDIR}/lat-installer.hook ${D}/lat-installer.hook
 }
 
 # While this package maybe an allarch due to it being a 
@@ -54,7 +56,7 @@ do_install() {
 #inherit allarch
 INHIBIT_DEFAULT_DEPS = "1"
 
-FILES:${PN} = " /init /init.luks-ostree /dev /install /lat-installer.sh"
+FILES:${PN} = " /init /init.luks-ostree /dev /install /lat-installer.sh /lat-installer.hook"
 
 COMPATIBLE_HOST = "(arm|aarch64|i.86|x86_64|powerpc).*-linux"
 
