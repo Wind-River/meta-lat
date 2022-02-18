@@ -158,7 +158,7 @@ OSTREE_INITRD_PACKAGES = '''
     ostree=${DEBIAN_OSTREE_VERSION}
     ostree-boot=${DEBIAN_OSTREE_VERSION}
     libostree-1-1=${DEBIAN_OSTREE_VERSION}
-    tar udev util-linux fdisk mount
+    tar udev util-linux fdisk mount lvm2
     linux-image-amd64 grub2 psmisc procps
     ifupdown iproute2 isc-dhcp-client isc-dhcp-common
 '''.split()
@@ -169,6 +169,7 @@ DEFAULT_CONTAINER_PACKAGES = '''
     net-tools
     vim
     debootstrap
+    lvm2
 '''.split()
 
 DEFAULT_OSTREE_DATA = {

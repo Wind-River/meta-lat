@@ -88,6 +88,7 @@ DEBS_DEPENDS += " \
     lxdm:do_package_write_deb \
     gsettings-desktop-schemas:do_package_write_deb \
     i2c-tools:do_package_write_deb \
+    lvm2:do_package_write_deb \
 "
 DEBS_DEPENDS:append:intel-x86-64 = " \
     vboxguestdrivers:do_package_write_deb \
@@ -102,6 +103,7 @@ RPMS_DEPENDS += " \
     lxdm:do_package_write_rpm \
     gsettings-desktop-schemas:do_package_write_rpm \
     i2c-tools:do_package_write_rpm \
+    lvm2:do_package_write_rpm \
 "
 RPMS_DEPENDS:append:intel-x86-64 = " \
     vboxguestdrivers:do_package_write_rpm \
