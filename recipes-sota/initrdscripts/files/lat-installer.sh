@@ -414,7 +414,7 @@ ks_post_script() {
   mkdir -p ${lat_post_script} ${lat_post_nochroot_script}
   sed -e '/^%post/,/^%end$/!d' "${ks_file}" | while read -r line
   do
-    [ "${line::1}" = "#" -o "${line::1}" = "" -o "${line::1}" = " " ] && continue
+    [ "${line::1}" = "#" -o "${line::1}" = "" ] && continue
 
     if [ "${line::5}" = "%post" ]; then
       local nochroot=`expr "$line" : '.* --\(nochroot\)'`
@@ -445,7 +445,7 @@ parse_ks() {
 
   while read -r line
   do
-    [ "${line::1}" = "#" -o "${line::1}" = "" -o "${line::1}" = " " ] && continue
+    [ "${line::1}" = "#" -o "${line::1}" = "" ] && continue
 
     if [ "${line::8}" = "network " ]; then
       echo "network: $line"
