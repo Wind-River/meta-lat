@@ -1169,6 +1169,14 @@ elif [ "$INSTFMT" != 0 ] ; then
 	fi
 fi
 
+# Create filesystem on new partitions (optional), grub and udisk
+if [ "${VSZ}" != 0 -a -n "${KS}" ]; then
+	exec_hook "%mkfs" ${lat_make_fs}
+	if [ $? -ne 0 ]; then
+		fatal "Run Kickstart Make FS Script failed"
+	fi
+fi
+
 partprobe ${INSTDEV}
 
 if [ -n "${KS}" ]; then
