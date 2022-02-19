@@ -131,6 +131,13 @@ expand_fluxdata() {
 		echo "No fluxdata expansion." && return 0
 	fi
 
+	nextpartnum=$(($datadevnum+1))
+	nextpart=$(echo ${datapart} | sed 's/\(.*\)\(.\)$/\1/')${nextpartnum}
+	blkid ${nextpart} >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		echo "The fluxdata ${datapart} is not last partitioin, no expansion." && return 0
+	fi
+
 	echo "Expanding partition for ${fluxdata_label} ..."
 	echo ", +" | sfdisk -N $datadevnum /dev/$datadev
 	cnt=50
