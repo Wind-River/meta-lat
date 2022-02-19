@@ -31,6 +31,9 @@ target_rootfs=""
 
 ks_file="${lat_tmp}/lat-installer.ks"
 
+INSTFLUX="1"
+INSTOS="lat-os"
+
 fatal() {
   echo "$@"
   exit 1
@@ -39,7 +42,7 @@ fatal() {
 usage()
 {
     cat >&2 <<EOF
-usage: lat-installer.sh [-v] parse-ks --kickstart=<kick-file> | pre-install | set-network --root=<root-dir> | post-install --root=<root-dir>
+usage: lat-installer.sh [-v] parse-ks --kickstart=<kick-file> --instflux=0|1 | pre-install | set-network --root=<root-dir> | post-install --root=<root-dir>
            -v: verbose
 EOF
 }
@@ -373,6 +376,11 @@ ks_lat_disk () {
         shift
         continue
         ;;
+      --inst-flux=*)
+        boot_params="$boot_params instflux=$val"
+        shift
+        continue
+        ;;
       *)
         break
         ;;
@@ -493,7 +501,11 @@ post_install() {
   set -e
   mount --bind /sysroot/boot ${target_rootfs}/boot
   mount --bind /sysroot/boot/efi ${target_rootfs}/boot/efi
-  mount LABEL=fluxdata ${target_rootfs}/var
+  if [ "${INSTFLUX}" = 1 ] ; then
+    mount LABEL=fluxdata ${target_rootfs}/var
+  else
+    mount --bind /sysroot/ostree/deploy/${INSTOS}/var ${target_rootfs}/var
+  fi
   mount --bind /proc ${target_rootfs}/proc
   mount --bind /sys ${target_rootfs}/sys
   mount --bind /dev ${target_rootfs}/dev
@@ -590,6 +602,16 @@ while [ $# -gt 0 ]; do
       if [ -z "${target_rootfs}" -o ! -d "${target_rootfs}" ]; then
         fatal "Root dir ${target_rootfs} not found"
       fi
+      shift
+      continue
+      ;;
+    --instflux=*)
+      INSTFLUX=$val
+      shift
+      continue
+      ;;
+    --instos=*)
+      INSTOS=$val
       shift
       continue
       ;;

@@ -741,7 +741,7 @@ grub_partition() {
 		if [ "$VSZ" = 0 ] ; then
 			end=$last
 		else
-			end=$(($first+($VSZ*1024*1024/$lsz)-1))
+			end=$(($first+($RSZ*1024*1024/$lsz)-1))
 		fi
 		a="$a -n $p:$first:$end -c $p:otaroot"
 	else
@@ -1370,7 +1370,7 @@ if [ -n "${KS}" ]; then
 			fatal "Run Kickstart Set network failed in ${root}"
 		fi
 
-		./lat-installer.sh post-install --root=${root} -v
+		./lat-installer.sh post-install --root=${root} -v --instflux=${INSTFLUX} --instos=${INSTOS}
 		if [ $? -ne 0 ]; then
 			fatal "Run Kickstart Post Install Script failed in ${root}"
 		fi
