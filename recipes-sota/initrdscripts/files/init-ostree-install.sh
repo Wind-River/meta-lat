@@ -747,20 +747,20 @@ grub_partition() {
 	else
 		end=$(($first+($RSZ*1024*1024/$lsz)-1))
 		a="$a -n $p:$first:$end -c $p:otaroot"
-		grub_pt_update
 	fi
 	if [ "$INSTAB" = 1 ] ; then
 		# Boot Partition B
+		grub_pt_update
 		end=$(($first+($BSZ*1024*1024/$lsz)-1))
 		a="$a -n $p:$first:$end -c $p:otaboot_b"
 		grub_pt_update
 		# Root Partition B
 		end=$(($first+($RSZ*1024*1024/$lsz)-1))
 		a="$a -n $p:$first:$end -c $p:otaroot_b"
-		grub_pt_update
 	fi
 	# Flux Partition
 	if [ "${INSTFLUX}" = 1 ] ; then
+		grub_pt_update
 		if [ "$VSZ" = 0 ] ; then
 			end=$last
 		else
