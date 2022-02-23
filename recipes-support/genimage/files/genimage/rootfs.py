@@ -225,6 +225,8 @@ class ExtDebRootfs(Rootfs):
                  apt_preference,
                  packages,
                  image_type,
+                 debootstrap_key="",
+                 apt_keys=[],
                  external_packages=[],
                  exclude_packages=[],
                  target_rootfs=None):
@@ -251,6 +253,8 @@ class ExtDebRootfs(Rootfs):
                                  bootstrap_components,
                                  apt_sources,
                                  apt_preference,
+                                 debootstrap_key,
+                                 apt_keys,
                                  self.workdir,
                                  self.target_rootfs,
                                  self.machine)

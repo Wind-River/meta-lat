@@ -37,6 +37,10 @@ mapping:
     include: container_upload_cmd
   debootstrap-mirror:
     include: debootstrap_str
+  debootstrap-key:
+    include: debootstrap-key_str
+  apt-keys:
+    include: apt-keys_seq
 
 schema;image_type_seq:
   type: seq

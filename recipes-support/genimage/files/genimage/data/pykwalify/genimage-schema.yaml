@@ -45,6 +45,10 @@ mapping:
     type: str
   debootstrap-mirror:
     include: debootstrap_str
+  debootstrap-key:
+    include: debootstrap-key_str
+  apt-keys:
+    include: apt-keys_seq
 
 schema;system_seq:
   type: seq

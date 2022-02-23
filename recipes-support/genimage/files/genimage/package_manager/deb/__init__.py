@@ -439,6 +439,8 @@ class ExternalDebian(object):
                  bootstrap_components,
                  apt_sources,
                  apt_preference,
+                 debootstrap_key = "",
+                 apt_keys = [],
                  workdir = os.path.join(os.getcwd(),"workdir"),
                  target_rootfs = os.path.join(os.getcwd(), "workdir/rootfs"),
                  machine = 'intel-x86-64'):
@@ -450,6 +452,8 @@ class ExternalDebian(object):
         self.bootstrap_mirror = bootstrap_mirror
         self.bootstrap_distro = bootstrap_distro
         self.bootstrap_components = bootstrap_components
+        self.debootstrap_key = debootstrap_key
+        self.apt_keys = apt_keys
 
         self.temp_dir = os.path.join(workdir, "temp")
         utils.mkdirhier(self.target_rootfs)
@@ -471,10 +475,21 @@ class ExternalDebian(object):
 
         self.chroot_path = debian_constant.CHROOT_PATH
 
+    def _add_apt_keys(self):
+        for key in self.apt_keys:
+            pgp_key = os.path.join(self.target_rootfs, "etc/apt/trusted.gpg.d/%s.gpg" % os.path.basename(key))
+            cmd = "gpg --yes --dearmor --output %s %s" % (pgp_key, key)
+            res, output = utils.run_cmd(cmd, shell=True)
+            if res != 0:
+                logger.error(output)
+                sys.exit(1)
+
     def create_configs(self):
         logger.debug("create_configs")
 
         self._debootstrap()
+
+        self._add_apt_keys()
 
         with open(self.apt_sources_conf, "w") as f:
             f.write(self.apt_sources)
@@ -518,6 +533,17 @@ class ExternalDebian(object):
         os.environ['ARCH_TEST'] = "do-not-arch-test"
         os.environ['DEBOOTSTRAP_DIR'] = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'],"usr/share/debootstrap")
 
+        debootstrap_secure_opt = "--no-check-gpg"
+        if self.debootstrap_key:
+            pgp_key = os.path.join(apt_conf_dir, "%s.gpg" % os.path.basename(self.debootstrap_key))
+            cmd = "gpg --yes --dearmor --output %s %s" % (pgp_key, self.debootstrap_key)
+            res, output = utils.run_cmd(cmd, shell=True)
+            if res != 0:
+                logger.error(output)
+                sys.exit(1)
+
+            debootstrap_secure_opt = "--keyring=%s" % pgp_key
+
         if os.path.exists(os.path.join(self.target_rootfs, "dev")):
             logger.debug("Rootfs exists, skip debootstrap")
             return
@@ -529,14 +555,15 @@ class ExternalDebian(object):
             utils.copyfile(src, deb_script)
 
         # Hash debootstrap parameters, regenerate tarball if hash differs
-        hash_in = '{0} {1} {2} {3}'.format(self.bootstrap_components, self.target_rootfs, self.bootstrap_distro, self.bootstrap_mirror)
+        hash_in = '{0} {1} {2} {3} {4}'.format(self.debootstrap_key, self.bootstrap_components, self.target_rootfs, self.bootstrap_distro, self.bootstrap_mirror)
         hash_object = hashlib.md5(hash_in.encode())
         hash_hex = hash_object.hexdigest()
         logger.debug("%s -> %s", hash_in, hash_hex)
         bootstrap_tar = os.path.join(self.workdir, "bootstrap-{0}.tar".format(hash_hex))
         if not os.path.exists(bootstrap_tar):
             with tempfile.TemporaryDirectory(dir=os.path.dirname(bootstrap_tar)) as tmpdirname:
-                cmd = "debootstrap --variant=minbase --no-check-gpg --arch=amd64 --merged-usr --components={0} --make-tarball={1} {2} {3} {4}".format(
+                cmd = "debootstrap --variant=minbase --arch=amd64 --include=gpg,gpg-agent --merged-usr {0} --components={1} --make-tarball={2} {3} {4} {5}".format(
+                                                                             debootstrap_secure_opt,
                                                                              ','.join(self.bootstrap_components),
                                                                              bootstrap_tar,
                                                                              self.bootstrap_distro,
@@ -549,7 +576,8 @@ class ExternalDebian(object):
         else:
             logger.debug("Reuse debootstrap tarball %s", bootstrap_tar)
 
-        cmd = "debootstrap --variant=minbase --no-check-gpg --arch=amd64 --merged-usr --components={0} --unpack-tarball={1} {2} {3} {4}".format(
+        cmd = "debootstrap --variant=minbase --arch=amd64 --merged-usr {0} --components={1} --unpack-tarball={2} {3} {4} {5}".format(
+                                                                            debootstrap_secure_opt,
                                                                             ','.join(self.bootstrap_components),
                                                                              bootstrap_tar,
                                                                              self.bootstrap_distro,

@@ -34,6 +34,12 @@ def ext_file_exists(value, rule_obj, path):
 
     return True
 
+def ext_file_exists_or_empty(value, rule_obj, path):
+    if not value:
+        return True
+
+    return ext_file_exists(value, rule_obj, path)
+
 def ext_edit_default(value, rule_obj, path):
     if value.startswith("YOUR_"):
         logger.error("path: %s", path)

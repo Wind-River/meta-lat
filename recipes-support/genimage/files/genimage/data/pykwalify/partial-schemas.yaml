@@ -113,3 +113,14 @@ schema;debootstrap_str:
   desc: mirror of debootstrap
   example: http://ftp.us.debian.org/debian
 
+schema;debootstrap-key_str:
+  type: str
+  func: ext_file_exists_or_empty
+  desc: deb key of debootstrap
+  example: /usr/share/keyrings/debian-archive-keyring.gpg
+
+schema;apt-keys_seq:
+  type: seq
+  sequence:
+    - type: str
+      func: ext_file_exists_or_empty

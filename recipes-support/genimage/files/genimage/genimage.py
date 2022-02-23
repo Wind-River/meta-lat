@@ -677,6 +677,8 @@ class GenExtDebImage(GenImage):
         self.apt_sources = "\n".join(self.data['package_feeds'])
         self.apt_preference = deb_constant.DEFAULT_APT_PREFERENCE
         self.debian_mirror = self.data['debootstrap-mirror']
+        self.debootstrap_key = self.data['debootstrap-key']
+        self.apt_keys = self.data['apt-keys']
 
     def _parse_default(self):
         super(GenExtDebImage, self)._parse_default()
@@ -699,6 +701,8 @@ class GenExtDebImage(GenImage):
 
         self.data['environments'] = ['NO_RECOMMENDATIONS="1"', 'DEBIAN_FRONTEND=noninteractive', 'KERNEL_PARAMS="net.ifnames=0"']
         self.data['debootstrap-mirror'] = deb_constant.DEFAULT_DEBIAN_MIRROR
+        self.data['debootstrap-key'] = ""
+        self.data['apt-keys'] = []
 
     def _parse_amend(self):
         super(GenExtDebImage, self)._parse_amend()
@@ -745,6 +749,8 @@ class GenExtDebImage(GenImage):
                         self.apt_preference,
                         self.packages,
                         self.image_type,
+                        debootstrap_key=self.debootstrap_key,
+                        apt_keys=self.apt_keys,
                         external_packages=self.external_packages,
                         exclude_packages=self.exclude_packages)
 
