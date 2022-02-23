@@ -10,6 +10,6 @@ image_type:
 system:
 - files:
   - file:
-      src: exampleyamls/sysdef/files/windriver_dns.conf
-      dst: /etc/systemd/resolved.conf.d/windriver_dns.conf
+      src: exampleyamls/sysdef/files/dns.conf
+      dst: /etc/systemd/resolved.conf.d/dns.conf
       mode: 644

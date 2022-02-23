@@ -54,6 +54,7 @@ SRC_URI = "\
            file://genimage/data/yaml_example/sysdef/add-system-user.yaml \
            file://genimage/data/yaml_example/sysdef/contains-container-base.yaml.in \
            file://genimage/data/yaml_example/sysdef/files/sudoers_sudo \
+           file://genimage/data/yaml_example/sysdef/files/dns.conf \
            file://genimage/data/yaml_example/sysdef/run_always.d/10_start_containers.sh \
            file://genimage/data/yaml_example/sysdef/run_on_upgrade.d/containers.dat \
            file://genimage/data/yaml_example/sysdef/run_on_upgrade.d/10_update_containers.sh \
@@ -63,6 +64,7 @@ SRC_URI = "\
            file://genimage/data/yaml_example/sysdef/run_once.d/40_set_ntp.sh \
            file://genimage/data/yaml_example/sysdef/set-hostname.yaml \
            file://genimage/data/yaml_example/sysdef/set-ntp.yaml \
+           file://genimage/data/yaml_example/sysdef/set-dns.yaml \
            file://genimage/data/yaml_example/sysdef/update-containers.yaml \
            file://genimage/data/sysdef/sysdef.sh \
            file://genimage/data/sysdef/sysdef.service \

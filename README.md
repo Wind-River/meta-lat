@@ -683,7 +683,7 @@ exampleyamls/sysdef/
 |-- files
 |   |-- docker_daemon.jason
 |   |-- sudoers_sudo
-|   `-- windriver_dns.conf
+|   `-- dns.conf
 |-- run_always.d
 |   '-- 10_start_containers.sh
 |-- run_on_upgrade.d
