@@ -128,6 +128,7 @@ DEFAULT_PACKAGES = '''
     procps
     net-tools
     vim
+    lvm2
 '''.split()
 
 DEFAULT_APT_PREFERENCE = '''\
@@ -169,7 +170,6 @@ DEFAULT_CONTAINER_PACKAGES = '''
     net-tools
     vim
     debootstrap
-    lvm2
 '''.split()
 
 DEFAULT_OSTREE_DATA = {
