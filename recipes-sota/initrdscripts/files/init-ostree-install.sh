@@ -495,8 +495,8 @@ udev_daemon() {
 }
 
 fatal() {
-    echo $1 >$CONSOLE
-    echo >$CONSOLE
+    echo $1
+    echo
     if [ "$INSTPOST" = "shell" ] ; then shell_start ; fi
     if [ "$INSTPOST" = "exit" ] ; then exit 1 ; fi
     sleep 10
@@ -877,7 +877,6 @@ else
 	read_args
 fi
 
-[ -z "$CONSOLE" ] && CONSOLE="/dev/console"
 [ -z "$INIT" ] && INIT="/sbin/init"
 
 if [ "$INSTSH" = 1 -o "$INSTSH" = 3 -o "$INSTSH" = 4 ] ; then
