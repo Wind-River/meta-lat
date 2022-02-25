@@ -297,7 +297,7 @@ python __anonymous () {
     elif machine == 'xilinx-zynq':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'armv7at2hf_neon noarch xilinx_zynq')
     elif machine == 'nxp-imx6':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'armv7vet2hf_neon noarch nxp_imx6')
+        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'armv7at2hf_neon noarch nxp_imx6')
     elif machine == 'nxp-imx8':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'aarch64 noarch nxp_imx8')
     elif machine == 'marvell-cn96xx':
