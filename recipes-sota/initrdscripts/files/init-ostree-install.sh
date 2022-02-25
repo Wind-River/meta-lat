@@ -50,7 +50,6 @@ OPTIONAL:
  LUKS=1				- Encrypt var volume (requires TPM)
  LUKS=2				- Encrypt var and and root volumes (requires TPM)
  instflux=0			- Do not create/use the fluxdata partition for /var
-	  VSZ will be used for the size of the / partition if instab=0
  instl=DIR			- Local override ostree repo to install from
  instsh=1			- Start a debug shell
  instsh=2			- Use verbose logging
