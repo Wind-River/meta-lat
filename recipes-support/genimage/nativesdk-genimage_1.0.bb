@@ -37,6 +37,7 @@ RDEPENDS:${PN} = " \
                   nativesdk-gzip \
                   nativesdk-u-boot-mkimage \
                   nativesdk-pbzip2 \
+                  nativesdk-bzip2 \
                   nativesdk-ca-certificates \
                   nativesdk-glib-networking \
                   nativesdk-kmod \

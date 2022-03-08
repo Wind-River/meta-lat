@@ -35,6 +35,7 @@ DEPENDS += " \
     gzip-native \
     u-boot-mkimage-native \
     pbzip2-native \
+    bzip2-native \
     ca-certificates-native \
     glib-networking-native \
     depmodwrapper-cross \

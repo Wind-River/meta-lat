@@ -18,6 +18,9 @@ TOOLCHAIN_TARGET_TASK:append:x86-64 = " \
     syslinux-misc \
     syslinux-isolinux \
     syslinux-pxelinux \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'grub-efi', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'shim', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'efitools', '', d)} \
 "
 
 POPULATE_SDK_PRE_TARGET_COMMAND += "copy_pkgdata_to_sdk;"
