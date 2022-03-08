@@ -262,7 +262,7 @@ build_efi_area() {
 	if [ "$lockdown" != "" ] ; then
 		do_cp_and_sig $lockdown $OUTDIR/EFI/BOOT/LockDown.efi
 	fi
-	if [ "$mmx" != "" ] ; then
+	if [ "$mmx64" != "" ] ; then
 		do_cp_and_sig $mmx64 $OUTDIR/EFI/BOOT/mmx64.efi
 	fi
 	create_grub_cfg
