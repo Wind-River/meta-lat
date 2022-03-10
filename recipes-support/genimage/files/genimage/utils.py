@@ -391,11 +391,16 @@ def check_gpg_keys(gpg_data):
     if not os.path.isdir(gpg_path):
         run_cmd_oneshot("mkdir -m 0700 -p %s" % gpg_path)
 
-    # The feature is supposed to be "ostree, rpm, boot, ima"
-    for feature in ['ostree']:
-        gpgkey = os.path.expandvars(gpg_data[feature]['gpgkey'])
-        gpgid = gpg_data[feature]['gpgid']
-        gpg_password = gpg_data[feature]['gpg_password']
+    # The feature is supposed to be "ostree, rpm(todo), secure boot, ima(todo)"
+    for feature in ['ostree', 'grub']:
+        if feature == 'ostree':
+            gpgkey = os.path.expandvars(gpg_data[feature]['gpgkey'])
+            gpgid = gpg_data[feature]['gpgid']
+            gpg_password = gpg_data[feature]['gpg_password']
+        elif feature == 'grub':
+            gpgkey = os.path.expandvars(gpg_data[feature]['BOOT_GPG_KEY'])
+            gpgid = gpg_data[feature]['BOOT_GPG_NAME']
+            gpg_password = gpg_data[feature]['BOOT_GPG_PASSPHRASE']
 
         cmd = "gpg --homedir {0} --list-keys {1}".format(gpg_path, gpgid)
         res, output = run_cmd(cmd, shell=True)
@@ -406,6 +411,35 @@ def check_gpg_keys(gpg_data):
         res, output = run_cmd(cmd, shell=True)
         if res:
             run_cmd_oneshot(cmd)
+
+def boot_sign_cmd(gpgid, gpgpassword, gpgpath, unsign_file):
+    if not os.path.exists(os.path.realpath(unsign_file)):
+        logger.debug("Sing file %s not exist", unsign_file)
+        return 1
+
+    real_file = unsign_file
+    if os.path.islink(unsign_file):
+        real_file = os.path.realpath(unsign_file)
+        remove(unsign_file+".sig")
+
+    remove(real_file+".sig")
+
+    script_cmd = "echo '%s' | gpg  --pinentry-mode loopback --batch \
+                      --homedir %s -u %s --detach-sign \
+                      --passphrase-fd 0 '%s'" % (gpgpassword,
+                                                gpgpath,
+                                                gpgid,
+                                                real_file)
+
+    res, output = run_cmd(script_cmd, shell=True)
+    if res:
+        logger.debug("Run script_cmd failed\n%s", script_cmd, output)
+        return res
+
+    if os.path.islink(unsign_file):
+        run_cmd_oneshot("ln -snf -r %s.sig %s.sig" % (real_file, unsign_file))
+
+    return 0
 
 def get_ostree_wks(ostree_use_ab="1", machine="intel-x86-64"):
     ostree_ab_wks = "ab" if ostree_use_ab=="1" else "noab"
