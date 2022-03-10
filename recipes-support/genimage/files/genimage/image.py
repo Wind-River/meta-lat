@@ -530,6 +530,7 @@ class CreateExtDebOstreeRepo(CreateOstreeRepo):
             'BOOT_GPG_NAME': data['gpg']['grub']['BOOT_GPG_NAME'],
             'BOOT_GPG_PASSPHRASE': data['gpg']['grub']['BOOT_GPG_PASSPHRASE'],
             'BOOT_KEYS_DIR': data['gpg']['grub']['BOOT_KEYS_DIR'],
+            'DISTRO_FEATURES': 'efi-secure-boot' if os.environ.get('EFI_SECURE_BOOT') else '',
         }
         env_file = os.path.join(self.deploydir, '{0}-{1}.env'.format(self.image_name, self.machine))
         with open(env_file, 'w') as f:

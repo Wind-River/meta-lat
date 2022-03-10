@@ -711,6 +711,11 @@ class GenExtDebImage(GenImage):
             if ostree_param not in self.data["ostree"]:
                 self.data["ostree"][ostree_param] = deb_constant.DEFAULT_OSTREE_DATA[ostree_param]
 
+        # Use default to fill missing params of "gpg's grub" section
+        for grub_key in constant.DEFAULT_GPG_DATA.get('grub', []):
+            if grub_key not in self.data['gpg']['grub']:
+                self.data['gpg']['grub'][grub_key] = constant.DEFAULT_GPG_DATA['grub'][grub_key]
+
         if 'all' in self.data['image_type']:
             self.data['image_type'] = ['ostree-repo', 'wic', 'ustart', 'vmdk', 'vdi']
             if DEFAULT_MACHINE == "intel-x86-64":

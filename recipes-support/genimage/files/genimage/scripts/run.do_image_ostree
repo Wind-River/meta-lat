@@ -14,13 +14,13 @@ set -e
 # OSTREE_KERNEL
 # RAMDISK_EXT
 # KERNEL_DEVICETREE
+# EFI_SECURE_BOOT
 OSTREE_REPO="${DEPLOY_DIR_IMAGE}/ostree_repo"
 OSTREE_BRANCHNAME="${IMAGE_NAME}"
 export TZ='UTC'
 DATETIME="`date +"%Y%m%d%H%M%S"`"
 
 SELINUX=""
-EFI_SECURE_BOOT=""
 
 MANIFEST="${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${MACHINE}.manifest"
 
@@ -161,7 +161,7 @@ do_image_ostree() {
 	cp $DEPLOY_DIR_IMAGE/${OSTREE_KERNEL} usr/lib/ostree-boot/vmlinuz-${checksum}
 	cp $DEPLOY_DIR_IMAGE/${DEFAULT_INITRD_NAME}-${MACHINE}${RAMDISK_EXT} usr/lib/ostree-boot/initramfs-${checksum}
 
-	if [ -n "${EFI_SECURE_BOOT}" ]; then
+	if [ "${EFI_SECURE_BOOT}" = "enable" ]; then
 		if [ -f $DEPLOY_DIR_IMAGE/${OSTREE_KERNEL}.p7b ] ; then
 			cp $DEPLOY_DIR_IMAGE/${OSTREE_KERNEL}.p7b usr/lib/ostree-boot/vmlinuz.p7b
 			cp $DEPLOY_DIR_IMAGE/${DEFAULT_INITRD_NAME}-${MACHINE}${RAMDISK_EXT}.p7b usr/lib/ostree-boot/initramfs.p7b

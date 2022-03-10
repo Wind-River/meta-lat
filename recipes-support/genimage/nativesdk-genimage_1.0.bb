@@ -77,6 +77,8 @@ do_install:append() {
 
 FILES:${PN} = "${SDKPATHNATIVE}"
 
+EFI_SECURE_BOOT ?= "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'enable', 'disable', d)}"
+
 python __anonymous () {
     override = d.getVar('OVERRIDE')
     machine = d.getVar('MACHINE')
@@ -86,6 +88,20 @@ python __anonymous () {
         d.appendVar('OVERRIDES', ':arm:{0}'.format(machine))
     elif machine == 'intel-x86-64':
         d.appendVar('OVERRIDES', ':x86-64:{0}'.format(machine))
+
+        if bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', True, False, d):
+            d.setVar('BOOT_SINGED_SHIM', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/bootx64.efi')
+            d.setVar('BOOT_SINGED_SHIMTOOL', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/mmx64.efi')
+            d.setVar('BOOT_SINGED_GRUB', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/grubx64.efi')
+            d.setVar('BOOT_EFITOOL', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/LockDown.efi')
+        else:
+            d.setVar('BOOT_SINGED_SHIM', '')
+            d.setVar('BOOT_SINGED_SHIMTOOL', '')
+            d.setVar('BOOT_SINGED_GRUB', '')
+            d.setVar('BOOT_EFITOOL', '')
+
+        d.setVar('BOOT_NOSIG_GRUB', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/bootx64-nosig.efi')
+        d.setVar('BOOT_GRUB_CFG', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/grub.cfg')
 
     d.setVar("DEFAULT_LOCAL_RPM_PACKAGE_FEED", "")
     d.setVar("DEFAULT_LOCAL_DEB_PACKAGE_FEED", "")

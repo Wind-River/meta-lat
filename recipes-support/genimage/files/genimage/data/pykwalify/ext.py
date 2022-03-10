@@ -25,7 +25,7 @@ def ext_file_exists(value, rule_obj, path):
     if "deploy" in value:
         return True
 
-    if not os.path.exists(value):
+    if not os.path.exists(os.path.expandvars(value)):
         logger.error("'%s' does not exist", value)
         if "exampleyamls/" in value:
             logger.error("Please run `appsdk exampleyamls' first!!!")

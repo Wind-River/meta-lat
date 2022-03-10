@@ -20,6 +20,7 @@ set -x
 ## Require environments
 # OSTREE_CONSOLE
 # KERNEL_PARAMS
+# EFI_SECURE_BOOT
 
 # Modify the grub.cfg
 update_grub_cfg() {
@@ -30,6 +31,12 @@ update_grub_cfg() {
 
     sed -i -e "s#^\(set ostree_console\).*#\1=\"$OSTREE_CONSOLE\"#g" $rootfs/boot/efi/EFI/BOOT/grub.cfg
     sed -i -e "s#^\(set kernel_params\).*#\1=\"$KERNEL_PARAMS\"#g" $rootfs/boot/efi/EFI/BOOT/grub.cfg
+
+    # Remove secure content from grub.cfg if secure boot disable
+    if [ "${EFI_SECURE_BOOT}" != "enable" ]; then
+        sed -i '/^get_efivar/,/^fi/d' $rootfs/boot/efi/EFI/BOOT/grub.cfg
+    fi
+
 }
 
 update_grub_cfg $1
