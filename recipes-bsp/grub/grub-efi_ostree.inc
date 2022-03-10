@@ -39,6 +39,17 @@ do_install:append:class-target() {
     if [ "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', '1', '0', d)}" = "0" ]; then
         install -m 644 ${B}/${GRUB_IMAGE_PREFIX}${GRUB_IMAGE} ${D}${EFI_BOOT_PATH}/$efi_target
     fi
+
+    cat<<EOF>${WORKDIR}/cfg_nosecure
+search.file (\$cmdpath)/EFI/BOOT/grub.cfg root
+set prefix=(\$root)/EFI/BOOT
+EOF
+
+    grub-mkimage -c ../cfg_nosecure -p "/EFI/BOOT" -d "./grub-core" \
+        -O "${GRUB_TARGET}-efi" -o "${B}/bootx64-nosig.efi" \
+        ${GRUB_BUILDIN}
+
+    install -m 0644 "${B}/bootx64-nosig.efi" "${D}${EFI_BOOT_PATH}/bootx64-nosig.efi"
 }
 
 do_deploy:append:class-target() {
@@ -53,6 +64,7 @@ do_deploy:append:class-target() {
         fi
     fi
     install -m 0600 "${D}${EFI_BOOT_PATH}/grub.cfg" "${DEPLOYDIR}"
+    install -m 0644 "${D}${EFI_BOOT_PATH}/bootx64-nosig.efi" "${DEPLOYDIR}"
 }
 
 FILES:${PN} += "${EFI_BOOT_PATH}"
