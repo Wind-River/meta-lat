@@ -22,6 +22,7 @@ import subprocess
 import logging
 import datetime
 import argcomplete
+import glob
 from texttable import Texttable
 import atexit
 from tempfile import NamedTemporaryFile
@@ -692,10 +693,6 @@ class GenExtDebImage(GenImage):
                                             deb_constant.SCRIPT_DEBIAN_SET_BASH,
                                             deb_constant.SCRIPT_DEBIAN_SET_MISC,
                                             deb_constant.SCRIPT_DEBIAN_SSH_ROOT_LOGIN]
-        if utils.is_build():
-            self.data['rootfs-post-scripts'].append(deb_constant.SCRIPT_DEPLOY_KERNEL_GRUB_LOCAL)
-        elif utils.is_sdk():
-            self.data['rootfs-post-scripts'].append(deb_constant.SCRIPT_DEPLOY_KERNEL_GRUB_SDK)
 
         self.data["ostree"] = deb_constant.DEFAULT_OSTREE_DATA
 
@@ -725,20 +722,16 @@ class GenExtDebImage(GenImage):
     def do_prepare(self):
         target_rootfs = os.path.join(self.workdir, self.image_name, "rootfs")
         utils.umount(target_rootfs)
-        atexit.register(utils.umount, target_rootfs)
         super(GenExtDebImage, self).do_prepare()
         os.environ['DEPLOY_DIR'] = self.deploydir
         os.environ['DEFAULT_INITRD_NAME'] = deb_constant.DEFAULT_INITRD_NAME
+        atexit.register(utils.umount, target_rootfs)
 
     def _do_rootfs_pre(self, rootfs=None):
         if rootfs is None:
             return
 
         super(GenExtDebImage, self)._do_rootfs_pre(rootfs)
-        os.environ['OSTREE_CONSOLE'] = self.data["ostree"]['OSTREE_CONSOLE']
-        script_cmd = os.path.join(self.data_dir, 'post_rootfs', 'update_grub_cfg.sh')
-        script_cmd = "{0} {1}".format(script_cmd, rootfs.target_rootfs)
-        rootfs.add_rootfs_post_scripts(script_cmd)
 
     @show_task_info("Create External Debian Rootfs")
     def do_rootfs(self):
@@ -765,6 +758,85 @@ class GenExtDebImage(GenImage):
 
         self._do_rootfs_post(rootfs)
 
+
+    def _do_rootfs_post(self, rootfs=None):
+        if rootfs is None:
+            return
+
+        super(GenExtDebImage, self)._do_rootfs_post(rootfs)
+
+        # Make sure root dir clean
+        utils.run_cmd_oneshot("rm -rf root && mkdir root", cwd=rootfs.target_rootfs)
+
+        rootfs_efi = os.path.join(rootfs.target_rootfs, "boot/efi/EFI/BOOT")
+        utils.mkdirhier(rootfs_efi)
+
+        # Copy grub.cfg to rootfs
+        utils.run_cmd_oneshot("cp -f %s %s/" % (self.data['gpg']['grub']['BOOT_GRUB_CFG'], rootfs_efi))
+
+        # Update grub.cfg
+        os.environ['OSTREE_CONSOLE'] = self.data["ostree"]['OSTREE_CONSOLE']
+        os.environ['EFI_SECURE_BOOT'] = self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable')
+        cmd = os.path.join(self.data_dir, 'post_rootfs', 'update_grub_cfg.sh')
+        cmd = "{0} {1}".format(cmd, rootfs.target_rootfs)
+        utils.run_cmd_oneshot(cmd)
+
+        # Secure boot
+        if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
+            # Copy secure boot loader to rootfs if it is not available
+            for k in ['BOOT_SINGED_SHIM',
+                      'BOOT_SINGED_SHIMTOOL',
+                      'BOOT_SINGED_GRUB',
+                      'BOOT_EFITOOL']:
+                src = self.data['gpg']['grub'].get(k)
+                if not src:
+                    continue
+                dst = os.path.join(rootfs_efi, os.path.basename(src))
+                if not os.path.exists(dst):
+                    utils.run_cmd_oneshot("cp -f %s %s" % (src, dst))
+
+            # Sign grub.cfg and LockDown.efi
+            gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
+            gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
+            gpgpath = self.data['gpg']['gpg_path']
+            for f in ['grub.cfg', 'LockDown.efi']:
+                unsign_file = os.path.join(rootfs_efi, f)
+                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, unsign_file)
+
+            # Sign kernel
+            for kernel in glob.glob(os.path.join(rootfs.target_rootfs, 'boot', 'vmlinuz-*-amd64')):
+                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, kernel)
+
+        # No secure boot
+        else:
+            # Copy no secure boot loader to rootfs if it is not available
+            src = self.data['gpg']['grub']['BOOT_NOSIG_GRUB']
+            dst = os.path.join(rootfs_efi, "bootx64.efi")
+            if not os.path.exists(dst):
+                utils.run_cmd_oneshot("cp -f %s %s" % (src, dst))
+
+        # Make sure deploy dir clean
+        utils.run_cmd_oneshot("rm -f vmlinuz-*-amd64* *.efi* grub.cfg*", cwd=self.deploydir)
+
+        if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') != 'enable':
+
+            utils.run_cmd_oneshot("rm -f *.sig", cwd=self.deploydir)
+
+            # grub-efi-bootx64.efi is required by bootfs.sh while secure boot disabled
+            utils.run_cmd_oneshot("cp -f %s/bootx64.efi %s/grub-efi-bootx64.efi" % (rootfs_efi, self.deploydir))
+
+        # Copy kernel image (including sig) to deploy dir
+        utils.run_cmd_oneshot("cp %s/boot/vmlinuz-*-amd64* %s" % (rootfs.target_rootfs, self.deploydir))
+
+        # Copy boot loader to deploy dir
+        utils.run_cmd_oneshot("cp -f %s/* %s" % (rootfs_efi, self.deploydir))
+
+        # Create symlink bzIamge to kernel
+        for kernel in glob.glob(os.path.join(self.deploydir, 'vmlinuz-*-amd64')):
+            utils.run_cmd_oneshot("ln -snf -r %s bzImage" % kernel, cwd=self.deploydir)
+            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
+                utils.run_cmd_oneshot("ln -snf -r %s.sig bzImage.sig" % kernel, cwd=self.deploydir)
+
     @show_task_info("Create External Debian Ostree Repo")
     def do_ostree_repo(self):
         workdir = os.path.join(self.workdir, self.image_name)
@@ -790,6 +862,12 @@ class GenExtDebImage(GenImage):
         image = os.path.join(self.deploydir, image_name)
         if os.path.exists(os.path.realpath(image)):
             logger.info("Reuse existed Initramfs")
+            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable' and \
+               not os.path.exists(os.path.realpath(image+".sig")):
+                gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
+                gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
+                gpgpath = self.data['gpg']['gpg_path']
+                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, image)
             return
 
         logger.info("External Debian Initramfs was not found, create one")
@@ -815,6 +893,13 @@ class GenExtDebImage(GenImage):
 
         scriptFile.file.close()
 
+        if os.path.exists(os.path.realpath(image)):
+            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
+                gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
+                gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
+                gpgpath = self.data['gpg']['gpg_path']
+                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, image)
+            return
 
 def _main_run_internal(args):
 
