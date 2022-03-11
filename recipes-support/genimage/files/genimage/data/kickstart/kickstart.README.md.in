@@ -212,14 +212,14 @@ Create a QEMU simulator with 2 disks and 3 network interfaces
 ```
 $ qemu-img create -f raw boot-image-qemu.hddimg 16G
 $ qemu-img create -f raw boot-image-qemu-2.hddimg 16G
-$ cp -fa deploy/ovmf.qcow2 OVMF_CODE.fd
+$ cp -fa deploy/@ovmf_code@ OVMF_CODE.fd
 $ cp -fa deploy/ovmf.vars.qcow2 OVMF_VARS.fd
 $ qemu-system-x86_64 -m 5174 \
         -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
         -drive if=none,id=hd-2,file=boot-image-qemu-2.hddimg,format=raw \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd -device scsi-hd,drive=hd-2  \
-        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
-        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_VARS.fd \
         -net nic -net user,tftp=./deploy/pxe_tftp_@IMAGE_NAME@,bootfile=EFI/BOOT/bootx64.efi \
         -device virtio-net-pci,netdev=net0 -netdev user,id=net0 \
         -device virtio-net-pci,netdev=net1 -netdev user,id=net1 \
@@ -298,7 +298,7 @@ Create a QEMU simulator with 1 disk and 1 network interface
 
 ```
 $ qemu-img create -f raw boot-image-qemu.hddimg 16G
-$ cp -fa deploy/ovmf.qcow2 OVMF_CODE.fd
+$ cp -fa deploy/@ovmf_code@ OVMF_CODE.fd
 $ cp -fa deploy/ovmf.vars.qcow2 OVMF_VARS.fd
 $ sudo ${OECORE_NATIVE_SYSROOT}/usr/share/poky/scripts/runqemu-ifup `id -u` `id -g` ${OECORE_NATIVE_SYSROOT}/usr/bin
 
@@ -309,8 +309,8 @@ $ qemu-system-x86_64 -m 2048 \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
         -cdrom ./deploy/wrlinux-image-small-intel-x86-64-cd.iso \
         -cpu kvm64 -enable-kvm \
-        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
-        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_VARS.fd \
         -no-reboot -nographic
 
 # Booting installed target without ISO
@@ -319,8 +319,9 @@ $ qemu-system-x86_64 -m 2048 \
         -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
         -cpu kvm64 -enable-kvm \
-        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
-        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd -nographic
+        -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_VARS.fd \
+        -nographic
 
 
 # Manually clean up QEMU TAP after qemu-system-x86_64 exits(Ctrl+a+x)

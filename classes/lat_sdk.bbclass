@@ -83,6 +83,7 @@ copy_qemu_data() {
             -e 's/^deploy_dir_image =.*$/deploy_dir_image = @DEPLOYDIR@/' \
             -e 's/^image_link_name =.*$/image_link_name = @IMAGE_LINK_NAME@/' \
             -e 's/^image_name =.*$/image_name = @IMAGE_NAME@/' \
+            -e 's/^qb_mem =.*$/qb_mem = -m @MEM@/' \
             -e 's/^qb_default_fstype =.*$/qb_default_fstype = wic/' \
                 $qemuboot_conf > \
                     ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/qemu_data/qemuboot.conf.in

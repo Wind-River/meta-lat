@@ -99,8 +99,16 @@ class Image(object, metaclass=ABCMeta):
                 burn_cmd = "sudo dd if=deploy/%s.wic of=/dev/sdX bs=1M status=progress" % image_name
                 content = content.replace("@BURN_COMMAND@", burn_cmd)
 
+            content = self._edit_readme_content(content)
+
         with open(readme, "w") as readme_f:
             readme_f.write(content)
+
+    def _edit_readme_content(self, content):
+        if self.machine == "intel-x86-64":
+            ovmf_code = "ovmf.secboot.qcow2" if os.environ.get('EFI_SECURE_BOOT', 'disable') == 'enable'  else "ovmf.qcow2"
+            content = content.replace("@ovmf_code@", ovmf_code)
+        return content
 
 
 class CreateInitramfs(Image):
@@ -194,6 +202,7 @@ class CreateWicImage(Image):
             content = content.replace("@DEPLOYDIR@", self.deploydir)
             content = content.replace("@IMAGE_LINK_NAME@", self.image_linkname)
             content = content.replace("@IMAGE_NAME@", self.image_fullname)
+            content = content.replace("@MEM@", utils.get_mem_size(self.pkg_type, "wic"))
 
         qemuboot_conf = os.path.join(self.deploydir, "{0}.qemuboot.conf".format(self.image_fullname))
         with open(qemuboot_conf, "w") as qemuboot_conf_f:
@@ -400,6 +409,8 @@ class CreatePXE(Image):
                 content = content.replace("@PACKAGE_MANAGER_SECTION@", constant.PACKAGE_MANAGER_SECTION[self.pkg_type])
                 ostree_repo = os.path.join(self.deploydir, "ostree_repo")
                 content = content.replace("@MEM@", utils.get_mem_size(self.pkg_type, "pxe", ostree_repo))
+
+                content = self._edit_readme_content(content)
 
             dst = os.path.join(self.deploydir, "%s_%s.README.md" % (dst_prefix, self.image_name))
             with open(dst, "w") as readme_f:

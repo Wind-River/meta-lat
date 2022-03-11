@@ -67,7 +67,7 @@ Create a disk image
     $ qemu-img create -f raw boot-image-qemu.hddimg 16G
 
 Prepare OVMF images
-    $ cp -f deploy/ovmf.qcow2 OVMF_CODE.fd
+    $ cp -f deploy/@ovmf_code@ OVMF_CODE.fd
     $ cp -f deploy/ovmf.vars.qcow2 OVMF_VARS.fd
 
 For qemu x86_64 with KVM:
@@ -75,8 +75,8 @@ For qemu x86_64 with KVM:
     $ qemu-system-x86_64 -m @MEM@ \
         -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
-        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
-        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_VARS.fd \
         -net nic -net user,tftp=./deploy/pxe_tftp_@IMAGE_NAME@,bootfile=EFI/BOOT/bootx64.efi \
         -cpu kvm64 -enable-kvm
 
@@ -85,8 +85,8 @@ For qemu x86_64 without KVM:
     $ qemu-system-x86_64 -m @MEM@ \
         -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
-        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
-        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_VARS.fd \
         -net nic -net user,tftp=./deploy/pxe_tftp_@IMAGE_NAME@,bootfile=EFI/BOOT/bootx64.efi \
         -cpu Nehalem
 
@@ -103,7 +103,7 @@ Set guest startup RAM size, @MEM@MB
 
 #### Qemu Image
 Use virtio-scsi-pci to load image
-`-drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd`
+`-drive if=pflash,format=qcow2,file=OVMF_CODE.fd -drive if=pflash,format=qcow2,file=OVMF_VARS.fd`
 
 #### Qemu CPU
 - KVM

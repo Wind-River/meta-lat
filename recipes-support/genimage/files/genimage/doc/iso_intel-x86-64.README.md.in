@@ -71,7 +71,7 @@ Create a disk image
     $ qemu-img create -f raw boot-image-qemu.hddimg 16G
 
 Prepare OVMF images
-    $ cp -f deploy/ovmf.qcow2 OVMF_CODE.fd
+    $ cp -f deploy/@ovmf_code@ OVMF_CODE.fd
     $ cp -f deploy/ovmf.vars.qcow2 OVMF_VARS.fd
 
 For qemu x86_64 with KVM:
@@ -82,8 +82,8 @@ For qemu x86_64 with KVM:
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
         -cdrom ./deploy/@IMAGE_NAME@-cd.iso \
         -cpu kvm64 -enable-kvm \
-        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
-        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_VARS.fd \
         -no-reboot
 
     # Booting installed target without ISO
@@ -91,8 +91,8 @@ For qemu x86_64 with KVM:
         -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
         -cpu kvm64 -enable-kvm \
-        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
-        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd
+        -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_VARS.fd
 
 
 For qemu x86_64 without KVM:
@@ -103,8 +103,8 @@ For qemu x86_64 without KVM:
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
         -cdrom ./deploy/@IMAGE_NAME@-cd.iso \
         -cpu Nehalem \
-        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
-        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_VARS.fd \
         -no-reboot
 
     # Booting installed target without ISO
@@ -112,8 +112,8 @@ For qemu x86_64 without KVM:
         -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
         -cpu Nehalem \
-        -drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 \
-        -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd
+        -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \
+        -drive if=pflash,format=qcow2,file=OVMF_VARS.fd
 
 ### On Qemu + Legacy/BIOS
 Create a disk image
@@ -189,7 +189,7 @@ If above refer does not work (such as you do not have root right to enable kvm)
 
 #### Qemu Bootloader
 Enable UEFI support for Virtual Machines
-`-drive file=OVMF_CODE.fd,format=raw,readonly=on,if=pflash,unit=0 -drive if=pflash,format=raw,unit=1,file=OVMF_VARS.fd`
+`-drive if=pflash,format=qcow2,file=OVMF_CODE.fd -drive if=pflash,format=qcow2,file=OVMF_VARS.fd`
 
 #### Qemu No Graphic
 Disable graphical output and redirect serial I/Os to console
