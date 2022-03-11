@@ -192,7 +192,7 @@ class GenImage(GenXXX):
             atexit.register(utils.cleanup, image_workdir, self.data['ostree']['ostree_osname'])
 
     def do_post(self):
-        for f in ["qemu-u-boot-bcm-2xxx-rpi4.bin", "ovmf.qcow2", "ovmf.vars.qcow2"]:
+        for f in ["qemu-u-boot-bcm-2xxx-rpi4.bin", "ovmf.qcow2", "ovmf.secboot.qcow2", "ovmf.vars.qcow2"]:
             qemu_data = os.path.join(self.native_sysroot, "usr/share/qemu_data", f)
             if os.path.exists(qemu_data):
                 logger.debug("Deploy %s", f)

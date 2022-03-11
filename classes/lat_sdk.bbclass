@@ -70,6 +70,9 @@ copy_qemu_data() {
     if [ -e ${DEPLOY_DIR_IMAGE}/ovmf.vars.qcow2 ]; then
         cp -f ${DEPLOY_DIR_IMAGE}/ovmf.vars.qcow2 ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/qemu_data/
     fi
+    if [ -e ${DEPLOY_DIR_IMAGE}/ovmf.secboot.qcow2 ]; then
+        cp -f ${DEPLOY_DIR_IMAGE}/ovmf.secboot.qcow2 ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/qemu_data/
+    fi
 
     qemuboot_conf="${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.qemuboot.conf"
     if [ -e $qemuboot_conf ]; then
