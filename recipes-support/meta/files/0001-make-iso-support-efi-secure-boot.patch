@@ -1,0 +1,81 @@
+From 22f8b136643da0ee4e64e62e7d4b0fca36b57644 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Sun, 13 Mar 2022 11:06:45 +0800
+Subject: [PATCH] make iso support efi secure boot
+
+Use environment EFI_SECURE_BOOT as efi secure boot enable button,
+
+Use customize grub.cfg for efi secure boot
+
+Install the signed grub.cfg, bootloader, initrd and kernel to
+support efi secure boot
+
+Upstream-Status: Inappropriate [LAT specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ .../wic/plugins/source/isoimage-isohybrid.py  | 20 ++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+index aa49ca2fb5..7882b72bd3 100644
+--- a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
++++ b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+@@ -106,6 +106,11 @@ class IsoImagePlugin(SourcePlugin):
+         if configfile:
+             grubefi_conf = get_custom_config(configfile)
+             if grubefi_conf:
++                # Copy grub.cfg.sig for secure boot
++                if os.environ.get('EFI_SECURE_BOOT', 'disable') == 'enable':
++                    install_cmd = "install -m 0644 %s.sig %s/grub.cfg.sig" % (configfile, target_dir)
++                    exec_cmd(install_cmd, as_shell=True)
++
+                 logger.debug("Using custom configuration file %s for grub.cfg",
+                              configfile)
+             else:
+@@ -313,6 +318,10 @@ class IsoImagePlugin(SourcePlugin):
+         install_cmd = "install -m 0644 %s/%s %s/initrd" % (cr_workdir, initrd, isodir)
+         exec_cmd(install_cmd, as_shell=True)
+ 
++        if os.environ.get('EFI_SECURE_BOOT', 'disable') == 'enable':
++            install_cmd = "install -m 0644 %s/%s.sig %s/initrd.sig" % (deploy_dir, initrd, isodir)
++            exec_cmd(install_cmd, as_shell=True)
++
+         # Remove the temporary file created by _build_initramfs_path function
+         if os.path.isfile("%s/initrd.cpio.gz" % cr_workdir):
+             os.remove("%s/initrd.cpio.gz" % cr_workdir)
+@@ -327,6 +336,11 @@ class IsoImagePlugin(SourcePlugin):
+                       (kernel_dir, kernel, isodir, kernel)
+         exec_cmd(install_cmd)
+ 
++        if os.environ.get('EFI_SECURE_BOOT', 'disable') == 'enable':
++            install_cmd = "install -m 0644 %s/%s.sig %s/%s.sig" % \
++                          (kernel_dir, kernel, isodir, kernel)
++            exec_cmd(install_cmd)
++
+         #Create bootloader for efi boot
+         try:
+             target_dir = "%s/EFI/BOOT" % isodir
+@@ -335,7 +349,7 @@ class IsoImagePlugin(SourcePlugin):
+ 
+             os.makedirs(target_dir)
+ 
+-            if source_params['loader'] == 'grub-efi':
++            if source_params['loader'] == 'grub-efi' and os.environ.get('EFI_SECURE_BOOT', 'disable') != 'enable':
+                 # Builds bootx64.efi/bootia32.efi if ISODIR didn't exist or
+                 # didn't contains it
+                 target_arch = os.environ.get("TARGET_SYS", "x86_64-wrs-linux")
+@@ -363,6 +377,10 @@ class IsoImagePlugin(SourcePlugin):
+                 if not os.path.isfile(os.path.join(target_dir, "boot.cfg")):
+                     cls.do_configure_grubefi(part, creator, target_dir)
+ 
++            elif source_params['loader'] == 'grub-efi' and os.environ.get('EFI_SECURE_BOOT', 'disable') == 'enable':
++                install_cmd = "install -m 0644 %s/*.efi* %s/" % (deploy_dir, target_dir)
++                exec_cmd(install_cmd, as_shell=True)
++                cls.do_configure_grubefi(part, creator, target_dir)
+             else:
+                 raise WicError("unrecognized bootimg-efi loader: %s" %
+                                source_params['loader'])
+-- 
+2.27.0
+
