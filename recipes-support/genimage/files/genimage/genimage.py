@@ -367,15 +367,41 @@ class GenImage(GenXXX):
                 logger.error(output)
                 sys.exit(1)
 
+        entries = list()
+        entries.append({'name': self.data['name'],
+                            'boot_params': self._get_boot_params(self.image_name, self.data["ostree"], image_type="pxe")})
+        for yaml_files in self.guest_yamls:
+            data = utils.parse_yamls(yaml_files)
+            if 'initramfs' in data['image_type'] or 'container' in data['image_type']:
+                continue
+            ostree = data["ostree"] if "ostree" in data else self.data["ostree"]
+            entries.append({'name': data['name'],
+                            'boot_params': self._get_boot_params(data["name"], ostree, image_type="pxe")})
+
+        # Create grub.cfg
+        grub_cfg = utils.create_grub_cfg(entries,
+                                         self.deploydir,
+                                         secure_boot=self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable'),
+                                         grub_user=self.data['ostree']['OSTREE_GRUB_USER'],
+                                         grub_pw_file=self.data['ostree']['OSTREE_GRUB_PW_FILE'],
+                                         image_type='pxe')
+
+        # Create syslinux.cfg
+        syslinux_cfg = utils.create_syslinux_cfg(entries, self.deploydir)
+
         pxe_initrd_name = "{0}-initrd-pxe-{1}".format(self.image_name, self.machine)
         boot_params = self._get_boot_params(self.image_name, self.data["ostree"], image_type="pxe")
         pxe = CreatePXE(
                   image_name = self.image_name,
                   pxe_initrd_name = pxe_initrd_name,
                   pxe_rootfs = pxe_rootfs,
-                  boot_params = boot_params,
                   machine = self.machine,
                   deploydir = self.deploydir,
+                  grub_cfg = grub_cfg,
+                  syslinux_cfg = syslinux_cfg,
+                  gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME'],
+                  gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE'],
+                  gpgpath = self.data['gpg']['gpg_path'],
                   pkg_type = self.pkg_type)
 
         pxe.create()

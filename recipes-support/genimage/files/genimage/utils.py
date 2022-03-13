@@ -692,11 +692,11 @@ menuentry "OSTree Install %NAME%" --unrestricted {
     set fallback=1
     efi-watchdog enable 0 180
     linux /bzImage %BOOT_PARAMS%
-    initrd /initrd
+    initrd @INITRD@
 }
 '''
 
-def create_grub_cfg(grub_entries, output_dir, secure_boot='disable', grub_user='', grub_pw_file='', image_type=""):
+def create_grub_cfg(entries, output_dir, secure_boot='disable', grub_user='', grub_pw_file='', image_type=""):
     grub_cfg = os.path.join(output_dir, "grub-%s.cfg" % image_type)
     content = ''
     if secure_boot == 'enable':
@@ -706,12 +706,14 @@ def create_grub_cfg(grub_entries, output_dir, secure_boot='disable', grub_user='
             grub_pw = f.read()
             content = content.replace("%OSTREE_GRUB_PW%", grub_pw)
 
-    for entry in grub_entries:
-        if image_type == 'iso':
+    for entry in entries:
+        if image_type in ['iso', 'pxe']:
             entry_content = GRUB_CFG_ISO_ENTRY
+            if image_type == 'iso':
+                entry_content = entry_content.replace('@INITRD@', '/initrd')
         else:
             entry_content = ''
-        entry_content = entry_content.replace('%BOOT_PARAMS%', entry['boot_params'])
+        entry_content = entry_content.replace('%BOOT_PARAMS%', entry['boot_params']+" BOOTIF=$net_default_mac")
         entry_content = entry_content.replace('%NAME%', entry['name'])
         content += entry_content
 
@@ -719,3 +721,39 @@ def create_grub_cfg(grub_entries, output_dir, secure_boot='disable', grub_user='
         f.write(content)
 
     return grub_cfg
+
+
+SYSLINUX_CFG_HEAD = '''\
+PROMPT 0
+ALLOWOPTIONS 1
+TIMEOUT 100
+
+DEFAULT menu.c32
+
+MENU TITLE [ LAT PXE Legacy Boot Menu ]
+MENU TABMSG Press [Tab] to edit, [Return] to select
+'''
+
+SYSLINUX_CFG_ISO_ENTRY = '''
+LABEL %NAME%
+    menu default
+    menu label ^OSTree Install %NAME%
+    kernel bzImage
+    ipappend 2
+    append initrd=@INITRD@ %BOOT_PARAMS%
+'''
+
+def create_syslinux_cfg(entries, output_dir):
+    syslinux_cfg = os.path.join(output_dir, "syslinux.cfg")
+    content = SYSLINUX_CFG_HEAD
+
+    for entry in entries:
+        entry_content = SYSLINUX_CFG_ISO_ENTRY
+        entry_content = entry_content.replace('%BOOT_PARAMS%', entry['boot_params'])
+        entry_content = entry_content.replace('%NAME%', entry['name'])
+        content += entry_content
+
+    with open(syslinux_cfg, 'w') as f:
+        f.write(content)
+
+    return syslinux_cfg

@@ -361,7 +361,17 @@ class CreateISOImage(Image):
 
 class CreatePXE(Image):
     def _set_allow_keys(self):
-        self.allowed_keys = {'image_name', 'deploydir', 'machine', 'pkg_type', 'pxe_initrd_name', 'boot_params', 'pxe_rootfs'}
+        self.allowed_keys = {'image_name',
+                             'deploydir',
+                             'machine',
+                             'pkg_type',
+                             'pxe_initrd_name',
+                             'pxe_rootfs',
+                             'grub_cfg',
+                             'syslinux_cfg',
+                             'gpgid',
+                             'gpgpassword',
+                             'gpgpath'}
 
     def _add_keys(self):
         self.wks_full_path = ""
@@ -369,7 +379,7 @@ class CreatePXE(Image):
         self.image_fullname = "pxe-tftp-%s-%s" % (self.image_name, self.date)
         self.image_linkname = "pxe-tftp-%s" % (self.image_name)
         self.tftp_dir = os.path.join(self.deploydir, "pxe_tftp_%s" % self.image_name)
-        self.pxe_initrd = "{0}/{1}.cpio.gz".format(self.deploydir, self.pxe_initrd_name)
+        self.pxe_initrd = "{0}/{1}.cpio.gz".format(self.tftp_dir, self.pxe_initrd_name)
 
     def _create_pxe_cpio_gz(self):
         cmd = "cd %s && find . | sort | cpio --reproducible -o -H newc > %s/%s.cpio" % \
@@ -387,27 +397,33 @@ class CreatePXE(Image):
         os.makedirs(os.path.join(self.tftp_dir, "pxelinux.cfg"), 0o777)
 
         self._create_pxe_cpio_gz()
-        utils.run_cmd_oneshot("cp %s/bzImage %s/" % (self.deploydir, self.tftp_dir))
+
+        utils.run_cmd_oneshot("install -m 0644 %s %s/EFI/BOOT/grub.cfg" % (self.grub_cfg, self.tftp_dir))
+
+        utils.run_cmd_oneshot("install -m 0644 %s/bzImage* %s/" % (self.deploydir, self.tftp_dir))
 
         for f in ["ldlinux.c32", "libutil.c32", "menu.c32", "pxelinux.0"]:
             s = os.path.join(os.environ['OECORE_TARGET_SYSROOT'], "usr/share/syslinux", f)
             d = os.path.join(self.tftp_dir, f)
             shutil.copyfile(s, d)
 
-        bootfiles_src = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'], "usr/share/genimage/data/pxe_boot")
-        utils.run_cmd_oneshot("cp -rf %s/bootfile-bios.in %s/pxelinux.cfg/default" % (bootfiles_src, self.tftp_dir))
-        utils.run_cmd_oneshot("cp -rf %s/bootfile-efi.in %s/EFI/BOOT/grub.cfg" % (bootfiles_src, self.tftp_dir))
-        utils.run_cmd_oneshot("cp %s/bootx64.efi %s/EFI/BOOT/" % (self.deploydir, self.tftp_dir))
+        utils.run_cmd_oneshot("install -m 0644 %s %s/pxelinux.cfg/default" % (self.syslinux_cfg, self.tftp_dir))
+        utils.run_cmd_oneshot("install -m 0644 %s/*.efi* %s/EFI/BOOT/" % (self.deploydir, self.tftp_dir))
 
         for bootfile in ["pxelinux.cfg/default", "EFI/BOOT/grub.cfg"]:
             bootfile = os.path.join(self.tftp_dir, bootfile)
             with open(bootfile, "r") as f:
                 content = f.read()
-                content = content.replace("@IMAGE_NAME@", self.image_name)
                 content = content.replace("@INITRD@", os.path.basename(self.pxe_initrd))
-                content = content.replace("@BOOT_PARAMS@", self.boot_params)
             with open(bootfile, "w") as f:
                 f.write(content)
+
+        if os.environ.get('EFI_SECURE_BOOT', 'disable') == 'enable':
+            # Sign pxe initrd
+            utils.boot_sign_cmd(self.gpgid, self.gpgpassword, self.gpgpath, self.pxe_initrd)
+
+            # Sign grub.cfg
+            utils.boot_sign_cmd(self.gpgid, self.gpgpassword, self.gpgpath, "%s/EFI/BOOT/grub.cfg"%self.tftp_dir)
 
         self._write_readme()
 
