@@ -661,3 +661,61 @@ def deploy_kickstart_example(pkg_type, outdir):
     with open(kickstart_doc, "w") as f:
         f.write(content)
 
+GRUB_CFG_SECURE_HEAD = '''\
+if [ "${boot_part}" = "" ] ; then
+  set default="0"
+  set timeout=3
+  set color_normal='light-gray/black'
+  set color_highlight='light-green/blue'
+
+  get_efivar -f uint8 -s secured SecureBoot
+  if [ "${secured}" = "1" ]; then
+    # Enable user authentication to make grub unlockable
+    set superusers="%OSTREE_GRUB_USER%"
+     password_pbkdf2 %OSTREE_GRUB_USER% %OSTREE_GRUB_PW%
+  else
+    get_efivar -f uint8 -s unprovisioned SetupMode
+
+    if [ "${unprovisioned}" = "1" ]; then
+        set timeout=0
+
+        menuentry "Automatic Certificate Provision" --unrestricted {
+            chainloader ${prefix}/LockDown.efi
+        }
+    fi
+  fi
+fi
+'''
+
+GRUB_CFG_ISO_ENTRY = '''\
+menuentry "OSTree Install %NAME%" --unrestricted {
+    set fallback=1
+    efi-watchdog enable 0 180
+    linux /bzImage %BOOT_PARAMS%
+    initrd /initrd
+}
+'''
+
+def create_grub_cfg(grub_entries, output_dir, secure_boot='disable', grub_user='', grub_pw_file='', image_type=""):
+    grub_cfg = os.path.join(output_dir, "grub-%s.cfg" % image_type)
+    content = ''
+    if secure_boot == 'enable':
+        content += GRUB_CFG_SECURE_HEAD
+        content = content.replace("%OSTREE_GRUB_USER%", grub_user)
+        with open(os.path.expandvars(grub_pw_file), "r") as f:
+            grub_pw = f.read()
+            content = content.replace("%OSTREE_GRUB_PW%", grub_pw)
+
+    for entry in grub_entries:
+        if image_type == 'iso':
+            entry_content = GRUB_CFG_ISO_ENTRY
+        else:
+            entry_content = ''
+        entry_content = entry_content.replace('%BOOT_PARAMS%', entry['boot_params'])
+        entry_content = entry_content.replace('%NAME%', entry['name'])
+        content += entry_content
+
+    with open(grub_cfg, 'w') as f:
+        f.write(content)
+
+    return grub_cfg

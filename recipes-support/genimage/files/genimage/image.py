@@ -28,6 +28,17 @@ import genimage.debian_constant as deb_constant
 
 logger = logging.getLogger('appsdk')
 
+OVMF_ISO_EFI_SECURE_EXTRA = '''
+Automatic Certificate Provision to OVMF images
+    $ qemu-system-x86_64 -net nic -net user -m @MEM@ \\
+        -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \\
+        -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \\
+        -cdrom ./deploy/@IMAGE_NAME@-cd.iso \\
+        -cpu Nehalem \\
+        -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \\
+        -drive if=pflash,format=qcow2,file=OVMF_VARS.fd \\
+        -no-reboot
+'''
 
 class Image(object, metaclass=ABCMeta):
     """
@@ -89,6 +100,7 @@ class Image(object, metaclass=ABCMeta):
 
         with open(src, "r") as src_f:
             content = src_f.read()
+            content = self._edit_readme_content(content)
             content = content.replace("@IMAGE_NAME@", image_name)
             content = content.replace("@PACKAGE_MANAGER_SECTION@", constant.PACKAGE_MANAGER_SECTION[self.pkg_type])
             content = content.replace("@MEM@", utils.get_mem_size(self.pkg_type, image_type))
@@ -99,8 +111,6 @@ class Image(object, metaclass=ABCMeta):
                 burn_cmd = "sudo dd if=deploy/%s.wic of=/dev/sdX bs=1M status=progress" % image_name
                 content = content.replace("@BURN_COMMAND@", burn_cmd)
 
-            content = self._edit_readme_content(content)
-
         with open(readme, "w") as readme_f:
             readme_f.write(content)
 
@@ -108,6 +118,9 @@ class Image(object, metaclass=ABCMeta):
         if self.machine == "intel-x86-64":
             ovmf_code = "ovmf.secboot.qcow2" if os.environ.get('EFI_SECURE_BOOT', 'disable') == 'enable'  else "ovmf.qcow2"
             content = content.replace("@ovmf_code@", ovmf_code)
+            ovmf_iso_extra = OVMF_ISO_EFI_SECURE_EXTRA if os.environ.get('EFI_SECURE_BOOT', 'disable') == 'enable'  else ""
+            content = content.replace("@OVMF_ISO_EXTRA@", ovmf_iso_extra)
+
         return content
 
 
@@ -319,6 +332,7 @@ class CreateISOImage(Image):
         iso_env['STAGING_DATADIR'] = os.path.join(iso_env['OECORE_TARGET_SYSROOT'], "usr/share")
         iso_env['FAKEROOTCMD'] = os.path.join(iso_env['OECORE_NATIVE_SYSROOT'], "usr/bin/pseudo")
         iso_env['RECIPE_SYSROOT_NATIVE'] = iso_env['OECORE_NATIVE_SYSROOT']
+        iso_env['EFI_SECURE_BOOT'] = iso_env.get('EFI_SECURE_BOOT', 'disable')
 
         if 'LD_PRELOAD' in iso_env:
             del iso_env['LD_PRELOAD']
@@ -405,12 +419,11 @@ class CreatePXE(Image):
             src = os.path.join(os.environ['OECORE_NATIVE_SYSROOT'], "usr/share/genimage/doc", src)
             with open(src, "r") as src_f:
                 content = src_f.read()
+                content = self._edit_readme_content(content)
                 content = content.replace("@IMAGE_NAME@", self.image_name)
                 content = content.replace("@PACKAGE_MANAGER_SECTION@", constant.PACKAGE_MANAGER_SECTION[self.pkg_type])
                 ostree_repo = os.path.join(self.deploydir, "ostree_repo")
                 content = content.replace("@MEM@", utils.get_mem_size(self.pkg_type, "pxe", ostree_repo))
-
-                content = self._edit_readme_content(content)
 
             dst = os.path.join(self.deploydir, "%s_%s.README.md" % (dst_prefix, self.image_name))
             with open(dst, "w") as readme_f:

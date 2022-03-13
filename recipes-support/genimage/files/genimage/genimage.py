@@ -253,7 +253,7 @@ class GenImage(GenXXX):
         if image_type == "ustart":
             return boot_params
 
-        if image_type in ["pxe", "iso"]:
+        if image_type in ["pxe", "iso", "iso-grub"]:
             boot_params += "biosplusefi=1 "
             if not data_ostree.get('install_net_mode') or not data_ostree.get('ostree_remote_url'):
                 boot_params += "instl=/ostree_repo "
@@ -302,10 +302,33 @@ class GenImage(GenXXX):
             sys.exit(1)
 
         boot_params = self._get_boot_params(self.image_name, self.data["ostree"])
+        grub_entries = list()
+        grub_entries.append({'name': self.data['name'],
+                            'boot_params': self._get_boot_params(self.image_name, self.data["ostree"], image_type="iso-grub")})
         for yaml_files in self.guest_yamls:
             data = utils.parse_yamls(yaml_files)
+            if 'initramfs' in data['image_type'] or 'container' in data['image_type']:
+                continue
             ostree = data["ostree"] if "ostree" in data else self.data["ostree"]
             boot_params += self._get_boot_params(data["name"], ostree)
+            grub_entries.append({'name': data['name'],
+                                 'boot_params': self._get_boot_params(data["name"], ostree, image_type="iso-grub")})
+
+        if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
+            # Customize grub.cfg for secure boot
+            grub_cfg = utils.create_grub_cfg(grub_entries,
+                                             self.deploydir,
+                                             secure_boot=self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable'),
+                                             grub_user=self.data['ostree']['OSTREE_GRUB_USER'],
+                                             grub_pw_file=self.data['ostree']['OSTREE_GRUB_PW_FILE'],
+                                             image_type='iso')
+            boot_params += ' --configfile %s' % grub_cfg
+
+            # Sign customized grub.cfg
+            gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
+            gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
+            gpgpath = self.data['gpg']['gpg_path']
+            utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, grub_cfg)
 
         workdir = os.path.join(self.workdir, self.image_name)
         image_iso = CreateISOImage(
@@ -725,6 +748,7 @@ class GenExtDebImage(GenImage):
         super(GenExtDebImage, self).do_prepare()
         os.environ['DEPLOY_DIR'] = self.deploydir
         os.environ['DEFAULT_INITRD_NAME'] = deb_constant.DEFAULT_INITRD_NAME
+        os.environ['EFI_SECURE_BOOT'] = self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable')
         atexit.register(utils.umount, target_rootfs)
 
     def _do_rootfs_pre(self, rootfs=None):
@@ -776,7 +800,6 @@ class GenExtDebImage(GenImage):
 
         # Update grub.cfg
         os.environ['OSTREE_CONSOLE'] = self.data["ostree"]['OSTREE_CONSOLE']
-        os.environ['EFI_SECURE_BOOT'] = self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable')
         cmd = os.path.join(self.data_dir, 'post_rootfs', 'update_grub_cfg.sh')
         cmd = "{0} {1}".format(cmd, rootfs.target_rootfs)
         utils.run_cmd_oneshot(cmd)
@@ -862,8 +885,7 @@ class GenExtDebImage(GenImage):
         image = os.path.join(self.deploydir, image_name)
         if os.path.exists(os.path.realpath(image)):
             logger.info("Reuse existed Initramfs")
-            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable' and \
-               not os.path.exists(os.path.realpath(image+".sig")):
+            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
                 gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
                 gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
                 gpgpath = self.data['gpg']['gpg_path']

@@ -73,6 +73,7 @@ Create a disk image
 Prepare OVMF images
     $ cp -f deploy/@ovmf_code@ OVMF_CODE.fd
     $ cp -f deploy/ovmf.vars.qcow2 OVMF_VARS.fd
+@OVMF_ISO_EXTRA@
 
 For qemu x86_64 with KVM:
 
