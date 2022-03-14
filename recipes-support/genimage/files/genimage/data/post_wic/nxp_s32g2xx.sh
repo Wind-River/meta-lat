@@ -26,8 +26,8 @@ remove_link() {
 }
 
 cp ${USTART_SRC_IMAGE} ${USTART_EVB_IMAGE}
-dd if=$DEPLOY_DIR_IMAGE/u-boot.s32-s32g274aevb of=${USTART_EVB_IMAGE} conv=notrunc bs=256 count=1 seek=0;
-dd if=$DEPLOY_DIR_IMAGE/u-boot.s32-s32g274aevb of=${USTART_EVB_IMAGE} conv=notrunc bs=512 seek=1 skip=1;
+dd if=$DEPLOY_DIR_IMAGE/u-boot-s32.bin-s32g2xxaevb of=${USTART_EVB_IMAGE} conv=notrunc bs=256 count=1 seek=0;
+dd if=$DEPLOY_DIR_IMAGE/u-boot-s32.bin-s32g2xxaevb of=${USTART_EVB_IMAGE} conv=notrunc bs=512 seek=1 skip=1;
 remove_link $USTART_EVB_IMAGE_LINK
 ln -snf -r ${USTART_EVB_IMAGE} ${USTART_EVB_IMAGE_LINK}
 
