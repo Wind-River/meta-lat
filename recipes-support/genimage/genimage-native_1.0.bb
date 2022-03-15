@@ -65,6 +65,7 @@ DEPENDS += " \
     gdk-pixbuf-native \
     gtk+3-native \
     kmod-native \
+    nss-native \
 "
 
 # Require wic

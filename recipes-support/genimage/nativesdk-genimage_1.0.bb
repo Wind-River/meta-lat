@@ -61,6 +61,7 @@ RDEPENDS:${PN} = " \
 RDEPENDS:${PN} += "nativesdk-gdk-pixbuf \
                    nativesdk-gtk+3 \
                    nativesdk-kmod \
+                   nativesdk-nss \
 "
 
 SRC_URI += "\

@@ -146,7 +146,6 @@ do_unpack:append() {
 }
 
 CROSS_CMDS ?= " \
-    /usr/bin/shlibsign \
     /usr/bin/glib-compile-schemas \
     /usr/bin/gconftool-2 \
 "
@@ -154,7 +153,7 @@ CROSS_CMDS ?= " \
 QEMU_ARGS[gconftool-2] = "-E GCONF_BACKEND_DIR=$D/usr/lib/GConf/2"
 
 python do_create_cross_cmd_wrapper () {
-    # cmd_wrapper.in -> shlibsign or ...
+    # cmd_wrapper.in -> glib-compile-schemas or ...
     cross_cmds = (d.getVar("CROSS_CMDS") or "").split()
     dest = os.path.join(d.getVar("WORKDIR"), "crossscripts")
     wrapper_template = os.path.join(d.getVar("WORKDIR"),"crossscript_wrapper.in")
