@@ -993,6 +993,7 @@ while [ $retry -lt $MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE ] ; do
 				break
 			fi
 		elif [ -e $i ] ; then
+			i=$(realpath $i)
 			check_valid_dev $i || continue
 			INSTDEV=$i
 			echo "Installing to: $i"
