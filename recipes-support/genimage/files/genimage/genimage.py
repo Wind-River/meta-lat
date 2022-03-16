@@ -276,7 +276,7 @@ class GenImage(GenXXX):
         else:
             boot_params += "instdev=/dev/nvme0n1,/dev/mmcblk0,/dev/sda,/dev/vda "
 
-        for ostree_key in ['OSTREE_CONSOLE', 'ostree_extra_install_args']:
+        for ostree_key in ['OSTREE_CONSOLE']:
             if data_ostree.get(ostree_key, False):
                 boot_params += "%s " % data_ostree[ostree_key]
 
