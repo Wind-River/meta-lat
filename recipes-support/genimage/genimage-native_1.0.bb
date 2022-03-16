@@ -202,6 +202,8 @@ do_install[nostamp] = "1"
 
 SYSROOT_DIRS_NATIVE += "${base_prefix}/environment-setup.d ${base_prefix}/"
 
+EFI_SECURE_BOOT ?= "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'enable', 'disable', d)}"
+
 python __anonymous () {
     machine = d.getVar('MACHINE')
     img_pkgtype = d.getVar('IMAGE_PKGTYPE')
@@ -210,9 +212,6 @@ python __anonymous () {
     elif machine == 'intel-x86-64':
         d.appendVar('OVERRIDES', ':x86-64:{0}'.format(machine))
         d.appendVarFlag('do_install', 'depends', ' ovmf:do_deploy')
-    elif machine == 'intel-socfpga-64':
-        d.appendVarFlag('do_install', 'depends', ' s10-u-boot-scr:do_deploy')
-        d.appendVarFlag('do_install', 'depends', ' u-boot-socfpga:do_deploy')
 
         if bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', True, False, d):
             d.setVar('BOOT_SINGED_SHIM', d.expand('${DEPLOY_DIR_IMAGE}/bootx64.efi'))
@@ -227,6 +226,10 @@ python __anonymous () {
 
         d.setVar('BOOT_NOSIG_GRUB', d.expand('${DEPLOY_DIR_IMAGE}/bootx64-nosig.efi'))
         d.setVar('BOOT_GRUB_CFG', d.expand('${DEPLOY_DIR_IMAGE}/grub.cfg'))
+
+    elif machine == 'intel-socfpga-64':
+        d.appendVarFlag('do_install', 'depends', ' s10-u-boot-scr:do_deploy')
+        d.appendVarFlag('do_install', 'depends', ' u-boot-socfpga:do_deploy')
 
     if machine in (d.getVar('OSTREE_SUPPORTED_ARM64_MACHINES') or "").split():
         d.appendVar('OVERRIDES', ':aarch64:{0}'.format(machine))
