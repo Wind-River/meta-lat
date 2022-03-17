@@ -916,6 +916,7 @@ class GenExtDebImage(GenImage):
         if os.path.exists(os.path.realpath(image)):
             logger.info("Reuse existed Initramfs")
             if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
+                utils.run_cmd_oneshot("chmod 777 %s" % self.deploydir)
                 gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
                 gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
                 gpgpath = self.data['gpg']['gpg_path']
@@ -947,6 +948,7 @@ class GenExtDebImage(GenImage):
 
         if os.path.exists(os.path.realpath(image)):
             if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
+                utils.run_cmd_oneshot("chmod 777 %s" % self.deploydir)
                 gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
                 gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
                 gpgpath = self.data['gpg']['gpg_path']
