@@ -497,6 +497,10 @@ class ExternalDebian(object):
         with open(self.apt_preference_conf, "w") as f:
             f.write(self.apt_preference)
 
+        apt_retries_conf = os.path.join(self.target_rootfs, "etc/apt/apt.conf.d/80-retries")
+        with open(apt_retries_conf, "w") as f:
+            f.write('APT::Acquire::Retries "10";\n')
+
     def set_exclude(self, package_exclude = None):
         if not package_exclude:
             return
