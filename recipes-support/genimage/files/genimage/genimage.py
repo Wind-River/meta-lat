@@ -836,6 +836,7 @@ class GenExtDebImage(GenImage):
             for k in ['BOOT_SINGED_SHIM',
                       'BOOT_SINGED_SHIMTOOL',
                       'BOOT_SINGED_GRUB',
+                      'BOOT_EFI_SB_DB_CERT',
                       'BOOT_EFITOOL']:
                 src = self.data['gpg']['grub'].get(k)
                 if not src:
@@ -873,6 +874,9 @@ class GenExtDebImage(GenImage):
 
             # grub-efi-bootx64.efi is required by bootfs.sh while secure boot disabled
             utils.run_cmd_oneshot("cp -f %s/bootx64.efi %s/grub-efi-bootx64.efi" % (rootfs_efi, self.deploydir))
+
+            # Copy DB.crt to deploy
+            utils.run_cmd_oneshot("cp -f %s/DB.crt" % (rootfs_efi, self.deploydir))
 
         # Copy kernel image (including sig) to deploy dir
         utils.run_cmd_oneshot("cp %s/boot/vmlinuz-*-amd64* %s" % (rootfs.target_rootfs, self.deploydir))
