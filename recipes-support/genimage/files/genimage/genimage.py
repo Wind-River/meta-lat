@@ -874,7 +874,7 @@ class GenExtDebImage(GenImage):
 
             # grub-efi-bootx64.efi is required by bootfs.sh while secure boot disabled
             utils.run_cmd_oneshot("cp -f %s/bootx64.efi %s/grub-efi-bootx64.efi" % (rootfs_efi, self.deploydir))
-
+        else:
             # Copy DB.crt to deploy
             utils.run_cmd_oneshot("cp -f %s/DB.crt" % (rootfs_efi, self.deploydir))
 
