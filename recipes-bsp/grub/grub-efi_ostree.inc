@@ -6,6 +6,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/grub-efi:"
 
 SRC_URI += " \
     file://0001-Make-UEFI-watchdog-behaviour-configurable.patch \
+    file://0001-correct-grub_errno-if-allocate-memory-at-preferred-a.patch \
     file://grub-runtime.cfg \
 "
 
