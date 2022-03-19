@@ -876,7 +876,7 @@ class GenExtDebImage(GenImage):
             utils.run_cmd_oneshot("cp -f %s/bootx64.efi %s/grub-efi-bootx64.efi" % (rootfs_efi, self.deploydir))
         else:
             # Copy DB.crt to deploy
-            utils.run_cmd_oneshot("cp -f %s/DB.crt" % (rootfs_efi, self.deploydir))
+            utils.run_cmd_oneshot("cp -f %s/DB.crt %s/" % (rootfs_efi, self.deploydir))
 
         # Copy kernel image (including sig) to deploy dir
         utils.run_cmd_oneshot("cp %s/boot/vmlinuz-*-amd64* %s" % (rootfs.target_rootfs, self.deploydir))
