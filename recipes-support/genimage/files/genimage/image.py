@@ -431,6 +431,9 @@ class CreatePXE(Image):
             # Sign grub.cfg
             utils.boot_sign_cmd(self.gpgid, self.gpgpassword, self.gpgpath, "%s/EFI/BOOT/grub.cfg"%self.tftp_dir)
 
+            # On some host, PXE searches grubx64.efi from tftp/ dir rather than tftp/EFI/BOOT/
+            utils.run_cmd_oneshot("install -m 0644 %s/grubx64.efi %s/" % (self.deploydir, self.tftp_dir))
+
         self._write_readme()
 
         self._create_tar()
