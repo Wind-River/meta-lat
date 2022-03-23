@@ -50,6 +50,7 @@ class Rootfs(object):
         self.packages = packages
         self.external_packages = external_packages
         self.exclude_packages = exclude_packages
+        self.exclude_packages.append('kernel-dbg')
 
         self.pkg_globs = "" if pkg_globs is None else pkg_globs
         if image_linguas:
