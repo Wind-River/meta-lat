@@ -197,7 +197,14 @@ class AppSDK(object):
                 logger.info("Please check %s for effective settings." % tf.name)
         
         # prepare pseudo environment
-        utils.fake_root()
+        def exit_and_cleanup_pseudo(pseudodir):
+            logger.debug("Exit pseudo and remove %s" % pseudodir)
+            utils.exit_fake_root()
+            cmd = "rm -rf %s" % pseudodir
+            utils.run_cmd_oneshot(cmd)
+
+        utils.fake_root(workdir=self.sdk_output)
+        atexit.register(exit_and_cleanup_pseudo, os.path.join(self.sdk_output, 'pseudo'))
         
         # install packages into target sysroot dir
         rootfs = Rootfs(self.sdk_output,
