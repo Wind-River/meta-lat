@@ -1,0 +1,29 @@
+From af2f499f9f43897273dfc08fd3f8f7290152965f Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Thu, 24 Mar 2022 10:22:39 +0800
+Subject: [PATCH] do not remove ms-uefi.esl ms-kek.esl
+
+Keep them for Microsoft Cert appending
+
+Upstream-Status: Inappropriate [OE specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile b/Makefile
+index 9638c52..ccb087a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -50,6 +50,7 @@ lib/asn1/libasn1.a lib/asn1/libasn1-efi.a: FORCE
+ .SUFFIXES: .crt
+ 
+ .KEEP: PK.crt KEK.crt DB.crt DBX.crt PK.key KEK.key DB.key PK.esl DB.esl KEK.esl DBX.esl \
++	ms-uefi.esl ms-kek.esl \
+ 	$(EFIFILES)
+ 
+ LockDown.o: PK.h KEK.h DB.h DBX.h
+-- 
+2.27.0
+
