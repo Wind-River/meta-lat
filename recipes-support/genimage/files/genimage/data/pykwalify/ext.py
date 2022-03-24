@@ -38,6 +38,9 @@ def ext_file_exists_or_empty(value, rule_obj, path):
     if not value:
         return True
 
+    if "IMAGE_ROOTFS" in value:
+        return True
+
     return ext_file_exists(value, rule_obj, path)
 
 def ext_edit_default(value, rule_obj, path):
