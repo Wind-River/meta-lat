@@ -218,11 +218,6 @@ python __anonymous () {
             d.setVar('BOOT_SINGED_SHIMTOOL', d.expand('${DEPLOY_DIR_IMAGE}/mmx64.efi'))
             d.setVar('BOOT_SINGED_GRUB', d.expand('${DEPLOY_DIR_IMAGE}/grubx64.efi'))
             d.setVar('BOOT_EFITOOL', d.expand('${DEPLOY_DIR_IMAGE}/LockDown.efi'))
-        else:
-            d.setVar('BOOT_SINGED_SHIM', '')
-            d.setVar('BOOT_SINGED_SHIMTOOL', '')
-            d.setVar('BOOT_SINGED_GRUB', '')
-            d.setVar('BOOT_EFITOOL', '')
 
         d.setVar('BOOT_NOSIG_GRUB', d.expand('${DEPLOY_DIR_IMAGE}/bootx64-nosig.efi'))
         d.setVar('BOOT_GRUB_CFG', d.expand('${DEPLOY_DIR_IMAGE}/grub.cfg'))

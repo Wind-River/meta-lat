@@ -236,6 +236,13 @@ python do_write_py_template () {
             pyf.write(body)
 }
 
+BOOT_SINGED_SHIM ??= ""
+BOOT_SINGED_SHIMTOOL ??= ""
+BOOT_SINGED_GRUB ??= ""
+BOOT_EFITOOL ??= ""
+BOOT_NOSIG_GRUB ??= ""
+BOOT_GRUB_CFG ??= ""
+
 LAT_XFCE_THEMES ??= ""
 
 do_install:append() {

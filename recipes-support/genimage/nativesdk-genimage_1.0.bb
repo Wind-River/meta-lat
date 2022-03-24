@@ -95,11 +95,6 @@ python __anonymous () {
             d.setVar('BOOT_SINGED_SHIMTOOL', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/mmx64.efi')
             d.setVar('BOOT_SINGED_GRUB', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/grubx64.efi')
             d.setVar('BOOT_EFITOOL', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/LockDown.efi')
-        else:
-            d.setVar('BOOT_SINGED_SHIM', '')
-            d.setVar('BOOT_SINGED_SHIMTOOL', '')
-            d.setVar('BOOT_SINGED_GRUB', '')
-            d.setVar('BOOT_EFITOOL', '')
 
         d.setVar('BOOT_NOSIG_GRUB', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/bootx64-nosig.efi')
         d.setVar('BOOT_GRUB_CFG', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/grub.cfg')
