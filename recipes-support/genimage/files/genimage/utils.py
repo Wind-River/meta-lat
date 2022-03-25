@@ -661,13 +661,16 @@ def deploy_kickstart_example(pkg_type, outdir):
     with open(kickstart_doc, "w") as f:
         f.write(content)
 
-GRUB_CFG_SECURE_HEAD = '''\
-if [ "${boot_part}" = "" ] ; then
-  set default="0"
-  set timeout=3
-  set color_normal='light-gray/black'
-  set color_highlight='light-green/blue'
+GRUB_CFG_HEAD = '''\
+set default="0"
+set timeout=3
+set color_normal='light-gray/black'
+set color_highlight='light-green/blue'
 
+'''
+
+GRUB_CFG_SECURE = '''\
+if [ "${boot_part}" = "" ] ; then
   get_efivar -f uint8 -s secured SecureBoot
   if [ "${secured}" = "1" ]; then
     # Enable user authentication to make grub unlockable
@@ -698,9 +701,9 @@ menuentry "OSTree Install %NAME%" --unrestricted {
 
 def create_grub_cfg(entries, output_dir, secure_boot='disable', grub_user='', grub_pw_file='', image_type=""):
     grub_cfg = os.path.join(output_dir, "grub-%s.cfg" % image_type)
-    content = ''
+    content = GRUB_CFG_HEAD
     if secure_boot == 'enable':
-        content += GRUB_CFG_SECURE_HEAD
+        content += GRUB_CFG_SECURE
         content = content.replace("%OSTREE_GRUB_USER%", grub_user)
         with open(os.path.expandvars(grub_pw_file), "r") as f:
             grub_pw = f.read()
