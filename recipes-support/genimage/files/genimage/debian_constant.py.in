@@ -77,6 +77,9 @@ ln -snf --relative $IMAGE_ROOTFS/bin/bash $IMAGE_ROOTFS/bin/sh\
 SCRIPT_DEBIAN_SET_MISC = '''\
 # Set hostname
 echo "intel-x86-64" > $IMAGE_ROOTFS/etc/hostname
+
+# Clean up dead link
+rm -rf $IMAGE_ROOTFS/initrd.img* $IMAGE_ROOTFS/vmlinuz*
 '''
 
 DEFAULT_PACKAGES = '''
@@ -110,6 +113,9 @@ set -x
 rm -rf /boot/*
 rm -rf /var/lib/* /var/cache/*
 rm -rf /usr/share/locale /usr/share/man /usr/share/doc /usr/share/zoneinfo /usr/share/vim
+
+# Clean up dead link
+rm -rf /initrd.img* /vmlinuz*
 SCRIPT_ENDOF\
 '''.format(CHROOT_PATH)
 
