@@ -126,7 +126,7 @@ OSTREE_INITRD_PACKAGES = '''
     findutils gawk glib-networking
     gnupg grep gzip  initramfs-ostree
     kbd kmod mdadm mttyexec watchdog
-    pv rng-tools sed eject
+    pv rng-tools sed eject efibootmgr
     ostree=${DEBIAN_OSTREE_VERSION}
     ostree-boot=${DEBIAN_OSTREE_VERSION}
     libostree-1-1=${DEBIAN_OSTREE_VERSION}

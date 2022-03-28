@@ -1436,6 +1436,17 @@ if [ "$BIOSPLUSEFI" = "1"  ] ; then
 	umount /boot
 fi
 
+if [ -d /sys/firmware/efi/efivars ] ;then
+    if which efibootmgr >/dev/null 2>&1; then
+        mount -t efivarfs efivarfs /sys/firmware/efi/efivars
+        oldboonum=`efibootmgr | grep "^Boot.*\* ${INSTBR}$" |sed "s/Boot\(.*\)\* ${INSTBR}/\1/g"`
+        if [ -n "${oldboonum}" ]; then
+            efibootmgr -b ${oldboonum} -B
+        fi
+        efibootmgr -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
+    fi
+fi
+
 if [ "$INSTPOST" = "shell" ] ; then
 	echo " Entering interactive install shell, please exit to continue when done"
 	shell_start
