@@ -1,0 +1,54 @@
+From bb5b552aa9156ff14201af0180face60c089d05e Mon Sep 17 00:00:00 2001
+From: Changqing Li <changqing.li@windriver.com>
+Date: Mon, 28 Mar 2022 16:09:22 +0800
+Subject: [PATCH] stop use deprecate disutils
+
+distutils is deprecated from python 3.10, and remove from 3.12.
+according to [1], we need to reimplement strtobool by ourselves.
+
+[1]:https://peps.python.org/pep-0632/
+
+Upstream-Status: Pending
+
+Signed-off-by: Changqing Li <changqing.li@windriver.com>
+---
+ fullmetalupdate.py | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/fullmetalupdate.py b/fullmetalupdate.py
+index 114c4cf..ce717f1 100755
+--- a/fullmetalupdate.py
++++ b/fullmetalupdate.py
+@@ -7,9 +7,12 @@ import logging
+ import argparse
+ import asyncio
+ import aiohttp
+-from distutils.util import strtobool
+ from fullmetalupdate.fullmetalupdate_ddi_client import FullMetalUpdateDDIClient
+ 
++def str_to_bool(value):
++    if not value:
++        return False
++    return str(value).lower() in ("y", "yes", "t", "true", "on", "1")
+ 
+ async def main():
+     # config parsing
+@@ -61,13 +64,13 @@ async def main():
+     AUTH_TOKEN = config.get('client', 'hawkbit_auth_token')
+     ATTRIBUTES = {'FullMetalUpdate': config.get('client', 'hawkbit_target_name')}
+ 
+-    if strtobool(config.get('ostree', 'ostree_ssl')):
++    if str_to_bool(config.get('ostree', 'ostree_ssl')):
+         url_type = 'https://'
+     else:
+         url_type = 'http://'
+ 
+     OSTREE_REMOTE_ATTRIBUTES = {'name': config.get('ostree', 'ostree_name_remote'),
+-                                'gpg-verify': strtobool(config.get('ostree', 'ostree_gpg-verify')),
++                                'gpg-verify': str_to_bool(config.get('ostree', 'ostree_gpg-verify')),
+                                 'url': url_type + local_domain_name + ":" + config.get('ostree', 'ostree_url_port')}
+ 
+     if args.debug:
+-- 
+2.25.1
+

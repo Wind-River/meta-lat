@@ -1,0 +1,51 @@
+From 9ad79e075a03bc5bd64b57e5fc3219330ba32a70 Mon Sep 17 00:00:00 2001
+From: Changqing Li <changqing.li@windriver.com>
+Date: Thu, 7 Apr 2022 16:51:51 +0800
+Subject: [PATCH] remove init of os ostree repo
+
+if feature/ostree is not enabled, OS upgrade is not supported.
+And there will be no os ostree repo, remove related code to
+avoid service fullmetalupdate start up failed with error:
+loading sysroot: opendir(ostree/repo): No such file or directory
+
+Upstream-Status: Pending
+
+Signed-off-by: Changqing Li <changqing.li@windriver.com>
+---
+ fullmetalupdate/updater.py | 13 -------------
+ 1 file changed, 13 deletions(-)
+
+diff --git a/fullmetalupdate/updater.py b/fullmetalupdate/updater.py
+index 94794a9..156ab1b 100755
+--- a/fullmetalupdate/updater.py
++++ b/fullmetalupdate/updater.py
+@@ -37,14 +37,6 @@ class AsyncUpdater(object):
+         bus = SystemBus()
+         self.systemd = bus.get('.systemd1')
+ 
+-        self.sysroot = OSTree.Sysroot.new_default()
+-        self.sysroot.load(None)
+-        self.logger.info("Cleaning the sysroot")
+-        self.sysroot.cleanup(None)
+-
+-        [_, repo] = self.sysroot.get_repo()
+-        self.repo_os = repo
+-
+         self.remote_name_os = None
+         self.repo_containers = OSTree.Repo.new(Gio.File.new_for_path(PATH_REPO_APPS))
+         if os.path.exists(PATH_REPO_APPS):
+@@ -129,11 +121,6 @@ class AsyncUpdater(object):
+         self.ostree_remote_attributes = ostree_remote_attributes
+         opts = GLib.Variant('a{sv}', {'gpg-verify': GLib.Variant('b', ostree_remote_attributes['gpg-verify'])})
+         try:
+-            self.logger.info("Initalize remotes for the OS ostree: {}".format(ostree_remote_attributes['name']))
+-            if not ostree_remote_attributes['name'] in self.repo_os.remote_list():
+-                self.repo_os.remote_add(ostree_remote_attributes['name'],
+-                                        ostree_remote_attributes['url'],
+-                                        opts, None)
+             self.remote_name_os = ostree_remote_attributes['name']
+ 
+             [_, refs] = self.repo_containers.list_refs(None, None)
+-- 
+2.25.1
+

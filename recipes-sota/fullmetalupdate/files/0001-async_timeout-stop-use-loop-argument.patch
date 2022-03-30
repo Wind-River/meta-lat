@@ -1,0 +1,44 @@
+From 1c83397e48e5e3cff07b3f670ad26e5d32f3d3a9 Mon Sep 17 00:00:00 2001
+From: Changqing Li <changqing.li@windriver.com>
+Date: Tue, 15 Mar 2022 12:19:16 +0800
+Subject: [PATCH] async_timeout stop use loop argument
+
+Fix error:
+File "/usr/bin/fullmetalupdate/rauc_hawkbit/ddi/client.py", line 168, in get_resource  
+ with async_timeout.timeout(self.timeout, loop=self.session.loop):
+     TypeError: timeout() got an unexpected keyword argument 'loop'
+
+async_timeout 4.0.0 drops the loop= kwarg and will fail if its passed
+
+Upstream-Status: Pending
+
+Signed-off-by: Changqing Li <changqing.li@windriver.com>
+---
+ rauc_hawkbit/ddi/client.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/rauc_hawkbit/ddi/client.py b/rauc_hawkbit/ddi/client.py
+index 23cc4b1..f896301 100755
+--- a/rauc_hawkbit/ddi/client.py
++++ b/rauc_hawkbit/ddi/client.py
+@@ -165,7 +165,7 @@ class DDIClient(object):
+ 
+         self.logger.debug('GET {}'.format(url))
+ 
+-        with async_timeout.timeout(self.timeout, loop=self.session.loop):
++        with async_timeout.timeout(self.timeout):
+             async with self.session.get(url, headers=get_headers,
+                                         params=query_params) as resp:
+                 await self.check_http_status(resp)
+@@ -227,7 +227,7 @@ class DDIClient(object):
+         hash_md5 = hashlib.md5()
+ 
+         self.logger.debug('GET binary {}'.format(url))
+-        with async_timeout.timeout(timeout, loop=self.session.loop):
++        with async_timeout.timeout(timeout):
+             async with self.session.get(url, headers=get_bin_headers) as resp:
+                 await self.check_http_status(resp)
+                 with open(dl_location, 'wb') as fd:
+-- 
+2.25.1
+

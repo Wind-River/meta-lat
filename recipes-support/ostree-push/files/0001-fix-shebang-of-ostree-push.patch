@@ -1,0 +1,34 @@
+From f8766fad2e30a42221a2c1a5d3dfcb3df12b7851 Mon Sep 17 00:00:00 2001
+From: Changqing Li <changqing.li@windriver.com>
+Date: Fri, 1 Apr 2022 11:12:14 +0800
+Subject: [PATCH] fix shebang of ostree-push
+
+Upstream-Status: Pending
+
+Signed-off-by: Changqing Li <changqing.li@windriver.com>
+---
+ ostree-push | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/ostree-push b/ostree-push
+index fe74d27..0ad3e8a 100755
+--- a/ostree-push
++++ b/ostree-push
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python3
++#!/usr/bin/env python3
+ 
+ # ostree-push/ostree-receive - Push OSTree commits to a remote repo
+ # Copyright (C) 2015  Dan Nicholson <nicholson@endlessm.com>
+@@ -19,6 +19,8 @@
+ 
+ from argparse import ArgumentParser
+ from enum import Enum
++import gi
++gi.require_version('OSTree', '1.0')
+ from gi.repository import GLib, Gio, OSTree
+ import logging
+ import os
+-- 
+2.25.1
+

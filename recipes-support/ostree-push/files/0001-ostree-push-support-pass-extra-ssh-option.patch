@@ -1,0 +1,66 @@
+From b065771774fd396ee67c18744e75d430889699ac Mon Sep 17 00:00:00 2001
+From: Changqing Li <changqing.li@windriver.com>
+Date: Fri, 1 Apr 2022 15:57:28 +0800
+Subject: [PATCH] ostree-push: support pass extra ssh option
+
+by default, ssh enable host key checking feature. in our use case, we
+hope to use sshpass to do non-interactivly performing password
+authentication, and need to disable host key checking feature to avoid
+error "host key verification failed".To avoid change ssh config on the
+host, support pass extra ssh option.
+
+Upstream-Status: Pending
+
+Signed-off-by: Changqing Li <changqing.li@windriver.com>
+---
+ ostree-push | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/ostree-push b/ostree-push
+index 0ad3e8a..1eb8c0b 100755
+--- a/ostree-push
++++ b/ostree-push
+@@ -269,12 +269,13 @@ class PushMessageReader(object):
+         return args
+ 
+ class OSTreePusher(object):
+-    def __init__(self, repopath, remotepath, branches=[], verbose=False,
++    def __init__(self, repopath, remotepath, branches=[], sshoption=None, verbose=False,
+                  debug=False):
+         self.repopath = repopath
+         self.remotepath = remotepath
+         self.verbose = verbose
+         self.debug = debug
++        self.sshoption = sshoption
+ 
+         self.remote_host = None
+         self.remote_user = None
+@@ -303,6 +304,8 @@ class OSTreePusher(object):
+             ssh_cmd += ['-l', self.remote_user]
+         if self.remote_port:
+             ssh_cmd += ['-p %s' % self.remote_port]
++        if self.sshoption:
++            ssh_cmd += self.sshoption.split()
+         if self.remote_repo:
+             self.remote_path = self.remote_repo
+             
+@@ -534,6 +537,7 @@ class OSTreeReceiver(object):
+ def push_main():
+     aparser = ArgumentParser(description='Execute commands through ssh')
+     aparser.add_argument('--repo', help='local repository')
++    aparser.add_argument('--sshoption', help='ssh option')
+     aparser.add_argument('-v', '--verbose', action='store_true',
+                          help='enable verbose output')
+     aparser.add_argument('--debug', action='store_true',
+@@ -550,7 +554,7 @@ def push_main():
+     logging.basicConfig(format='%(module)s: %(levelname)s: %(message)s',
+                         level=loglevel, stream=sys.stderr)
+ 
+-    pusher = OSTreePusher(args.repo, args.remote, args.branch,
++    pusher = OSTreePusher(args.repo, args.remote, args.branch, args.sshoption,
+                           args.verbose, args.debug)
+     return pusher.run()
+ 
+-- 
+2.25.1
+
