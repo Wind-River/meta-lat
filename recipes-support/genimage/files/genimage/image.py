@@ -410,12 +410,6 @@ class CreatePXE(Image):
         utils.run_cmd_oneshot("install -m 0644 %s %s/pxelinux.cfg/default" % (self.syslinux_cfg, self.tftp_dir))
         utils.run_cmd_oneshot("install -m 0644 %s/*.efi* %s/EFI/BOOT/" % (self.deploydir, self.tftp_dir))
 
-        cmd = "cp -a %s/ostree_repo %s" % (self.deploydir, self.tftp_dir)
-        res, output = utils.run_cmd(cmd, shell=True)
-        if res != 0:
-            logger.error(output)
-            sys.exit(1)
-
         for bootfile in ["pxelinux.cfg/default", "EFI/BOOT/grub.cfg"]:
             bootfile = os.path.join(self.tftp_dir, bootfile)
             with open(bootfile, "r") as f:
