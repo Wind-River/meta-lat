@@ -760,7 +760,7 @@ class GenExtDebImage(GenImage):
         self.data['debootstrap-mirror'] = deb_constant.DEFAULT_DEBIAN_MIRROR
         self.data['debootstrap-key'] = ""
         self.data['apt-keys'] = []
-        self.data['iso-post-script'] = ""
+        self.data['iso-post-script'] = deb_constant.SCRIPT_DEBIAN_INSTALL_PXE
 
     def _parse_amend(self):
         super(GenExtDebImage, self)._parse_amend()
