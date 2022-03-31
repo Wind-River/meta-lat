@@ -331,12 +331,23 @@ class GenImage(GenXXX):
             utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, grub_cfg)
 
         workdir = os.path.join(self.workdir, self.image_name)
+
+        iso_post_script = None
+        if self.data.get('iso-post-script', None):
+            iso_post_script = os.path.join(workdir, "iso-post-script.sh")
+            with open(iso_post_script, 'w') as f:
+                f.write("#!/usr/bin/env bash\n")
+                f.write("set -x\n")
+                f.write(self.data.get('iso-post-script') + "\n")
+            os.chmod(iso_post_script, 0o777)
+
         image_iso = CreateISOImage(
                         image_name = self.image_name,
                         workdir = workdir,
                         machine = self.machine,
                         target_rootfs = self.target_rootfs,
                         deploydir = self.deploydir,
+                        iso_post_script = iso_post_script,
                         pkg_type = self.pkg_type)
         image_iso.set_wks_in_environ(**{'BOOT_PARAMS': boot_params})
         image_iso.create()
@@ -749,6 +760,7 @@ class GenExtDebImage(GenImage):
         self.data['debootstrap-mirror'] = deb_constant.DEFAULT_DEBIAN_MIRROR
         self.data['debootstrap-key'] = ""
         self.data['apt-keys'] = []
+        self.data['iso-post-script'] = ""
 
     def _parse_amend(self):
         super(GenExtDebImage, self)._parse_amend()

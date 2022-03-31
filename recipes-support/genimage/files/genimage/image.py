@@ -289,6 +289,9 @@ class CreateISOImage(Image):
         for k, v in kwargs.items():
             self.wks_in_environ[k] = v
 
+    def _set_allow_keys(self):
+        self.allowed_keys.update({"iso_post_script"})
+
     def _add_keys(self):
         self.wks_full_path = ""
         self.date = utils.get_today()
@@ -301,6 +304,10 @@ class CreateISOImage(Image):
         source_params = "loader=grub-efi,image_name=%s," % self.image_fullname
         if 'instl=/ostree_repo' in self.wks_in_environ['BOOT_PARAMS']:
             source_params += "payload_dir=%s/ostree_repo,dest_dir=ostree_repo," % self.deploydir
+
+        if self.iso_post_script and os.path.exists(self.iso_post_script):
+            source_params += "iso_post_script=%s," % self.iso_post_script
+
         if self.pkg_type == "external-debian" :
             source_params += "initrd=%s-%s.cpio.gz" % (deb_constant.DEFAULT_INITRD_NAME, self.machine)
         else:
@@ -333,6 +340,7 @@ class CreateISOImage(Image):
         iso_env['FAKEROOTCMD'] = os.path.join(iso_env['OECORE_NATIVE_SYSROOT'], "usr/bin/pseudo")
         iso_env['RECIPE_SYSROOT_NATIVE'] = iso_env['OECORE_NATIVE_SYSROOT']
         iso_env['EFI_SECURE_BOOT'] = iso_env.get('EFI_SECURE_BOOT', 'disable')
+        iso_env['IMAGE_NAME'] = self.image_name
 
         if 'LD_PRELOAD' in iso_env:
             del iso_env['LD_PRELOAD']
