@@ -926,6 +926,23 @@ if [ "$INSTNET" = dhcp -o "$INSTNET" = dhcp6 ] ; then
 	do_dhcp
 fi
 
+# If local kickstart is not available
+if [ "${KS::7}" = "file://" -a ! -e "${KS:7}" ]; then
+  # Try to find local kickstart from instboot partition
+  bdev=$(blkid --label instboot)
+  if [ $? = 0 ]; then
+    LOCAL_KS="/local-ks.cfg"
+    mkdir /t
+    mount -r $bdev /t
+    if [ -e "/t/${KS:7}" ]; then
+      cp "/t/${KS:7}" ${LOCAL_KS}
+      KS="file://${LOCAL_KS}"
+    fi
+    umount /t
+    rm -rf /t
+  fi
+fi
+
 if [ -n "${KS}" ]; then
 	./lat-installer.sh parse-ks --kickstart=${KS}
 	if [ $? -ne 0 ]; then
