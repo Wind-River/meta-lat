@@ -1,0 +1,60 @@
+From 5a1cad3c7f1e69d112e949d504044e242cbbfb1e Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Thu, 31 Mar 2022 21:30:00 +0800
+Subject: [PATCH] isohybird: add hook to customize iso
+
+Add source params `iso_post_script' to run a post script to after
+preparation of iso rootfs
+
+Add `IPAPPEND 2' to syslinux configure file
+
+Upstream-Status: Inappropriate [LAT specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ .../lib/wic/plugins/source/isoimage-isohybrid.py  | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+index 7882b72bd3..604be34b0a 100644
+--- a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
++++ b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+@@ -87,6 +87,7 @@ class IsoImagePlugin(SourcePlugin):
+                     kernel = "%s-%s.bin" % \
+                         (get_bitbake_var("KERNEL_IMAGETYPE"), get_bitbake_var("INITRAMFS_LINK_NAME"))
+ 
++            syslinux_conf += "IPAPPEND 2\n"
+             syslinux_conf += "KERNEL /" + kernel + "\n"
+             syslinux_conf += "APPEND initrd=/initrd LABEL=%s %s\n" \
+                                  % (label, append)
+@@ -259,6 +260,18 @@ class IsoImagePlugin(SourcePlugin):
+ 
+             shutil.copytree(payload_dir, dest_dir, symlinks=True, dirs_exist_ok=True)
+ 
++    @staticmethod
++    def _run_post_iso_script(source_params, iso_dir):
++        """
++        Run a post script to after preparation of iso rootfs
++        """
++        if source_params.get('iso_post_script'):
++            script = source_params['iso_post_script']
++            if os.path.exists(script):
++                logger.debug("Run ISO post script: %s", script)
++                os.environ['ISO_DIR'] = os.path.realpath(iso_dir)
++                output = exec_cmd(script, as_shell=True)
++
+     @classmethod
+     def do_prepare_partition(cls, part, source_params, creator, cr_workdir,
+                              oe_builddir, bootimg_dir, kernel_dir,
+@@ -464,6 +477,8 @@ class IsoImagePlugin(SourcePlugin):
+         install_cmd += "%s/isolinux/libutil.c32" % isodir
+         exec_cmd(install_cmd)
+ 
++        cls._run_post_iso_script(source_params, isodir)
++
+         #create ISO image
+         iso_img = "%s/tempiso_img.iso" % cr_workdir
+         iso_bootimg = "isolinux/isolinux.bin"
+-- 
+2.27.0
+
