@@ -1460,7 +1460,8 @@ if [ -d /sys/firmware/efi/efivars ] ;then
         if [ -n "${oldboonum}" ]; then
             efibootmgr -b ${oldboonum} -B
         fi
-        efibootmgr -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
+        efibootmgr -b 0 -B >/dev/null 2>&1 || true
+        efibootmgr -o 0 -b 0 -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
     fi
 fi
 
