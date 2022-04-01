@@ -271,6 +271,5 @@ if [ "$EFI_SECURE_BOOT" = enable ]; then
                            --passphrase-fd 0 \\
                            EFI/BOOT/grub.cfg
 fi
-
 '''
 
