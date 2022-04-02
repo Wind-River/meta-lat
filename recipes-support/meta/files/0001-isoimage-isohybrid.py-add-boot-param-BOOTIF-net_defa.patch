@@ -1,0 +1,31 @@
+From 865577854155be8459350cab3dbe5921937d0646 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Sat, 2 Apr 2022 17:37:23 +0800
+Subject: [PATCH] isoimage-isohybrid.py: add boot param BOOTIF=$net_default_mac to grub.cfg
+
+LAT installer uses BOOTIF to get network interface for booting (such as
+PXE, ostree remote url)
+
+Upstream-Status: Inappropriate [LAT specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ scripts/lib/wic/plugins/source/isoimage-isohybrid.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+index 604be34b0a..98f6b6edab 100644
+--- a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
++++ b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+@@ -149,7 +149,7 @@ class IsoImagePlugin(SourcePlugin):
+                         kernel = "%s-%s.bin" % \
+                             (get_bitbake_var("KERNEL_IMAGETYPE"), get_bitbake_var("INITRAMFS_LINK_NAME"))
+ 
+-                grubefi_conf += "linux /%s rootwait %s\n" \
++                grubefi_conf += "linux /%s rootwait BOOTIF=$net_default_mac %s\n" \
+                                 % (kernel, append)
+                 grubefi_conf += "initrd /initrd \n"
+                 grubefi_conf += "}\n"
+-- 
+2.27.0
+
