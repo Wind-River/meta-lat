@@ -146,7 +146,7 @@ IMAGE_CMD:otaimg () {
 			rm -rf ${WORKDIR}/rootfs_ota_uboot
 			mkdir -p ${WORKDIR}/rootfs_ota_uboot
 
-			bootdir=$(grep ^bootdir= ${PHYS_SYSROOT}/boot/loader/uEnv.txt)
+			bootdir=$(grep ^bootdir= ${PHYS_SYSROOT}/boot/loader/uEnv.txt || echo "")
 			bootdir=${bootdir#bootdir=}
 			if [ "$bootdir" != "" ] && [ -e "${PHYS_SYSROOT}/boot$bootdir" ] ; then
 				cp -r ${PHYS_SYSROOT}/boot$bootdir/*  ${WORKDIR}/rootfs_ota_uboot
