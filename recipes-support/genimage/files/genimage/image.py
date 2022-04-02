@@ -334,7 +334,7 @@ class CreateISOImage(Image):
 
         iso_env = os.environ.copy()
         # No real rootfs for iso image
-        iso_env['IMAGE_ROOTFS'] = self.workdir
+        iso_env['IMAGE_ROOTFS'] = self.target_rootfs
         iso_env['DEPLOY_DIR_IMAGE'] = self.deploydir
         iso_env['STAGING_DATADIR'] = os.path.join(iso_env['OECORE_TARGET_SYSROOT'], "usr/share")
         iso_env['FAKEROOTCMD'] = os.path.join(iso_env['OECORE_NATIVE_SYSROOT'], "usr/bin/pseudo")
