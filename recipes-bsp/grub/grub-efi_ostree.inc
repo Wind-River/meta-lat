@@ -12,7 +12,8 @@ SRC_URI += " \
 
 EFI_BOOT_PATH = "/boot/efi/EFI/BOOT"
 
-GRUB_BUILDIN += "tftp efinet reboot chain regexp efivar"
+GRUB_BUILDIN += "tftp efinet reboot"
+GRUB_BUILDIN += "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'chain regexp efivar', '', d)}"
 
 do_compile:append:class-native() {
         make grub-editenv
