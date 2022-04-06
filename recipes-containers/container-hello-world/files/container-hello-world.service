@@ -1,0 +1,8 @@
+[Unit]
+Description=container-hello-world Service
+# wait for network to come up before we run
+After=network.target
+
+[Service]
+WorkingDirectory=/var/apps/container-hello-world/
+ExecStart=/usr/bin/runc run container-hello-world
