@@ -66,7 +66,7 @@ FILES:${PN}-doc = "${base_bindir}/fullmetalupdate/fullmetalupdate/doc"
 python __anonymous() {
     config_file = d.getVar('HAWKBIT_CONFIG_FILE')
     if not config_file:
-        bb.fatal("HAWKBIT_CONFIG_FILE not defined, please config it.")
+        raise bb.parse.SkipRecipe("HAWKBIT_CONFIG_FILE not defined, please config it.")
     elif not os.path.isfile(config_file):
-        bb.fatal("HAWKBIT_CONFIG_FILE(" + config_file + ") is not a file, please fix the path." , config_file)
+        raise bb.parse.SkipRecipe("HAWKBIT_CONFIG_FILE(" + config_file + ") is not a file, please fix the path." , config_file)
 }
