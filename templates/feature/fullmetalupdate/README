@@ -28,12 +28,7 @@ ostreepush_ssh_pwd = root
 [server]
 server_host_name = localhost
 
-2. User need to set HAWKBIT_PASSWD_FILE correctly, and save hawkbit server
-   accout and password in format:
-   $ cat hawkbit.passwd 
-   admin:admin
-
-   It is set to ${TOPDIR}/hawkbit.passwd by default
+2. Set HAWKBIT_USER_PASSWORD according to hawkbit server.
 
 3. User can disable push to server by setting ENABLE_PUSH_SERVER = "no"
 

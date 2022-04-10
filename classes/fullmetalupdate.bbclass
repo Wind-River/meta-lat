@@ -1,3 +1,8 @@
+# The default password for hawkbit server
+HAWKBIT_USER_PASSWORD ??= "admin:admin"
+
+ENABLE_PUSH_SERVER ??= "no"
+
 python __anonymous() {
     import configparser
     import os
@@ -18,17 +23,11 @@ python __anonymous() {
         raise bb.parse.SkipRecipe("HAWKBIT_CONFIG_FILE(" + config_file + ") is not a file, please fix the path ", config_file)
  
     if oe.types.boolean(d.getVar('ENABLE_PUSH_SERVER')):
-        passwd_file = d.getVar('HAWKBIT_PASSWD_FILE')
-        if not passwd_file:
-            raise bb.parse.SkipRecipe("HAWKBIT_PASSWD_FILE should be set if you need to push data to hawkit server")
-        if not os.path.isfile(passwd_file):
-            raise bb.parse.SkipRecipe("HAWKBIT_PASSWD_FILE(" + passwd_file + ") is not a file, please fix the path ", passwd_file)
-        else:
-            f = open(passwd_file, "r")
-            lines=f.readlines()
-            user_passwd=lines[0].strip()
-            f.close()
-            d.setVar('HAWKBIT_USER_PASSWD', user_passwd)
+        hawkbit_user_passwd = d.getVar('HAWKBIT_USER_PASSWORD')
+        if not hawkbit_user_passwd:
+            raise bb.parse.SkipRecipe("ENABLE_PUSH_SERVER is set, but HAWKBIT_USER_PASSWORD is not set")
+        if hawkbit_user_passwd == "admin:admin":
+            bb.warn('Use default HAWKBIT_USER_PASSWORD is insecure')
 
     config = configparser.ConfigParser()
     config.read(config_file)
@@ -174,7 +173,7 @@ curl_post() {
     local hawkbit_rest="$1"
     local hawkbit_data="$2"
 
-    curl "${HAWKBIT_HTTP_ADDRESS}/rest/v1/softwaremodules/${hawkbit_rest}" -i -X POST --user ${HAWKBIT_USER_PASSWD} -H "Content-Type: application/hal+json;charset=UTF-8" -d "${hawkbit_data}"
+    curl "${HAWKBIT_HTTP_ADDRESS}/rest/v1/softwaremodules/${hawkbit_rest}" -i -X POST --user ${HAWKBIT_USER_PASSWORD} -H "Content-Type: application/hal+json;charset=UTF-8" -d "${hawkbit_data}"
 }
 
 hawkbit_metadata_value() {
