@@ -21,13 +21,16 @@ python __anonymous() {
 
     if not os.path.isfile(config_file):
         raise bb.parse.SkipRecipe("HAWKBIT_CONFIG_FILE(" + config_file + ") is not a file, please fix the path ", config_file)
+
+    if config_file == d.expand("${LAYER_PATH_lat-layer}/recipes-sota/fullmetalupdate/files/config.cfg.sample"):
+        bb.warn('Default config.cfg.sample may not work, please define a new one with HAWKBIT_CONFIG_FILE')
  
     if oe.types.boolean(d.getVar('ENABLE_PUSH_SERVER')):
         hawkbit_user_passwd = d.getVar('HAWKBIT_USER_PASSWORD')
         if not hawkbit_user_passwd:
             raise bb.parse.SkipRecipe("ENABLE_PUSH_SERVER is set, but HAWKBIT_USER_PASSWORD is not set")
         if hawkbit_user_passwd == "admin:admin":
-            bb.warn('Use default HAWKBIT_USER_PASSWORD is insecure')
+            bb.warn('Default HAWKBIT_USER_PASSWORD is insecure, please define a new one according to hawkbit server')
 
     config = configparser.ConfigParser()
     config.read(config_file)

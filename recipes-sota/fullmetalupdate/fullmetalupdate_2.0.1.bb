@@ -23,8 +23,11 @@ SRC_URI += " \
     file://0001-remove-function-for-set-uboot-enviroment.patch \
     file://0001-stop-use-deprecate-disutils.patch \
     file://0001-fix-python-3.10-compatibility.patch \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'ostree', '', 'file://0001-remove-init-of-os-ostree-repo.patch', d)} \
+    file://${HAWKBIT_CONFIG_FILE} \
 "
+
+# This needs to be fixed
+SRC_URI += "${@bb.utils.contains('DISTRO_FEATURES', 'ostree', '', 'file://0001-remove-init-of-os-ostree-repo.patch', d)}"
 
 SRCREV = "39ec5045e2a4debc8491f62b33b1d364aa14b489"
 
@@ -69,4 +72,6 @@ python __anonymous() {
         raise bb.parse.SkipRecipe("HAWKBIT_CONFIG_FILE not defined, please config it.")
     elif not os.path.isfile(config_file):
         raise bb.parse.SkipRecipe("HAWKBIT_CONFIG_FILE(" + config_file + ") is not a file, please fix the path ", config_file)
+    if config_file == d.expand("${LAYER_PATH_lat-layer}/recipes-sota/fullmetalupdate/files/config.cfg.sample"):
+        bb.warn('Default config.cfg.sample may not work, please define a new one with HAWKBIT_CONFIG_FILE')
 }
