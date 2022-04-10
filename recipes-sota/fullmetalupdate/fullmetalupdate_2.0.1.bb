@@ -68,5 +68,5 @@ python __anonymous() {
     if not config_file:
         raise bb.parse.SkipRecipe("HAWKBIT_CONFIG_FILE not defined, please config it.")
     elif not os.path.isfile(config_file):
-        raise bb.parse.SkipRecipe("HAWKBIT_CONFIG_FILE(" + config_file + ") is not a file, please fix the path." , config_file)
+        raise bb.parse.SkipRecipe("HAWKBIT_CONFIG_FILE(" + config_file + ") is not a file, please fix the path ", config_file)
 }
