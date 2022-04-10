@@ -4,25 +4,25 @@ python __anonymous() {
 
     ostree_repo = d.getVar('OSTREE_REPO')
     if not ostree_repo:
-        bb.fatal("OSTREE_REPO should be set in your local.conf")
+        raise bb.parse.SkipRecipe("OSTREE_REPO should be set in your local.conf")
 
     ostree_repo = d.getVar('OSTREE_BRANCHNAME')
     if not ostree_repo:
-        bb.fatal("OSTREE_BRANCHNAME should be set in your local.conf")
+        raise bb.parse.SkipRecipe("OSTREE_BRANCHNAME should be set in your local.conf")
 
     config_file = d.getVar('HAWKBIT_CONFIG_FILE')
     if not config_file:
-        bb.fatal("Please export/define HAWKBIT_CONFIG_FILE")
+        raise bb.parse.SkipRecipe("Please export/define HAWKBIT_CONFIG_FILE")
 
     if not os.path.isfile(config_file):
-        bb.fatal("HAWKBIT_CONFIG_FILE(" + config_file + ") is not a file, please fix the path" , config_file)
+        raise bb.parse.SkipRecipe("HAWKBIT_CONFIG_FILE(" + config_file + ") is not a file, please fix the path" , config_file)
  
     if oe.types.boolean(d.getVar('ENABLE_PUSH_SERVER')):
         passwd_file = d.getVar('HAWKBIT_PASSWD_FILE')
         if not passwd_file:
-            bb.fatal("HAWKBIT_PASSWD_FILE should be set if you need to push data to hawkit server")
+            raise bb.parse.SkipRecipe("HAWKBIT_PASSWD_FILE should be set if you need to push data to hawkit server")
         if not os.path.isfile(passwd_file):
-            bb.fatal("HAWKBIT_PASSWD_FILE(" + passwd_file + ") is not a file, please fix the path" , passwd_file)
+            raise bb.parse.SkipRecipe("HAWKBIT_PASSWD_FILE(" + passwd_file + ") is not a file, please fix the path" , passwd_file)
         else:
             f = open(passwd_file, "r")
             lines=f.readlines()
