@@ -3,7 +3,7 @@ inherit fullmetalupdate
 do_push_container_to_ostree_and_hawkbit[network] = "1"
 
 # OSTree application deployment
-export OSTREE_PACKAGE_BRANCHNAME = "${PN}"
+export OSTREE_PACKAGE_BRANCHNAME = "${PN}-${MACHINE}"
 export OSTREE_REPO_CONTAINERS = "${DEPLOY_DIR_IMAGE}/ostree_repo_containers"
 
 do_push_container_to_ostree_and_hawkbit[depends] = " \
