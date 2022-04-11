@@ -11,15 +11,13 @@ set -e
 # IMAGE_NAME
 # DATETIME
 # MACHINE
+S32G_PLAT="rdb2 evb rdb3"
+UBOOT_CONFIG="s32g274ardb2 s32g2xxaevb s32g399ardb3"
+UBOOT_BINARY="u-boot-s32.bin"
+
 USTART_SRC_GZIMAGE_LINK="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}.ustart.img.gz"
 USTART_SRC_GZIMAGE="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-${DATETIME}.ustart.img.gz"
 USTART_SRC_IMAGE="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-${DATETIME}.ustart.img"
-USTART_EVB_IMAGE="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-evb-${DATETIME}.ustart.img"
-USTART_RDB2_IMAGE="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-rdb2-${DATETIME}.ustart.img"
-USTART_EVB_GZIMAGE="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-evb-${DATETIME}.ustart.img.gz"
-USTART_RDB2_GZIMAGE="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-rdb2-${DATETIME}.ustart.img.gz"
-USTART_EVB_GZIMAGE_LINK="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-evb.ustart.img.gz"
-USTART_RDB2_GZIMAGE_LINK="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-rdb2.ustart.img.gz"
 
 remove_link() {
     f=$1
@@ -30,26 +28,26 @@ remove_link() {
 
 
 gunzip -f -k $USTART_SRC_GZIMAGE
-cp ${USTART_SRC_IMAGE} ${USTART_EVB_IMAGE}
-dd if=$DEPLOY_DIR_IMAGE/u-boot-s32.bin-s32g2xxaevb of=${USTART_EVB_IMAGE} conv=notrunc bs=256 count=1 seek=0;
-dd if=$DEPLOY_DIR_IMAGE/u-boot-s32.bin-s32g2xxaevb of=${USTART_EVB_IMAGE} conv=notrunc bs=512 seek=1 skip=1;
-remove_link $USTART_EVB_GZIMAGE_LINK
-pigz -f ${USTART_EVB_IMAGE}
-ln -snf -r ${USTART_EVB_GZIMAGE} ${USTART_EVB_GZIMAGE_LINK}
 
-if [ -e $DEPLOY_DIR_IMAGE/u-boot.s32-s32g274ardb2 ]; then
-    cp ${USTART_SRC_IMAGE} ${USTART_RDB2_IMAGE};
-    if [ -n "${ATF_S32G_ENABLE}" ]; then
-        dd if=${ATF_IMAGE_FILE} of=${USTART_RDB2_IMAGE} conv=notrunc bs=256 count=1 seek=0;
-        dd if=${ATF_IMAGE_FILE} of=${USTART_RDB2_IMAGE} conv=notrunc bs=512 seek=1 skip=1;
-    else
-        dd if=$DEPLOY_DIR_IMAGE/u-boot.s32-s32g274ardb2 of=${USTART_RDB2_IMAGE} conv=notrunc bs=256 count=1 seek=0;
-        dd if=$DEPLOY_DIR_IMAGE/u-boot.s32-s32g274ardb2 of=${USTART_RDB2_IMAGE} conv=notrunc bs=512 seek=1 skip=1;
+j=0;
+for plat in ${S32G_PLAT}; do
+    j=$(expr $j + 1);
+    type=`echo ${UBOOT_CONFIG} | awk -v "n=$j" '{print $n}'`;
+    uimage="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-${plat}-${DATETIME}.ustart.img"
+    uzimage=${uimage}.gz
+    uzimagelink="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-${plat}.ustart.img.gz"
+    cp ${USTART_SRC_IMAGE} ${uimage}
+    if [ -n "${ATF_S32G_ENABLE}" -a -e ${DEPLOY_DIR_IMAGE}/atf-${type}.s32 ]; then
+        dd if=${DEPLOY_DIR_IMAGE}/atf-${type}.s32 of=${uimage} conv=notrunc bs=256 count=1 seek=0;
+        dd if=${DEPLOY_DIR_IMAGE}/atf-${type}.s32 of=${uimage} conv=notrunc bs=512 seek=1 skip=1;
+    elif [ -e ${DEPLOY_DIR_IMAGE}/${UBOOT_BINARY}-${type} ]; then
+        dd if=${DEPLOY_DIR_IMAGE}/${UBOOT_BINARY}-${type} of=${uimage} conv=notrunc bs=256 count=1 seek=0;
+        dd if=${DEPLOY_DIR_IMAGE}/${UBOOT_BINARY}-${type} of=${uimage} conv=notrunc bs=512 seek=1 skip=1;
     fi;
-	remove_link $USTART_RDB2_GZIMAGE_LINK
-    pigz -f ${USTART_RDB2_IMAGE}
-    ln -snf -r ${USTART_RDB2_GZIMAGE} ${USTART_RDB2_GZIMAGE_LINK}
-fi
+    remove_link $uzimagelink
+    pigz -f $uimage
+    ln -snf -r $uzimage $uzimagelink
+done;
 
 rm -f ${USTART_SRC_IMAGE}
 remove_link ${USTART_SRC_GZIMAGE_LINK}
