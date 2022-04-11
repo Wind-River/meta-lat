@@ -35,8 +35,8 @@ SRC_URI = "\
            file://genimage/data/post_rootfs/set_systemd_default_target.sh \
            file://genimage/data/post_rootfs/run.ssh_allow_empty_password \
            file://genimage/data/post_rootfs/run.ssh_allow_root_login \
-           file://genimage/data/post_ustart/nxp_s32g2xx.sh \
-           file://genimage/data/post_wic/nxp_s32g2xx.sh \
+           file://genimage/data/post_ustart/nxp_s32g.sh \
+           file://genimage/data/post_wic/nxp_s32g.sh \
            file://genimage/data/yaml_example/feature/vboxguestdrivers.yaml \
            file://genimage/data/yaml_example/feature/xfce_desktop.yaml \
            file://genimage/data/yaml_example/feature/set_root_password.yaml \
@@ -99,7 +99,7 @@ SRC_URI = "\
            file://genimage/doc/target_nxp-imx6.README.md.in \
            file://genimage/doc/target_nxp-imx8.README.md.in \
            file://genimage/doc/target_marvell-cn96xx.README.md.in \
-           file://genimage/doc/target_nxp-s32g2xx.README.md.in \
+           file://genimage/doc/target_nxp-s32g.README.md.in \
            file://genimage/doc/target_intel-socfpga-64.README.md.in \
            file://genimage/doc/target_ti-j72xx.README.md.in \
            file://genimage/doc/target_nxp-ls1028.README.md.in \
@@ -266,9 +266,9 @@ do_install:append() {
 }
 
 USTART_POST_SCRIPT ??= ""
-USTART_POST_SCRIPT_nxp-s32g2xx = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/nxp_s32g2xx.sh"
+USTART_POST_SCRIPT_nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/nxp_s32g.sh"
 WIC_POST_SCRIPT ??= ""
-WIC_POST_SCRIPT_nxp-s32g2xx = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/nxp_s32g2xx.sh"
+WIC_POST_SCRIPT_nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/nxp_s32g.sh"
 
 DEFAULT_DEBIAN_MIRROR ??= "http://ftp.us.debian.org/debian"
 DEFAULT_DEBIAN_DISTRO ??= "bullseye"
@@ -306,8 +306,8 @@ python __anonymous () {
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'aarch64 noarch nxp_imx8')
     elif machine == 'marvell-cn96xx':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'marvell_cn96xx noarch octeontx2')
-    elif machine == 'nxp-s32g2xx':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch nxp_s32g2xx')
+    elif machine == 'nxp-s32g':
+        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch nxp_s32g')
     elif machine == 'intel-socfpga-64':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 intel_socfpga_64 noarch')
     elif machine == 'ti-j72xx':
