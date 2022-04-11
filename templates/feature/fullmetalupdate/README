@@ -1,37 +1,54 @@
 FullMetalUpdate
 ==================
-This template enable fullmetalupdate feature in wrlinux.
+This template enables fullmetalupdate feature in wrlinux.
 
-1. User need to set HAWKBIT_CONFIG_FILE correctly to use this template,
-It is set to ${TOPDIR}/config.cfg by default.
+Here is an example on how to build and run it with config.cfg.sample.
 
-Example of config.cfg
----
-[client]
-hawkbit_vendor_name = FullMetalUpdate
-hawkbit_url_port = 8080
-hawkbit_ssl = false
-hawkbit_tenant_id = DEFAULT
-hawkbit_target_name = FullMetalUpdate_Demo
-hawkbit_auth_token = 380ff2b5908e776cb69159f3f4477e4f
-log_level = debug
+* Setup a hawkbit sever, this is a must when ENABLE_PUSH_SERVER = "yes"
+  (default value), otherwise, the build would be failed.
 
-[ostree]
-ostree_name_remote = fullmetalupdate
-ostree_gpg-verify = false
-ostree_ssl = false
-ostree_url_port = 8000
-ostreepush_ssh_port = 8022
-ostreepush_ssh_user = root
-ostreepush_ssh_pwd = root
+$ git clone git@github.com:FullMetalUpdate/fullmetalupdate-cloud-demo.git
+$ cd fullmetalupdate-cloud-demo
+$ ./StartServer.sh
+$ ./ConfigureServer.sh
 
-[server]
-server_host_name = localhost
+NOTE: The ostree-server container is using the python3 web server one-liner
+      that can cause stability issue. So build local ostree-server image using Ruby
+      one-liner web server instead. The docker compose file need to be updated
+      according to the ostree-server image naming.
 
-2. Set HAWKBIT_USER_PASSWORD according to hawkbit server.
+Login to the sever with admin:admin by default:
+http://<hawkbit_server_ip>:8080
 
-3. User can disable push to server by setting ENABLE_PUSH_SERVER = "no"
+The ip is default to localhost in config.cfg.sample, you also need update
+config.cfg.sample or your config.cfg when it is changed.
 
-4. User need to enable feature/ostree to support os upgrade. By default, feature/ostree
-   is not enabled, only container upgrade is supported.
+* Add the following lines to conf/local.conf (Optional, but recommended)
+HAWKBIT_CONFIG_FILE = "/path/to/config.cfg"
+HAWKBIT_USER_PASSWORD = "<user>:<password>"
 
+The default settings will be used if they are not set, but warnings for security reason:
+WARNING: Default config.cfg.sample may not work, please define a new one with HAWKBIT_CONFIG_FILE
+WARNING: Default HAWKBIT_USER_PASSWORD is insecure, please define a new one according to hawkbit server
+
+The default password is admin:admin.
+
+The default HAWKBIT_CONFIG_FILE is
+recipes-sota/fullmetalupdate/files/config.cfg.sample, you can view it for more
+details.
+
+* Build without feature/ostree:
+Add the following line to conf/local.conf:
+WRTEMPLATE = "feature/fullmetalupdate"
+
+$ bitbake wrlinux-image-small container-hello-world
+
+* Build with feature/ostree:
+Add the following line to conf/local.conf:
+WRTEMPLATE = "feature/ostree feature/fullmetalupdate"
+
+$ bitbake wrlinux-image-small container-hello-world
+
+You can see that images are pushed to http://<hawkbit_server_ip>:8080 after the build
+
+More info: https://www.fullmetalupdate.io/docs/documentation/
