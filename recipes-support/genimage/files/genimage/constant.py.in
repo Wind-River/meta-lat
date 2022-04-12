@@ -143,6 +143,7 @@ DEFAULT_PACKAGES_nxp_s32g = '''
     can-utils
     ptpd
     u-boot-s32
+    atf-s32g
     libp11
     pkcs11-hse
     pkcs11-hse-examples
