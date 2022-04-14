@@ -266,9 +266,9 @@ do_install:append() {
 }
 
 USTART_POST_SCRIPT ??= ""
-USTART_POST_SCRIPT_nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/nxp_s32g.sh"
+USTART_POST_SCRIPT:nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/nxp_s32g.sh"
 WIC_POST_SCRIPT ??= ""
-WIC_POST_SCRIPT_nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/nxp_s32g.sh"
+WIC_POST_SCRIPT:nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/nxp_s32g.sh"
 
 DEFAULT_DEBIAN_MIRROR ??= "http://ftp.us.debian.org/debian"
 DEFAULT_DEBIAN_DISTRO ??= "bullseye"
