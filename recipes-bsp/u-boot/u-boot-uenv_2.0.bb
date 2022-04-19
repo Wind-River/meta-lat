@@ -315,6 +315,7 @@ else
       fi
       run netinst
     else
+      setenv netboot ""
       exit
     fi
   fi
