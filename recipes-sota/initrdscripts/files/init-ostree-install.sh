@@ -929,8 +929,17 @@ fi
 # If local kickstart is not available
 if [ "${KS::7}" = "file://" -a ! -e "${KS:7}" ]; then
   # Try to find local kickstart from instboot partition
-  bdev=$(blkid --label instboot)
-  if [ $? = 0 ]; then
+  cnt=10
+  while [ "$cnt" -gt 0 ] ; do
+    bdev=$(blkid --label instboot)
+    if [ $? = 0 ]; then
+      break
+    fi
+    sleep 1
+    cnt=$(($cnt - 1))
+  done
+
+  if [ -n "$bdev" ]; then
     LOCAL_KS="/local-ks.cfg"
     mkdir /t
     mount -r $bdev /t
