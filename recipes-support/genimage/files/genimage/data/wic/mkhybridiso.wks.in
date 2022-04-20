@@ -2,6 +2,6 @@
 # long-description: Creates an EFI and legacy bootable hybrid ISO image
 # which can be used on optical media as well as USB media.
 
-part /boot --source isoimage-isohybrid --sourceparams="@SOURCE_PARAMS@" --ondisk cd --label instboot
+part /boot --source isoimage-isohybrid --sourceparams="@SOURCE_PARAMS@" --ondisk cd --label instboot-iso
 
 bootloader  --timeout=15  ${BOOT_PARAMS}

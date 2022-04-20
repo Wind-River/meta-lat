@@ -157,7 +157,7 @@ ask_fix_label() {
 check_valid_dev() {
 	local heading
 	instdev=$1
-	blkid -t TYPE=iso9660 -o device $instdev
+	blkid --match-token LABEL=instboot-iso -o device $instdev
 	if [ $? -eq 0 ];then
 		echo "$instdev is ISO disk"
 		return 1
@@ -931,7 +931,7 @@ if [ "${KS::7}" = "file://" -a ! -e "${KS:7}" ]; then
   # Try to find local kickstart from instboot partition
   cnt=10
   while [ "$cnt" -gt 0 ] ; do
-    bdev=$(blkid --label instboot)
+    bdev=$(blkid --label instboot || blkid --label instboot-iso)
     if [ $? = 0 ]; then
       break
     fi
@@ -1090,7 +1090,7 @@ dev=${INSTDEV}
 
 # Special case check if install media is different than boot media
 if [ $INSTSF = 1 ] ; then
-	i=$(blkid --label instboot)
+	i=$(blkid --label instboot || blkid --label instboot-iso)
 	if [ "$i" != "" -a "${fs_dev}${p1}" != "${i}" ] ; then
 		echo "Install disk is different than boot disk setting instsf=0"
 		INSTSF=0
@@ -1254,7 +1254,7 @@ fi
 mount "${OSTREE_BOOT_DEVICE}" "${PHYS_SYSROOT}/boot"  || fatal "Error mouting ${OSTREE_BOOT_DEVICE}"
 
 mkdir /instboot
-bdev=$(blkid --label instboot)
+bdev=$(blkid --label instboot || blkid --label instboot-iso)
 if [ $? = 0 ] ; then
 	mount -r $bdev /instboot
 # Special case check if instboot is not available and
@@ -1498,14 +1498,11 @@ sync
 sync
 echo 3 > /proc/sys/vm/drop_caches
 
-# Eject ISO image if available
-for isodev in `blkid  -t TYPE=iso9660 -o device`; do
-	# The ISO should be installer image
-	blkid --label instboot $isodev
-	if [ $? -eq 0 ]; then
-		eject $isodev
-	fi
-done
+# Eject installer ISO image if available
+isodev=$(blkid --label instboot-iso -o device)
+if [ $? -eq 0 ]; then
+	eject $isodev
+fi
 
 if [ "$INSTPOST" = "halt" ] ; then
 	echo o > /proc/sysrq-trigger
