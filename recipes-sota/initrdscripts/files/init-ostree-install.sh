@@ -169,12 +169,12 @@ check_valid_dev() {
 ask_dev() {
 	local 'heading' 'inp' 'i' 'reply' 'reply2' 'out' 'choices'
 	fix_part_labels=0
-	heading="    `lsblk -o NAME,VENDOR,SIZE,MODEL,TYPE |head -n 1`"
+	heading="    `lsblk -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL |head -n 1`"
 	while [ 1 ] ; do
 		choices=()
 		while IFS="" read -r inp; do
 			choices+=("$inp")
-		done<<< $(lsblk -n -o NAME,VENDOR,SIZE,MODEL,TYPE |grep disk)
+		done<<< $(lsblk -n -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL |grep disk)
 		echo "$heading"
 		for i in ${!choices[@]}; do
 			[ "${choices[$i]}" = "" ] && continue
@@ -190,6 +190,7 @@ ask_dev() {
 			IFS='' read -p "ERASE /dev/$i (y/n) " -r reply2
 			if [ "$reply2" = "y" ] ; then
 				INSTDEV=/dev/$i
+				check_valid_dev $INSTDEV || fatal "Could not install to disk of installer ISO image"
 				break
 			fi
 		fi
@@ -1050,7 +1051,7 @@ if [ "$cnt" -gt 0 ] ; then
 	conflict_label print
 fi
 while [ "$cnt" -gt 0 ] ; do
-	[ $(($cnt % 10)) -eq 0 ] && lsblk -o NAME,VENDOR,SIZE,MODEL,TYPE $INSTDEV
+	[ $(($cnt % 10)) -eq 0 ] && lsblk -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL $INSTDEV
 	read -r -s -n 1 -t 1 -p "## Erasing $INSTDEV in $cnt sec ## 'y' = start ## Any key to abort ##" key
 	ret=$?
 	echo
