@@ -17,6 +17,7 @@
 #* 
 #*/
 lat_tmp="/tmp/lat"
+lat_ks_early="${lat_tmp}/lat_ks_early"
 lat_pre_part="${lat_tmp}/lat_pre_part"
 lat_create_part="${lat_tmp}/lat_create_part"
 lat_make_fs="${lat_tmp}/lat_create_fs"

@@ -966,9 +966,9 @@ if [ -n "${KS}" ]; then
 fi
 
 if [ -n "${KS}" ]; then
-	exec_hook "%pre-part" ${lat_pre_part}
+	exec_hook "%ks-early" ${lat_ks_early}
 	if [ $? -ne 0 ]; then
-		fatal "Run Kickstart Per Partitioin Script failed"
+		fatal "Run Kickstart Early Script failed"
 	fi
 fi
 
@@ -1039,6 +1039,13 @@ done
 if [ $fail = 1 ] ; then
 	INSTW=0
 	ask_dev
+fi
+
+if [ -n "${KS}" ]; then
+	exec_hook "%pre-part" ${lat_pre_part}
+	if [ $? -ne 0 ]; then
+		fatal "Run Kickstart Per Partitioin Script failed"
+	fi
 fi
 
 cnt=0

@@ -482,6 +482,8 @@ parse_ks() {
     fi
   fi
 
+  ks_parse_hook "%ks-early" "${lat_ks_early}"
+
   ks_parse_hook "%pre-part" "${lat_pre_part}"
 
   ks_parse_hook "%part" "${lat_create_part}"
