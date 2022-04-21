@@ -26,6 +26,7 @@ import glob
 from texttable import Texttable
 import atexit
 from tempfile import NamedTemporaryFile
+import uuid
 from genimage.utils import yaml
 
 from genimage.utils import set_logger
@@ -224,10 +225,12 @@ class GenImage(GenXXX):
 
         image_wic.create()
 
-    def _get_boot_params(self, image_name, data_ostree, image_type="iso"):
+    def _get_boot_params(self, image_name, data_ostree, image_type="iso", extra_boot_params=""):
         def _get_boot_common_params(data_ostree):
             date_since_epoch = datetime.datetime.now().strftime('%s')
             boot_params = "instdate=@%s instw=60 " % date_since_epoch
+            if extra_boot_params:
+                boot_params += "%s " % extra_boot_params
 
             if data_ostree['install_net_mode'] in ["dhcp", "dhcp6"]:
                 boot_params += "instnet=%s " % data_ostree['install_net_mode']
@@ -301,18 +304,24 @@ class GenImage(GenXXX):
             logger.error("Only intel-x86-64 support ISO image")
             sys.exit(1)
 
-        boot_params = self._get_boot_params(self.image_name, self.data["ostree"])
+        # Generate unique label for installer ISO image
+        iso_instlabel = "instboot-iso-%s" % str(uuid.uuid4())[:8]
+        # Set instiso=xxx to grub.cfg and syslinux.cfg
+        bp_instiso = " instiso=%s" % iso_instlabel
+
+        boot_params = self._get_boot_params(self.image_name, self.data["ostree"], extra_boot_params=bp_instiso)
+
         grub_entries = list()
         grub_entries.append({'name': self.data['name'],
-                            'boot_params': self._get_boot_params(self.image_name, self.data["ostree"], image_type="iso-grub")})
+                            'boot_params': self._get_boot_params(self.image_name, self.data["ostree"], image_type="iso-grub", extra_boot_params=bp_instiso)})
         for yaml_files in self.guest_yamls:
             data = utils.parse_yamls(yaml_files)
             if 'initramfs' in data['image_type'] or 'container' in data['image_type']:
                 continue
             ostree = data["ostree"] if "ostree" in data else self.data["ostree"]
-            boot_params += self._get_boot_params(data["name"], ostree)
+            boot_params += self._get_boot_params(data["name"], ostree, extra_boot_params=bp_instiso)
             grub_entries.append({'name': data['name'],
-                                 'boot_params': self._get_boot_params(data["name"], ostree, image_type="iso-grub")})
+                                 'boot_params': self._get_boot_params(data["name"], ostree, image_type="iso-grub", extra_boot_params=bp_instiso)})
 
         if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
             # Customize grub.cfg for secure boot
@@ -349,7 +358,7 @@ class GenImage(GenXXX):
                         deploydir = self.deploydir,
                         iso_post_script = iso_post_script,
                         pkg_type = self.pkg_type)
-        image_iso.set_wks_in_environ(**{'BOOT_PARAMS': boot_params})
+        image_iso.set_wks_in_environ(**{'BOOT_PARAMS': boot_params, 'ISO_INSTLABEL': iso_instlabel})
         image_iso.create()
 
     @show_task_info("Create PXE Initramfs and Boot File")

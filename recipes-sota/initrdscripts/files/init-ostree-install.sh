@@ -77,6 +77,7 @@ OPTIONAL:
  lcurl=URL_TO_SCRIPT		- Download+execute script after install
  lcurlarg=ARGS_TO_ECURL_SCRIPT	- Arugments to pass to lcurl script
  ks=ARGS_TO_KICKSTART		- Download+apply kickstart setting
+ instiso=ISO_LABEL		- The label of installer ISO image
  Disk sizing
  biosplusefi=1	 		- Create one GPT disk to support booting from both of BIOS and EFI
  BLM=#				- Blocks of boot magic area to skip
@@ -157,7 +158,7 @@ ask_fix_label() {
 check_valid_dev() {
 	local heading
 	instdev=$1
-	blkid --match-token LABEL=instboot-iso -o device $instdev
+	blkid --match-token LABEL=${ISO_INSTLABEL} -o device $instdev
 	if [ $? -eq 0 ];then
 		echo "$instdev is ISO disk"
 		return 1
@@ -534,6 +535,7 @@ INSTSF=${INSTSF=""}
 INSTFLUX=${INSTFLUX=""}
 BOOTIF=${BOOTIF=""}
 DHCPARGS=${DHCPARGS=""}
+ISO_INSTLABEL=${ISO_INSTLABEL="instboot-iso"}
 WIFI=${WIFI=""}
 ECURL=${ECURL=""}
 ECURLARG=${ECURLARG=""}
@@ -612,6 +614,8 @@ read_args() {
 				INSTFLUX=$optarg ;;
 			dhcpargs=*)
 				DHCPARGS=$optarg ;;
+			instiso=*)
+				ISO_INSTLABEL=$optarg ;;
 			BOOTIF=*)
 				# 01-52-54-00-12-34-56 -> 52-54-00-12-34-56
 				BOOTIF=${optarg#*-}
@@ -931,7 +935,7 @@ if [ "${KS::7}" = "file://" -a ! -e "${KS:7}" ]; then
   # Try to find local kickstart from instboot partition
   cnt=10
   while [ "$cnt" -gt 0 ] ; do
-    bdev=$(blkid --label instboot || blkid --label instboot-iso)
+    bdev=$(blkid --label instboot || blkid --label ${ISO_INSTLABEL})
     if [ $? = 0 ]; then
       break
     fi
@@ -1090,7 +1094,7 @@ dev=${INSTDEV}
 
 # Special case check if install media is different than boot media
 if [ $INSTSF = 1 ] ; then
-	i=$(blkid --label instboot || blkid --label instboot-iso)
+	i=$(blkid --label instboot || blkid --label ${ISO_INSTLABEL})
 	if [ "$i" != "" -a "${fs_dev}${p1}" != "${i}" ] ; then
 		echo "Install disk is different than boot disk setting instsf=0"
 		INSTSF=0
@@ -1254,7 +1258,7 @@ fi
 mount "${OSTREE_BOOT_DEVICE}" "${PHYS_SYSROOT}/boot"  || fatal "Error mouting ${OSTREE_BOOT_DEVICE}"
 
 mkdir /instboot
-bdev=$(blkid --label instboot || blkid --label instboot-iso)
+bdev=$(blkid --label instboot || blkid --label ${ISO_INSTLABEL})
 if [ $? = 0 ] ; then
 	mount -r $bdev /instboot
 # Special case check if instboot is not available and
@@ -1499,7 +1503,7 @@ sync
 echo 3 > /proc/sys/vm/drop_caches
 
 # Eject installer ISO image if available
-isodev=$(blkid --label instboot-iso -o device)
+isodev=$(blkid --label ${ISO_INSTLABEL} -o device)
 if [ $? -eq 0 ]; then
 	eject $isodev
 fi
