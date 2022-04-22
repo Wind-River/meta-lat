@@ -174,7 +174,7 @@ ask_dev() {
 		choices=()
 		while IFS="" read -r inp; do
 			choices+=("$inp")
-		done<<< $(lsblk -n -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL |grep disk)
+		done<<< $(lsblk -n -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL |grep disk|grep -v " ${ISO_INSTLABEL}$")
 		echo "$heading"
 		for i in ${!choices[@]}; do
 			[ "${choices[$i]}" = "" ] && continue
