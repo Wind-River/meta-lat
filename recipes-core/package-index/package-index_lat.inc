@@ -18,3 +18,5 @@ do_copy_pkgdata_to_deploy_repo() {
     done
 }
 addtask copy_pkgdata_to_deploy_repo after do_package_index before do_build
+
+PACKAGEINDEXDEPS += "initramfs-ostree:do_export_yocto_vars"
