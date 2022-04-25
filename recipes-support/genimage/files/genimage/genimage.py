@@ -325,11 +325,13 @@ class GenImage(GenXXX):
 
         if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
             # Customize grub.cfg for secure boot
+            grub_cfg_search_root = "search --no-floppy --label %s --set root\n" % iso_instlabel
             grub_cfg = utils.create_grub_cfg(grub_entries,
                                              self.deploydir,
                                              secure_boot=self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable'),
                                              grub_user=self.data['ostree']['OSTREE_GRUB_USER'],
                                              grub_pw_file=self.data['ostree']['OSTREE_GRUB_PW_FILE'],
+                                             grub_cfg_extra=grub_cfg_search_root,
                                              image_type='iso')
             boot_params += ' --configfile %s' % grub_cfg
 

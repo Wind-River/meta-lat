@@ -699,7 +699,7 @@ menuentry "OSTree Install %NAME%" --unrestricted {
 }
 '''
 
-def create_grub_cfg(entries, output_dir, secure_boot='disable', grub_user='', grub_pw_file='', image_type=""):
+def create_grub_cfg(entries, output_dir, secure_boot='disable', grub_user='', grub_pw_file='', image_type='', grub_cfg_extra=''):
     grub_cfg = os.path.join(output_dir, "grub-%s.cfg" % image_type)
     content = GRUB_CFG_HEAD
     if secure_boot == 'enable':
@@ -708,6 +708,9 @@ def create_grub_cfg(entries, output_dir, secure_boot='disable', grub_user='', gr
         with open(os.path.expandvars(grub_pw_file), "r") as f:
             grub_pw = f.read()
             content = content.replace("%OSTREE_GRUB_PW%", grub_pw)
+
+    if grub_cfg_extra:
+        content += grub_cfg_extra
 
     for entry in entries:
         if image_type in ['iso', 'pxe']:
