@@ -1,4 +1,4 @@
-From 331c0a4c2a5edb26d4f3dafb6fd0dd1c2bf0d172 Mon Sep 17 00:00:00 2001
+From 5dbe19b5f61b9a3fe2a18dd8e9ecbea74503544f Mon Sep 17 00:00:00 2001
 From: Hongxu Jia <hongxu.jia@windriver.com>
 Date: Fri, 7 May 2021 17:33:03 +0800
 Subject: [PATCH] support to generate iso out of yocto build
@@ -7,19 +7,15 @@ Subject: [PATCH] support to generate iso out of yocto build
 
 - Tweak initramfs install dir, append cr_workdir prefix
 
-- Remove option -eltorito-platform from mkisofs which
-  does not supported by command genisoimage; remove option
-  -u from isohybrid to compat -eltorito-platform removing
-
 Upstream-Status: Inappropriate [oe specific]
 
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
 ---
- .../wic/plugins/source/isoimage-isohybrid.py   | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ .../lib/wic/plugins/source/isoimage-isohybrid.py   | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
 diff --git a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
-index 21740ac7c6..8f6a94a077 100644
+index 21740ac7c6..3c6603ff06 100644
 --- a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
 +++ b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
 @@ -226,7 +226,15 @@ class IsoImagePlugin(SourcePlugin):
@@ -50,24 +46,6 @@ index 21740ac7c6..8f6a94a077 100644
  
          # Remove the temporary file created by _build_initramfs_path function
          if os.path.isfile("%s/initrd.cpio.gz" % cr_workdir):
-@@ -419,7 +427,7 @@ class IsoImagePlugin(SourcePlugin):
-         mkisofs_cmd += "-J -joliet-long -r -iso-level 2 -b %s " % iso_bootimg
-         mkisofs_cmd += "-c %s -no-emul-boot -boot-load-size 4 " % iso_bootcat
-         mkisofs_cmd += "-boot-info-table -eltorito-alt-boot "
--        mkisofs_cmd += "-eltorito-platform 0xEF -eltorito-boot %s " % efi_img
-+        mkisofs_cmd += "-eltorito-boot %s " % efi_img
-         mkisofs_cmd += "-no-emul-boot %s " % isodir
- 
-         logger.debug("running command: %s", mkisofs_cmd)
-@@ -447,7 +455,7 @@ class IsoImagePlugin(SourcePlugin):
-         full_path = creator._full_path(workdir, disk_name, "direct")
-         full_path_iso = creator._full_path(workdir, disk_name, "iso")
- 
--        isohybrid_cmd = "isohybrid -u %s" % iso_img
-+        isohybrid_cmd = "isohybrid %s" % iso_img
-         logger.debug("running command: %s", isohybrid_cmd)
-         exec_native_cmd(isohybrid_cmd, native_sysroot)
- 
 -- 
 2.27.0
 
