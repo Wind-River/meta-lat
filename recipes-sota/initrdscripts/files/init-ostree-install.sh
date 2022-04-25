@@ -385,8 +385,9 @@ do_dhcp() {
 	if [ "$dhcp_done" = 1 ] ; then
 		return
 	fi
+
 	# If no network needed do not conifgure it
-	if [ "${ECURL}" = "" -o "${ECURL}" = "none" ] && [ "${LCURL}" = "" -o "${LCURL}" = "none" ] && [ "$INSTL" != "" ] && [ "${KS}" = "" ] ; then
+	if [ "${ECURL}" = "" -o "${ECURL}" = "none" ] && [ "${LCURL}" = "" -o "${LCURL}" = "none" ] && [ "$INSTL" != "" ] && [ "${KS}" = "" -o "${KS::7}" = "file://" ] ; then
 		return
 	fi
 	if [ "${DHCPARGS}" = "ask" ] ; then
