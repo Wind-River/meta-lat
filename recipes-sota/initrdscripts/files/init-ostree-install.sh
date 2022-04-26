@@ -499,12 +499,14 @@ udev_daemon() {
 fatal() {
     echo $1
     echo
-    if [ -e /install.log ]; then
-        devs=$(blkid -t LABEL=otaefi -o device)
-        if [ "$devs" != "" ] ; then
+    if [ -e /install.log -a -e /tmp/lat/report_error_log.sh ]; then
+        /bin/bash /tmp/lat/report_error_log.sh
+    elif [ -e /install.log ]; then
+        local _dev=$(blkid --label otaboot -o device)
+        if [ "$_dev" != "" ] ; then
             mkdir -p /t
-            mount -o rw,noatime $devs /t
-            echo "Save install-fail.log to partition otaefi($devs)"
+            mount -o rw,noatime $_dev /t
+            echo "Save install-fail.log to partition otaboot($_dev)"
             sleep 2
             cp /install.log /t/install-fail.log
             umount /t
