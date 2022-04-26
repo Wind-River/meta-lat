@@ -38,6 +38,7 @@
 #endif
 
 #define MAX_DEV 10
+int fd_file;
 int cfd[MAX_DEV]; /* Client FD */
 struct termios orig_term[MAX_DEV];
 int devices = 0;
@@ -46,6 +47,7 @@ fd_set master_rds;
 int nsockhandle = 0;
 static char *prog;
 int USE_STDOUT = 1;
+int USE_FILE = 0;
 
 int STDOUT;
 int STDIN;
@@ -70,6 +72,7 @@ static void usage()
 	printf("%s [-s] [-d device ] [ -d device] cmd [args...]\n\n", prog);
 	printf("  Arugment info:\n");
 	printf("     -d <device> A tty device to send input/ouput\n");
+	printf("     -f <log-file> A file to save output\n");
 	printf("     -s          Suppress input/ouput on original terminal\n");
 	cleanup(1);
 }
@@ -159,6 +162,8 @@ static void fork_start(char **argv) {
 			printf("Error: starting server\n");
 			cleanup(1);
 		}
+		if (USE_FILE)
+			close(fd_file);
 		signal(SIGCHLD, SIG_DFL);
 		dup2(pty_cmd_fd, fileno(stdin));
 		dup2(pty_cmd_fd, fileno(stdout));
@@ -236,6 +241,9 @@ static void data_loop(char **argv) {
 			if (USE_STDOUT)
 				if (_write(STDOUT, buf, 1) < 1)
 					cleanup(1);
+			if (USE_FILE)
+				if (_write(fd_file, buf, 1) < 1)
+					cleanup(1);
 			for (j = 0; j < devices; j++) {
 				if (_write(cfd[j], buf, 1) < 1)
 					cleanup(1);
@@ -262,6 +270,18 @@ int main(int argc, char **argv)
 			usage();
 		}else if (strcmp("-s", argv[i]) == 0) {
 			USE_STDOUT = 0;
+		}else if (strcmp("-f", argv[i]) == 0) {
+			USE_FILE = 1;
+			i++;
+			if (i >= argc) {
+				printf("Error not enough arguments\n");
+				cleanup(1);
+			}
+			fd_file = open(argv[i], O_RDWR|O_APPEND|O_CREAT);
+			if (fd_file < 0) {
+				printf("Error failed to open file: %s\n", argv[i]);
+				cleanup(1);
+			}
 		} else if (strcmp("-d", argv[i]) == 0) {
 			i++;
 			if (i >= argc) {

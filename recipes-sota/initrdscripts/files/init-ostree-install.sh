@@ -499,6 +499,17 @@ udev_daemon() {
 fatal() {
     echo $1
     echo
+    if [ -e /install.log ]; then
+        devs=$(blkid -t LABEL=otaefi -o device)
+        if [ "$devs" != "" ] ; then
+            mkdir -p /t
+            mount -o rw,noatime $devs /t
+            echo "Save install-fail.log to partition otaefi($devs)"
+            sleep 2
+            cp /install.log /t/install-fail.log
+            umount /t
+        fi
+    fi
     if [ "$INSTPOST" = "shell" ] ; then shell_start ; fi
     if [ "$INSTPOST" = "exit" ] ; then exit 1 ; fi
     sleep 10
@@ -869,7 +880,7 @@ if [ "$RE_EXEC" != "1" ] ; then
 	early_setup
 	if [ -e /bin/mttyexec -a "$CONSOLES" != "" ] ; then
 		export RE_EXEC=1
-		cmd="/bin/mttyexec -s"
+		cmd="/bin/mttyexec -s -f /install.log"
 		for e in $CONSOLES; do
 			echo > /dev/$e 2> /dev/null
 			if [ $? = 0 ] ; then
@@ -1454,8 +1465,6 @@ if [ -n "${KS}" ]; then
 	done
 fi
 
-umount /var1
-
 if [ "$BIOSPLUSEFI" = "1"  ] ; then
 	mkdir -p /boot
 	mount ${fs_dev}${p1} /boot
@@ -1503,6 +1512,15 @@ for e in otaboot otaboot_b otaroot otaroot_b fluxdata; do
 		cryptsetup luksClose luks${e}
 	fi
 done
+
+# Save install.log to /root
+if [ -e /install.log -a -d /var1/rootdirs/root ]; then
+    echo "Save install.log to installed /root"
+    sleep 2
+    cp /install.log /var1/rootdirs/root/
+fi
+
+umount /var1
 
 udevadm control -e
 
