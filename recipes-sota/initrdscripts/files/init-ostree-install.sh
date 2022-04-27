@@ -80,6 +80,7 @@ OPTIONAL:
  instiso=ISO_LABEL		- The label of installer ISO image
  Disk sizing
  biosplusefi=1	 		- Create one GPT disk to support booting from both of BIOS and EFI
+ efibootfirst=1		- Set EFI boot from disk entry as first order
  BLM=#				- Blocks of boot magic area to skip
 				  ARM BSPs with SD cards usually need this
  FSZ=#				- MB size of fat partition
@@ -528,6 +529,7 @@ VSZ=0
 # end values from ostree-settings.inc
 LUKS=0
 BIOSPLUSEFI=0
+EFIBOOT_FIRST=0
 _UDEV_DAEMON=`udev_daemon`
 INSTDATE=${INSTDATE=""}
 INSTSH=${INSTSH=""}
@@ -649,6 +651,8 @@ read_args() {
 				LCURLARG=$optarg ;;
 			biosplusefi=*)
 				BIOSPLUSEFI=$optarg ;;
+			efibootfirst=*)
+				EFIBOOT_FIRST=$optarg ;;
 			LUKS=*)
 				LUKS=$optarg ;;
 			BLM=*)
@@ -1493,8 +1497,12 @@ if [ -d /sys/firmware/efi/efivars ] ;then
         if [ -n "${oldboonum}" ]; then
             efibootmgr -b ${oldboonum} -B
         fi
-        efibootmgr -b 0 -B >/dev/null 2>&1 || true
-        efibootmgr -o 0 -b 0 -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
+        if [ "$EFIBOOT_FIRST" = "1" ]; then
+            efibootmgr -b 0 -B >/dev/null 2>&1 || true
+            efibootmgr -o 0 -b 0 -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
+        else
+            efibootmgr -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
+        fi
     fi
 fi
 
