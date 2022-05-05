@@ -1,4 +1,4 @@
-From 0ee54a743dc71e3d48b47f798cab69a54de203da Mon Sep 17 00:00:00 2001
+From d12294ee7d2b10b2470c492c6ae6bca4f0c28969 Mon Sep 17 00:00:00 2001
 From: Jiang Lu <lu.jiang@windriver.com>
 Date: Mon, 29 Nov 2021 23:27:34 +0800
 Subject: [PATCH] Allow updating files in the /boot directory
@@ -10,15 +10,18 @@ in /usr/lib/ostree-boot.
 
 Disable selinux check for install_into_boot
 
+Only skip special kernel file - vmlinuz-<sha256sum> which is handled
+separately, for other vmlinuz-xxxx are still updating
+
 Upstream-Status: Inappropriate [LAT specific]
 
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
 ---
- src/libostree/ostree-sysroot-deploy.c | 72 +++++++++++++++++++++------
- 1 file changed, 57 insertions(+), 15 deletions(-)
+ src/libostree/ostree-sysroot-deploy.c | 80 ++++++++++++++++++++++-----
+ 1 file changed, 65 insertions(+), 15 deletions(-)
 
 diff --git a/src/libostree/ostree-sysroot-deploy.c b/src/libostree/ostree-sysroot-deploy.c
-index b8d8c85b..82bcc609 100644
+index 5cead70f..e12cfb80 100644
 --- a/src/libostree/ostree-sysroot-deploy.c
 +++ b/src/libostree/ostree-sysroot-deploy.c
 @@ -113,21 +113,6 @@ install_into_boot (OstreeSePolicy *sepolicy,
@@ -43,7 +46,7 @@ index b8d8c85b..82bcc609 100644
            return glnx_file_copy_at (src_dfd, src_subpath, NULL, dest_dfd, dest_subpath,
                                      GLNX_FILE_COPY_NOXATTRS | GLNX_FILE_COPY_DATASYNC,
                                      cancellable, error);
-@@ -1706,6 +1691,63 @@ install_deployment_kernel (OstreeSysroot   *sysroot,
+@@ -1706,6 +1691,71 @@ install_deployment_kernel (OstreeSysroot   *sysroot,
          }
      }
  
@@ -62,9 +65,17 @@ index b8d8c85b..82bcc609 100644
 +          if (dent == NULL)
 +            break;
 +
-+          /* Skip special files - vmlinuz-* and initramfs-* are handled separately */
-+          if (g_str_has_prefix (dent->d_name, "vmlinuz-") || g_str_has_prefix (dent->d_name, "initramfs-"))
++          /* Skip special files - initramfs-* are handled separately */
++          if (g_str_has_prefix (dent->d_name, "initramfs-"))
 +            continue;
++
++          /* Skip special kernel file - vmlinuz-<sha256sum> is handled separately */
++          if (g_str_has_prefix (dent->d_name, "vmlinuz-"))
++          {
++            const char *dash = strrchr (dent->d_name, '-');
++            if (ostree_validate_structureof_checksum_string (dash + 1, NULL))
++                continue;
++          }
 +
 +          if (fstatat (bootcsum_dfd, dent->d_name, &stbuf, AT_SYMLINK_NOFOLLOW) != 0)
 +            {
@@ -108,5 +119,5 @@ index b8d8c85b..82bcc609 100644
    if (!glnx_fstatat_allow_noent (deployment_dfd, "usr/lib/os-release", &stbuf, 0, error))
      return FALSE;
 -- 
-2.27.0
+2.34.1
 
