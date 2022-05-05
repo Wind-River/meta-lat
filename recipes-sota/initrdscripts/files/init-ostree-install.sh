@@ -80,6 +80,11 @@ OPTIONAL:
  instiso=ISO_LABEL		- The label of installer ISO image
  Disk sizing
  biosplusefi=1	 		- Create one GPT disk to support booting from both of BIOS and EFI
+ defaultkernel=<kernel>	- Choose which kernel to boot, support filename wildcard
+		                  defaultkernel=vmlinuz-*[!t]-amd64 means standard kernel
+		                  defaultkernel=vmlinuz-*-rt-amd64 means real time kernel
+ kernelparams=a=b,c=d	- Set kernel params to installed OS, use `,' to split multiple params
+
  efibootfirst=1		- Set EFI boot from disk entry as first order
  BLM=#				- Blocks of boot magic area to skip
 				  ARM BSPs with SD cards usually need this
@@ -529,6 +534,7 @@ VSZ=0
 # end values from ostree-settings.inc
 LUKS=0
 BIOSPLUSEFI=0
+DEFAULT_KERNEL=""
 EFIBOOT_FIRST=0
 _UDEV_DAEMON=`udev_daemon`
 INSTDATE=${INSTDATE=""}
@@ -580,7 +586,7 @@ read_args() {
 				OSTREE_CONSOLE="$OSTREE_CONSOLE $arg"
 				;;
 			kernelparams=*)
-				KERNEL_PARAMS="$optarg"
+				KERNEL_PARAMS="${optarg//,/ }"
 				;;
 			ks=*)
 				KS="$optarg"
@@ -651,6 +657,8 @@ read_args() {
 				LCURLARG=$optarg ;;
 			biosplusefi=*)
 				BIOSPLUSEFI=$optarg ;;
+			defaultkernel=*)
+				DEFAULT_KERNEL=$optarg ;;
 			efibootfirst=*)
 				EFIBOOT_FIRST=$optarg ;;
 			LUKS=*)
@@ -1416,6 +1424,38 @@ if [ -e ${PHYS_SYSROOT}/boot/loader/uEnv.txt ] ; then
 		rm -f  ${PHYS_SYSROOT}/boot/efi/no_ab
 	fi
 
+fi
+
+# Update kernel.env
+if [ "$BL" = "grub" ]; then
+	if [ -e ${PHYS_SYSROOT}/boot/1/kernel.env ]; then
+		if [ -n "${DEFAULT_KERNEL}" ]; then
+			DEFAULT_KERNEL=$(ls -1 ${PHYS_SYSROOT}/boot/1/${DEFAULT_KERNEL} 2>/dev/null)
+			DEFAULT_KERNEL=${DEFAULT_KERNEL##*/}
+			[ -n "${DEFAULT_KERNEL}" ] && \
+			sed -i -e "s/^kernel=.*/kernel=${DEFAULT_KERNEL}/g" \
+			    -e "s/^kernel_rollback=.*/kernel_rollback=${DEFAULT_KERNEL}/g" \
+			  ${PHYS_SYSROOT}/boot/1/kernel.env
+		fi
+		if [ -n "${KERNEL_PARAMS}" ]; then
+			sed -i "s/^kernel_params=.*/kernel_params=${KERNEL_PARAMS}/g" \
+			  ${PHYS_SYSROOT}/boot/1/kernel.env
+		fi
+	fi
+	if [ "$INSTAB" = "1" -a -e ${PHYS_SYSROOT}_b/boot/1/kernel.env ] ; then
+		if [ -n "${DEFAULT_KERNEL}" ]; then
+			DEFAULT_KERNEL=$(ls -1 ${PHYS_SYSROOT}/boot/1/${DEFAULT_KERNEL} 2>/dev/null)
+			DEFAULT_KERNEL=${DEFAULT_KERNEL##*/}
+			[ -n "${DEFAULT_KERNEL}" ] && \
+			sed -i -e "s/^kernel=.*/kernel=${DEFAULT_KERNEL}/g" \
+			    -e "s/^kernel_rollback=.*/kernel_rollback=${DEFAULT_KERNEL}/g" \
+			  ${PHYS_SYSROOT}_b/boot/1/kernel.env
+		fi
+		if [ -n "${KERNEL_PARAMS}" ]; then
+			sed -i "s/^kernel_params=.*/kernel_params=${KERNEL_PARAMS}/g" \
+			  ${PHYS_SYSROOT}_b/boot/1/kernel.env
+		fi
+	fi
 fi
 
 # Late curl exec
