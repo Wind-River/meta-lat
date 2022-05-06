@@ -772,6 +772,8 @@ class GenExtDebImage(GenImage):
         self.data['debootstrap-key'] = ""
         self.data['apt-keys'] = []
         self.data['iso-post-script'] = deb_constant.SCRIPT_DEBIAN_INSTALL_PXE
+        self.data['multiple-kernels'] = deb_constant.MULTIPLE_KERNELS
+        self.data['default-kernel'] = deb_constant.DEFAULT_KERNEL
 
     def _parse_amend(self):
         super(GenExtDebImage, self)._parse_amend()
@@ -846,6 +848,27 @@ class GenExtDebImage(GenImage):
 
         # Copy grub.cfg to rootfs
         utils.run_cmd_oneshot("cp -f %s %s/" % (self.data['gpg']['grub']['BOOT_GRUB_CFG'], rootfs_efi))
+
+        # Set environment OSTREE_MULTIPLE_KERNELS and OSTREE_DEFAULT_KERNEL for run.do_image_ostree
+        kernels = list()
+        if self.data.get('multiple-kernels'):
+            for ks in self.data.get('multiple-kernels').split():
+                kernels.extend(glob.glob(ks, root_dir=os.path.join(rootfs.target_rootfs, "boot/")))
+            kernels = set(kernels)
+            os.environ['OSTREE_MULTIPLE_KERNELS'] = ' '.join(kernels) if kernels else ''
+        logger.debug("kernels %s", kernels)
+
+        if self.data.get('default-kernel'):
+            default_kernel = self.data.get('default-kernel')
+            # Find first available matched kernel as default kernel
+            default_kernel = glob.glob(default_kernel, root_dir=os.path.join(rootfs.target_rootfs, "boot/"))
+            if default_kernel:
+                default_kernel = default_kernel[0]
+            if not default_kernel or default_kernel not in kernels:
+                logger.error("The multiple-kernels '%s' does not contain default-kernel '%s'", kernels, default_kernel)
+                sys.exit(1)
+            os.environ['OSTREE_DEFAULT_KERNEL'] = default_kernel
+            logger.debug("default_kernel %s", default_kernel)
 
         # Update grub.cfg
         os.environ['OSTREE_CONSOLE'] = self.data["ostree"]['OSTREE_CONSOLE']

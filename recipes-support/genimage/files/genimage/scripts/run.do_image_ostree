@@ -15,6 +15,8 @@ set -e
 # RAMDISK_EXT
 # KERNEL_DEVICETREE
 # EFI_SECURE_BOOT
+# OSTREE_MULTIPLE_KERNELS
+# OSTREE_DEFAULT_KERNEL
 OSTREE_REPO="${DEPLOY_DIR_IMAGE}/ostree_repo"
 OSTREE_BRANCHNAME="${IMAGE_NAME}"
 export TZ='UTC'
@@ -153,13 +155,30 @@ do_image_ostree() {
 	mkdir -p boot/loader.1
 	ln -sf boot/loader.0 boot/loader
 
-	checksum=`sha256sum $DEPLOY_DIR_IMAGE/${OSTREE_KERNEL} | cut -f 1 -d " "`
-
+	checksum=$(cd ${DEPLOY_DIR_IMAGE}; cat ${OSTREE_MULTIPLE_KERNELS} ${OSTREE_KERNEL} ${DEFAULT_INITRD_NAME}-${MACHINE}${RAMDISK_EXT} | sha256sum | cut -f 1 -d " ")
 
 	#deploy the device tree file
 	mkdir -p usr/lib/ostree-boot
 	cp $DEPLOY_DIR_IMAGE/${OSTREE_KERNEL} usr/lib/ostree-boot/vmlinuz-${checksum}
 	cp $DEPLOY_DIR_IMAGE/${DEFAULT_INITRD_NAME}-${MACHINE}${RAMDISK_EXT} usr/lib/ostree-boot/initramfs-${checksum}
+
+	if [ -n "${OSTREE_MULTIPLE_KERNELS}" ]; then
+		for k in $(cd ${DEPLOY_DIR_IMAGE}; ls -1 ${OSTREE_MULTIPLE_KERNELS}); do
+			cp ${DEPLOY_DIR_IMAGE}/${k} usr/lib/ostree-boot/
+			if [ "${EFI_SECURE_BOOT}" = "enable" -a -f ${DEPLOY_DIR_IMAGE}/${k}.sig ]; then
+				cp ${DEPLOY_DIR_IMAGE}/$k.sig usr/lib/ostree-boot/
+			fi
+		done
+	fi
+
+	echo "# GRUB Environment Block" > usr/lib/ostree-boot/kernel.env
+	if [ -n "${OSTREE_DEFAULT_KERNEL}" ]; then
+		echo "kernel=${OSTREE_DEFAULT_KERNEL}" >> usr/lib/ostree-boot/kernel.env
+		echo "kernel_rollback=${OSTREE_DEFAULT_KERNEL}" >> usr/lib/ostree-boot/kernel.env
+	fi
+	if [ -n "${KERNEL_PARAMS}" ]; then
+		echo "kernel_params=${KERNEL_PARAMS}" >> usr/lib/ostree-boot/kernel.env
+	fi
 
 	if [ "${EFI_SECURE_BOOT}" = "enable" ]; then
 		if [ -f $DEPLOY_DIR_IMAGE/${OSTREE_KERNEL}.p7b ] ; then
