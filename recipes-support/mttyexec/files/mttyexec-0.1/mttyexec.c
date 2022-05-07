@@ -277,7 +277,7 @@ int main(int argc, char **argv)
 				printf("Error not enough arguments\n");
 				cleanup(1);
 			}
-			fd_file = open(argv[i], O_APPEND|O_CREAT, O_RDWR);
+			fd_file = open(argv[i], O_CREAT|O_APPEND|O_RDWR, O_RDWR);
 			if (fd_file < 0) {
 				printf("Error failed to open file: %s\n", argv[i]);
 				cleanup(1);
