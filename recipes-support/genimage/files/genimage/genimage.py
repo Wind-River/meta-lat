@@ -247,9 +247,6 @@ class GenImage(GenXXX):
             if data_ostree["ostree_extra_install_args"]:
                 boot_params += "%s " % data_ostree["ostree_extra_install_args"]
 
-            if self.pkg_type == "external-debian":
-                boot_params += "net.ifnames=0 "
-
             return boot_params
 
         boot_params = _get_boot_common_params(data_ostree)
@@ -928,11 +925,10 @@ class GenExtDebImage(GenImage):
 
         # Create symlink bzIamge to kernel
         for kernel in glob.glob(os.path.join(self.deploydir, 'vmlinuz-*-amd64')):
-            if kernel.endswith("-rt-amd64"):
-                continue
             utils.run_cmd_oneshot("ln -snf -r %s bzImage" % kernel, cwd=self.deploydir)
             if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
                 utils.run_cmd_oneshot("ln -snf -r %s.sig bzImage.sig" % kernel, cwd=self.deploydir)
+                break
 
     @show_task_info("Create External Debian Ostree Repo")
     def do_ostree_repo(self):
