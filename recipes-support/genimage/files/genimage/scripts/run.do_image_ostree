@@ -177,7 +177,7 @@ do_image_ostree() {
 		echo "kernel_rollback=${OSTREE_DEFAULT_KERNEL}" >> usr/lib/ostree-boot/kernel.env
 	fi
 	if [ -n "${KERNEL_PARAMS}" ]; then
-		echo "kernel_params=${KERNEL_PARAMS}" >> usr/lib/ostree-boot/kernel.env
+		echo "kernel_params_ext=${KERNEL_PARAMS}" >> usr/lib/ostree-boot/kernel.env
 	fi
 
 	if [ "${EFI_SECURE_BOOT}" = "enable" ]; then

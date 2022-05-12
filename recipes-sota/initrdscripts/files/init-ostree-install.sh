@@ -1437,10 +1437,6 @@ if [ "$BL" = "grub" ]; then
 			    -e "s/^kernel_rollback=.*/kernel_rollback=${DEFAULT_KERNEL}/g" \
 			  ${PHYS_SYSROOT}/boot/1/kernel.env
 		fi
-		if [ -n "${KERNEL_PARAMS}" ]; then
-			sed -i "s/^kernel_params=.*/kernel_params=${KERNEL_PARAMS}/g" \
-			  ${PHYS_SYSROOT}/boot/1/kernel.env
-		fi
 	fi
 	if [ "$INSTAB" = "1" -a -e ${PHYS_SYSROOT}_b/boot/1/kernel.env ] ; then
 		if [ -n "${DEFAULT_KERNEL}" ]; then
@@ -1449,10 +1445,6 @@ if [ "$BL" = "grub" ]; then
 			[ -n "${DEFAULT_KERNEL}" ] && \
 			sed -i -e "s/^kernel=.*/kernel=${DEFAULT_KERNEL}/g" \
 			    -e "s/^kernel_rollback=.*/kernel_rollback=${DEFAULT_KERNEL}/g" \
-			  ${PHYS_SYSROOT}_b/boot/1/kernel.env
-		fi
-		if [ -n "${KERNEL_PARAMS}" ]; then
-			sed -i "s/^kernel_params=.*/kernel_params=${KERNEL_PARAMS}/g" \
 			  ${PHYS_SYSROOT}_b/boot/1/kernel.env
 		fi
 	fi
