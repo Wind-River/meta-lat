@@ -988,7 +988,9 @@ if [ -n "${KS}" ]; then
 	if [ $? -ne 0 ]; then
 		fatal "Parse Kickstart ${KS} failed"
 	fi
-	CMDLINE=`cat /tmp/lat/cmdline` read_args
+	if [ -e /tmp/lat/cmdline ]; then
+		CMDLINE=`cat /tmp/lat/cmdline` read_args
+	fi
 fi
 
 if [ -n "${KS}" ]; then
