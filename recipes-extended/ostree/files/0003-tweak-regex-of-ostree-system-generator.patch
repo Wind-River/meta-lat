@@ -32,7 +32,7 @@ index b5a7cde2..6fc22db3 100644
    if (g_once_init_enter (&regex_initialized))
      {
 -      regex = g_regex_new ("^/ostree/boot.[01]/([^/]+)/", 0, 0, NULL);
-+      regex = g_regex_new ("boot.[01]/@OSTREE_OSNAME@/([^/]+)/", 0, 0, NULL);
++      regex = g_regex_new ("boot.[01]/[^/]+/([^/]+)/", 0, 0, NULL);
        g_assert (regex);
        g_once_init_leave (&regex_initialized, 1);
      }
