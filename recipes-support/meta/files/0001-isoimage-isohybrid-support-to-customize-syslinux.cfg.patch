@@ -1,0 +1,131 @@
+From 6fd4a84b93f89589c85a7e88666d389ba18d3f32 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Fri, 27 May 2022 10:48:49 +0800
+Subject: [PATCH] isoimage-isohybrid: support to customize syslinux.cfg
+
+Use option `--syslinuxconfig xxx' to cusomize syslinux.cfg
+out of wic
+
+Upstream-Status: Inappropriate [LAT specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ scripts/lib/wic/help.py                       |  3 +
+ scripts/lib/wic/ksparser.py                   |  1 +
+ .../wic/plugins/source/isoimage-isohybrid.py  | 71 ++++++++++---------
+ 3 files changed, 43 insertions(+), 32 deletions(-)
+
+diff --git a/scripts/lib/wic/help.py b/scripts/lib/wic/help.py
+index 627682036d..af4212effa 100644
+--- a/scripts/lib/wic/help.py
++++ b/scripts/lib/wic/help.py
+@@ -1009,6 +1009,9 @@ DESCRIPTION
+                       file. Using this option will override any other
+                       bootloader option.
+ 
++        --syslinuxconfig: Specifies a user defined configuration file for
++                      the bootloader of syslinux.
++
+       Note that bootloader functionality and boot partitions are
+       implemented by the various --source plugins that implement
+       bootloader functionality; the bootloader command essentially
+diff --git a/scripts/lib/wic/ksparser.py b/scripts/lib/wic/ksparser.py
+index 759d6b86f3..7e23faee67 100644
+--- a/scripts/lib/wic/ksparser.py
++++ b/scripts/lib/wic/ksparser.py
+@@ -175,6 +175,7 @@ class KickStart():
+         bootloader.add_argument('--appends', default=None, action='append')
+         bootloader.add_argument('--append')
+         bootloader.add_argument('--configfile')
++        bootloader.add_argument('--syslinuxconfig')
+         bootloader.add_argument('--ptable', choices=('msdos', 'gpt'),
+                                 default='msdos')
+         bootloader.add_argument('--timeout', type=int)
+diff --git a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+index 32bc45fe41..9c751520d3 100644
+--- a/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
++++ b/scripts/lib/wic/plugins/source/isoimage-isohybrid.py
+@@ -56,41 +56,48 @@ class IsoImagePlugin(SourcePlugin):
+         else:
+             splashline = ""
+ 
+-        bootloader = creator.ks.bootloader
+-
+-        syslinux_conf = ""
+-        syslinux_conf += "PROMPT 0\n"
+-        syslinux_conf += "TIMEOUT %s \n" % (bootloader.timeout or 10)
+-        syslinux_conf += "\n"
+-        syslinux_conf += "ALLOWOPTIONS 1\n"
+-        syslinux_conf += "SERIAL 0 115200\n"
+-        syslinux_conf += "\n"
+-        if splashline:
+-            syslinux_conf += "%s\n" % splashline
+-
+-        syslinux_conf += "ui vesamenu.c32\n"
+-        syslinux_conf += "menu title Select kernel options and boot kernel\n"
+-        syslinux_conf += "menu tabmsg Press [Tab] to edit, [Return] to select\n"
+-
+-        syslinux_conf += "DEFAULT %s\n" % bootloader.label[0] if bootloader.label else "boot"
+-        for i, label in enumerate(bootloader.label or ["boot"]):
+-            if i < len(bootloader.appends):
+-                append = bootloader.appends[i]
+-            else:
+-                append = bootloader.append
+ 
+-            syslinux_conf += "LABEL %s\n" % label
++        syslinuxconfig = creator.ks.bootloader.syslinuxconfig
++        if syslinuxconfig:
++            syslinux_conf = get_custom_config(syslinuxconfig)
++            if not syslinux_conf:
++                raise WicError("syslinuxconfig is specified "
++                               "but failed to get it from %s", syslinuxconfig)
++        else:
++            bootloader = creator.ks.bootloader
++            syslinux_conf = ""
++            syslinux_conf += "PROMPT 0\n"
++            syslinux_conf += "TIMEOUT %s \n" % (bootloader.timeout or 10)
++            syslinux_conf += "\n"
++            syslinux_conf += "ALLOWOPTIONS 1\n"
++            syslinux_conf += "SERIAL 0 115200\n"
++            syslinux_conf += "\n"
++            if splashline:
++                syslinux_conf += "%s\n" % splashline
++
++            syslinux_conf += "ui vesamenu.c32\n"
++            syslinux_conf += "menu title Select kernel options and boot kernel\n"
++            syslinux_conf += "menu tabmsg Press [Tab] to edit, [Return] to select\n"
+ 
+-            kernel = os.environ.get("KERNEL_IMAGETYPE", "bzImage")
+-            if os.environ.get("INITRAMFS_IMAGE_BUNDLE", "0") == "1":
+-                if get_bitbake_var("INITRAMFS_IMAGE"):
+-                    kernel = "%s-%s.bin" % \
+-                        (get_bitbake_var("KERNEL_IMAGETYPE"), get_bitbake_var("INITRAMFS_LINK_NAME"))
++            syslinux_conf += "DEFAULT %s\n" % bootloader.label[0] if bootloader.label else "boot"
++            for i, label in enumerate(bootloader.label or ["boot"]):
++                if i < len(bootloader.appends):
++                    append = bootloader.appends[i]
++                else:
++                    append = bootloader.append
++
++                syslinux_conf += "LABEL %s\n" % label
++
++                kernel = os.environ.get("KERNEL_IMAGETYPE", "bzImage")
++                if os.environ.get("INITRAMFS_IMAGE_BUNDLE", "0") == "1":
++                    if get_bitbake_var("INITRAMFS_IMAGE"):
++                        kernel = "%s-%s.bin" % \
++                            (get_bitbake_var("KERNEL_IMAGETYPE"), get_bitbake_var("INITRAMFS_LINK_NAME"))
+ 
+-            syslinux_conf += "IPAPPEND 2\n"
+-            syslinux_conf += "KERNEL /" + kernel + "\n"
+-            syslinux_conf += "APPEND initrd=/initrd LABEL=%s %s\n" \
+-                                 % (label, append)
++                syslinux_conf += "IPAPPEND 2\n"
++                syslinux_conf += "KERNEL /" + kernel + "\n"
++                syslinux_conf += "APPEND initrd=/initrd LABEL=%s %s\n" \
++                                     % (label, append)
+ 
+         logger.debug("Writing syslinux config %s/ISO/isolinux/isolinux.cfg",
+                      cr_workdir)
+-- 
+2.27.0
+

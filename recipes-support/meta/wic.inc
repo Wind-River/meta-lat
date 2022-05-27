@@ -29,6 +29,7 @@ SRC_URI = "git://git.yoctoproject.org/poky;branch=dunfell \
            file://0001-make-iso-support-efi-secure-boot.patch \
            file://0001-isohybird-add-hook-to-customize-iso.patch \
            file://0001-isoimage-isohybrid.py-add-boot-param-BOOTIF-net_defa.patch \
+           file://0001-isoimage-isohybrid-support-to-customize-syslinux.cfg.patch \
            "
 
 S = "${WORKDIR}/git"
