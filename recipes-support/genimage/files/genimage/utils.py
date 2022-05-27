@@ -662,8 +662,8 @@ def deploy_kickstart_example(pkg_type, outdir):
         f.write(content)
 
 GRUB_CFG_HEAD = '''\
-set default="0"
-set timeout=3
+set default=0
+set timeout=5
 set color_normal='light-gray/black'
 set color_highlight='light-green/blue'
 
@@ -673,6 +673,8 @@ GRUB_CFG_SECURE = '''\
 if [ "${boot_part}" = "" ] ; then
   get_efivar -f uint8 -s secured SecureBoot
   if [ "${secured}" = "1" ]; then
+    set default=0
+
     # Enable user authentication to make grub unlockable
     set superusers="%OSTREE_GRUB_USER%"
      password_pbkdf2 %OSTREE_GRUB_USER% %OSTREE_GRUB_PW%
@@ -685,6 +687,8 @@ if [ "${boot_part}" = "" ] ; then
         menuentry "Automatic Certificate Provision" --unrestricted {
             chainloader ${prefix}/LockDown.efi
         }
+    else
+      set default=0
     fi
   fi
 fi
@@ -699,7 +703,7 @@ menuentry "OSTree Install %NAME%" --unrestricted {
 }
 '''
 
-def create_grub_cfg(entries, output_dir, secure_boot='disable', grub_user='', grub_pw_file='', image_type='', grub_cfg_extra=''):
+def create_grub_cfg(entries, output_dir, secure_boot='disable', grub_user='', grub_pw_file='', image_type='', grub_cfg_extra='', grub_cfg_entry=None):
     grub_cfg = os.path.join(output_dir, "grub-%s.cfg" % image_type)
     content = GRUB_CFG_HEAD
     if secure_boot == 'enable':
@@ -714,7 +718,7 @@ def create_grub_cfg(entries, output_dir, secure_boot='disable', grub_user='', gr
 
     for entry in entries:
         if image_type in ['iso', 'pxe']:
-            entry_content = GRUB_CFG_ISO_ENTRY
+            entry_content = GRUB_CFG_ISO_ENTRY if grub_cfg_entry is None else grub_cfg_entry
             if image_type == 'iso':
                 entry_content = entry_content.replace('@INITRD@', '/initrd')
         else:
@@ -731,32 +735,35 @@ def create_grub_cfg(entries, output_dir, secure_boot='disable', grub_user='', gr
 
 SYSLINUX_CFG_HEAD = '''\
 PROMPT 0
-ALLOWOPTIONS 1
 TIMEOUT 100
 
-DEFAULT menu.c32
+ALLOWOPTIONS 1
+SERIAL 0 115200
 
-MENU TITLE [ LAT PXE Legacy Boot Menu ]
-MENU TABMSG Press [Tab] to edit, [Return] to select
+ui vesamenu.c32
+menu title Select kernel options and boot kernel
+menu tabmsg Press [Tab] to edit, [Return] to select
+DEFAULT %NAME%
+
 '''
-
 SYSLINUX_CFG_ISO_ENTRY = '''
 LABEL %NAME%
-    menu default
     menu label ^OSTree Install %NAME%
-    kernel bzImage
+    kernel /bzImage
     ipappend 2
     append initrd=@INITRD@ %BOOT_PARAMS%
 '''
 
-def create_syslinux_cfg(entries, output_dir):
+def create_syslinux_cfg(entries, output_dir, syslinux_cfg_entry=None, image_type='pxe'):
     syslinux_cfg = os.path.join(output_dir, "syslinux.cfg")
     content = SYSLINUX_CFG_HEAD
 
     for entry in entries:
-        entry_content = SYSLINUX_CFG_ISO_ENTRY
+        entry_content = SYSLINUX_CFG_ISO_ENTRY if syslinux_cfg_entry is None else syslinux_cfg_entry
         entry_content = entry_content.replace('%BOOT_PARAMS%', entry['boot_params'])
         entry_content = entry_content.replace('%NAME%', entry['name'])
+        if image_type == 'iso':
+            entry_content = entry_content.replace('@INITRD@', '/initrd')
         content += entry_content
 
     with open(syslinux_cfg, 'w') as f:

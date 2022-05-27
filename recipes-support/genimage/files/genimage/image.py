@@ -410,7 +410,7 @@ class CreatePXE(Image):
 
         utils.run_cmd_oneshot("install -m 0644 %s/bzImage* %s/" % (self.deploydir, self.tftp_dir))
 
-        for f in ["ldlinux.c32", "libutil.c32", "menu.c32", "pxelinux.0"]:
+        for f in ["libcom32.c32", "ldlinux.c32", "libutil.c32", "vesamenu.c32", "pxelinux.0"]:
             s = os.path.join(os.environ['OECORE_TARGET_SYSROOT'], "usr/share/syslinux", f)
             d = os.path.join(self.tftp_dir, f)
             shutil.copyfile(s, d)

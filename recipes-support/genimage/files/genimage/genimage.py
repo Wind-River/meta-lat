@@ -308,8 +308,8 @@ class GenImage(GenXXX):
 
         boot_params = self._get_boot_params(self.image_name, self.data["ostree"], extra_boot_params=bp_instiso)
 
-        grub_entries = list()
-        grub_entries.append({'name': self.data['name'],
+        entries = list()
+        entries.append({'name': self.data['name'],
                             'boot_params': self._get_boot_params(self.image_name, self.data["ostree"], image_type="iso-grub", extra_boot_params=bp_instiso)})
         for yaml_files in self.guest_yamls:
             data = utils.parse_yamls(yaml_files)
@@ -317,22 +317,31 @@ class GenImage(GenXXX):
                 continue
             ostree = data["ostree"] if "ostree" in data else self.data["ostree"]
             boot_params += self._get_boot_params(data["name"], ostree, extra_boot_params=bp_instiso)
-            grub_entries.append({'name': data['name'],
+            entries.append({'name': data['name'],
                                  'boot_params': self._get_boot_params(data["name"], ostree, image_type="iso-grub", extra_boot_params=bp_instiso)})
 
-        if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
-            # Customize grub.cfg for secure boot
-            grub_cfg_search_root = "search --no-floppy --label %s --set root\n" % iso_instlabel
-            grub_cfg = utils.create_grub_cfg(grub_entries,
-                                             self.deploydir,
-                                             secure_boot=self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable'),
-                                             grub_user=self.data['ostree']['OSTREE_GRUB_USER'],
-                                             grub_pw_file=self.data['ostree']['OSTREE_GRUB_PW_FILE'],
-                                             grub_cfg_extra=grub_cfg_search_root,
-                                             image_type='iso')
-            boot_params += ' --configfile %s' % grub_cfg
 
-            # Sign customized grub.cfg
+        # Customize syslinux.cfg
+        syslinux_cfg = utils.create_syslinux_cfg(entries,
+                                                 self.deploydir,
+                                                 syslinux_cfg_entry=self.data.get('iso-syslinux-entry', None),
+                                                 image_type='iso')
+        boot_params += ' --syslinuxconfig %s' % syslinux_cfg
+
+        # Customize grub.cfg
+        grub_cfg_search_root = "search --no-floppy --label %s --set root\n" % iso_instlabel
+        grub_cfg = utils.create_grub_cfg(entries,
+                                         self.deploydir,
+                                         secure_boot=self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable'),
+                                         grub_user=self.data['ostree']['OSTREE_GRUB_USER'],
+                                         grub_pw_file=self.data['ostree']['OSTREE_GRUB_PW_FILE'],
+                                         grub_cfg_extra=grub_cfg_search_root,
+                                         grub_cfg_entry=self.data.get('iso-grub-entry', None),
+                                         image_type='iso')
+        boot_params += ' --configfile %s' % grub_cfg
+
+        # Sign customized grub.cfg for secure boot
+        if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
             gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
             gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
             gpgpath = self.data['gpg']['gpg_path']

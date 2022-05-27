@@ -45,6 +45,10 @@ mapping:
     type: str
   iso-post-script:
     type: str
+  iso-grub-entry:
+    type: str
+  iso-syslinux-entry:
+    type: str
   multiple-kernels:
     type: str
   default-kernel:
