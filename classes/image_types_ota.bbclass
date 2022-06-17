@@ -222,6 +222,10 @@ IMAGE_CMD:otaimg () {
 		rm -rf ${WORKDIR}/rootfs_ota
 		mv ${PHYS_SYSROOT} ${WORKDIR}/rootfs_ota
 
+		if [ "${@oe.types.boolean(d.getVar('IS_FMU_ENABLED'))}" = "True" ]; then
+			rm -rf ${WORKDIR}/rootfs_ota_apps
+			cp ${IMAGE_ROOTFS}${APP_DIRECTORY} -ar ${WORKDIR}/rootfs_ota_apps
+		fi
 	fi
 }
 

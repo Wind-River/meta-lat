@@ -214,6 +214,9 @@ IMAGE_CMD:ostree () {
 	OSTREE_REPO_TEMP="${WORKDIR}/ostree_repo.temp.$$"
 	OSTREE_ROOTFS=`mktemp -du ${WORKDIR}/ostree-root-XXXXX`
 	cp -a ${IMAGE_ROOTFS} ${OSTREE_ROOTFS}
+	if [ "${@oe.types.boolean(d.getVar('IS_FMU_ENABLED'))}" = "True" ]; then
+		rm -rf ${OSTREE_ROOTFS}${APP_DIRECTORY}/*
+	fi
 	chmod a+rx ${OSTREE_ROOTFS}
 	sync
 
@@ -424,6 +427,10 @@ IMAGE_CMD:ostree () {
 	    echo "LABEL=otaefi     /boot/efi    auto   ro 0 0" >>usr/etc/fstab
         fi
 	echo "LABEL=fluxdata	 /var    auto   defaults 0 0" >>usr/etc/fstab
+	if [ "${@oe.types.boolean(d.getVar('IS_FMU_ENABLED'))}" = "True" ]; then
+		echo "LABEL=apps    /apps  auto   defaults 0 0" >>usr/etc/fstab
+	fi
+
 	# Install a trap handler to remove the temporary ostree_repo
 	trap "rm -rf ${OSTREE_REPO_TEMP}" EXIT
 	cd ${WORKDIR}
