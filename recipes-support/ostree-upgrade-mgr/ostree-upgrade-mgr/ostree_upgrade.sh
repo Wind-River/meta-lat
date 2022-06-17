@@ -38,6 +38,7 @@ DO_PULL=1
 DO_REBOOT=0
 MERGE_DIR=/etc
 RESET_VAR=0
+UPGRADE_REV=""
 
 cleanup() {
 	for d in $CLEANUP_MOUNTS ; do
@@ -216,6 +217,14 @@ fatal() {
 }
 
 ostree_pull() {
+	if [ -n "$UPGRADE_REV" ]; then
+		ostree pull --repo=$UPGRADE_ROOTFS_DIR/ostree/repo ${remote} $UPGRADE_REV
+		if [ $? -ne 0 ]; then
+			fatal "Ostree pull failed"
+		fi
+		return
+	fi
+
 	lcache="--localcache-repo=/sysroot/ostree/repo"
 
 	if [ "${NO_AB}" != "1" ] ; then
@@ -298,7 +307,12 @@ ostree_upgrade() {
 		fi
 	fi
 
-	OSTREE_ETC_MERGE_DIR=$MERGE_DIR ostree admin --sysroot=$UPGRADE_ROOTFS_DIR deploy --os=${os} ${remote}:${branch}
+	if [ -n "$UPGRADE_REV" ]; then
+		OSTREE_ETC_MERGE_DIR=$MERGE_DIR ostree admin --sysroot=$UPGRADE_ROOTFS_DIR deploy --os=${os} $UPGRADE_REV
+	else
+		OSTREE_ETC_MERGE_DIR=$MERGE_DIR ostree admin --sysroot=$UPGRADE_ROOTFS_DIR deploy --os=${os} ${remote}:${branch}
+	fi 
+
 	if [ $? -ne 0 ]; then
 		fatal "Ostree deploy failed"
 	fi
@@ -381,12 +395,13 @@ usage: $0 [args]
 
   -F   Local Redeploy and Reset, uses -b -e -f -r -s
   -U   Factory upgrade reset, uses -b -e -f -s
+  -c   upgrade to this commit, not latest one
 
 EOF
 	exit 0
 }
 
-while getopts "beEfhFrsU" opt; do
+while getopts "beEfhFrsUc:" opt; do
 	case ${opt} in
 		b)
 			DO_REBOOT=1
@@ -405,6 +420,9 @@ while getopts "beEfhFrsU" opt; do
 			;;
 		s)
 			DEBUG_SKIP_FSCK=1
+			;;
+		c)
+			UPGRADE_REV=$OPTARG
 			;;
 		F)
 			DO_REBOOT=1
