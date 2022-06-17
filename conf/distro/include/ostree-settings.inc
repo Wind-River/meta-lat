@@ -3,9 +3,9 @@ OSTREE_SAMPLE_KEYS_DIR ?= "${LAYER_PATH_lat-layer}/conf/distro/files/ostree-samp
 OSTREE_KEYS_DIR ?= "${OSTREE_SAMPLE_KEYS_DIR}"
 
 OSTREE_INITRAMFS_IMAGE ?= "initramfs-ostree-image"
-OSTREE_REPO ?= "${DEPLOY_DIR_IMAGE}/ostree_repo"
+OSTREE_REPO ??= "${DEPLOY_DIR_IMAGE}/ostree_repo"
 
-OSTREE_BRANCHNAME ?= "${IMAGE_BASENAME}"
+OSTREE_BRANCHNAME ??= "${IMAGE_BASENAME}"
 OSTREE_OSNAME ??= "lat_os"
 # This is set to the name of the loader to include into a disk image
 # Not all BSPs will need this, so it can be unset by the BSP
@@ -71,6 +71,26 @@ def get_fluxdata_size(d):
     bb.debug(1, 'returning %d' % (base_size))
     return base_size
 
+def get_apps_size(d):
+    import subprocess
+    
+    overhead_factor = float(d.getVar("IMAGE_OVERHEAD_FACTOR"))
+    fluxdata_dir = d.expand("${WORKDIR}/rootfs_ota_apps")
+    output = subprocess.check_output(["du", "-ks", fluxdata_dir])
+    size_kb = int(output.split()[0])
+    base_size = size_kb * overhead_factor
+    bb.debug(1, '%f = %d * %f' % (base_size, size_kb, overhead_factor))
+
+    if base_size != int(base_size):
+        base_size = int(base_size + 1)
+    else:
+        base_size = int(base_size)
+
+    # Extra 512MB for /apps
+    base_size += 512*1024
+    bb.debug(1, 'returning %d' % (base_size))
+    return base_size
+
 python do_write_wks_template:prepend () {
     fluxdata_dir = d.expand("${WORKDIR}/rootfs_ota_var")
     if os.path.exists(fluxdata_dir):
@@ -82,6 +102,13 @@ python do_write_wks_template:prepend () {
             _size = get_rootfs_size(d)//1024 + 1
             root_size = "--size=%dM --overhead-factor 1" % _size
         template_body = template_body.replace("@OSTREE_WKS_ROOT_SIZE@", str(root_size))
+
+        if oe.types.boolean(d.getVar('IS_FMU_ENABLED')):
+            apps_size = d.getVar("OSTREE_WKS_APPS_SIZE") or None
+            if apps_size is None:
+                _size = get_apps_size(d)
+                apps_size = "--size=%dM --overhead-factor 1" % _size
+            template_body = template_body.replace("@OSTREE_WKS_APPS_SIZE@", str(apps_size))
 
         fluxdata_size = d.getVar("OSTREE_WKS_FLUX_SIZE") or None
         if fluxdata_size is None:
