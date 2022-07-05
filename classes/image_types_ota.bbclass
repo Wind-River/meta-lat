@@ -84,6 +84,10 @@ IMAGE_CMD:otaimg () {
 			if [ "${OSTREE_GPGID}" = "" ] ; then
 				do_gpg=--no-gpg-verify
 			fi
+			if [ "${@oe.types.boolean(d.getVar('IS_FMU_ENABLED'))}" = "True" ] &&
+				[ "${@oe.types.boolean(d.getVar('FMU_OSTREE_GPG_VERIFY'))}" = "False" ]; then
+				do_gpg=--no-gpg-verify
+			fi
 			ostree config --repo=${PHYS_SYSROOT}/ostree/repo set upgrade.remote ${OSTREE_REMOTE_NAME}
 			ostree remote --repo=${PHYS_SYSROOT}/ostree/repo add ${do_gpg} ${OSTREE_REMOTE_NAME} ${OSTREE_REMOTE_URL}
 		fi
@@ -222,6 +226,10 @@ IMAGE_CMD:otaimg () {
 		rm -rf ${WORKDIR}/rootfs_ota
 		mv ${PHYS_SYSROOT} ${WORKDIR}/rootfs_ota
 
+		if [ "${@oe.types.boolean(d.getVar('IS_FMU_ENABLED'))}" = "True" ]; then
+			rm -rf ${WORKDIR}/rootfs_ota_apps
+			cp ${IMAGE_ROOTFS}${APP_DIRECTORY} -ar ${WORKDIR}/rootfs_ota_apps
+		fi
 	fi
 }
 

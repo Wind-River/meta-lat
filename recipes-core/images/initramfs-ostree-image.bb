@@ -74,6 +74,9 @@ IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
 # Stop any kind of circular dependency with the flux-ota class
 IMAGE_CLASSES:remove = "flux-ota"
 
+IMAGE_CLASSES:remove = "fullmetalupdate_package_preinstalled_ostree"
+IMAGE_CLASSES:remove = "fullmetalupdate_push_image_to_ostree"
+
 inherit core-image image_types_ostree
 
 IMAGE_ROOTFS_SIZE = "8192"
