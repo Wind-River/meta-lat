@@ -45,6 +45,8 @@ OSTREE_ARCH_WKS:aarch64 ??= "ostree-uboot-sd"
 
 OSTREE_AB_WKS ??= "${@oe.utils.conditional('OSTREE_USE_AB', '1', '-ab', '-noab', d)}"
 
+OSTREE_USE_FIT ??= "0"
+
 # Set a fixed size in the wks file for the various partitions from local.conf e.g.
 #OSTREE_WKS_EFI_SIZE = "--size=32M --overhead-factor 1"
 #OSTREE_WKS_BOOT_SIZE = "--size=300M --overhead-factor 1"
