@@ -337,8 +337,12 @@ else
 setenv ostver 1
 fi
 if test \${skip_script_wd} != yes; then setenv wdttimeout 120000; fi
-setenv loadkernel ext4load \${devtype} \${devnum}:\${mmcpart} \${loadaddr} \${ostver}/vmlinuz
-setenv loadramdisk ext4load \${devtype} \${devnum}:\${mmcpart} \${initrd_addr} \${ostver}/initramfs
+if test -n "\${load_fitimage_addr}"; then
+  setenv loadfit ext4load \${devtype} \${devnum}:\${mmcpart} \${load_fitimage_addr} \${ostver}/vmlinuz
+else
+  setenv loadkernel ext4load \${devtype} \${devnum}:\${mmcpart} \${loadaddr} \${ostver}/vmlinuz
+  setenv loadramdisk ext4load \${devtype} \${devnum}:\${mmcpart} \${initrd_addr} \${ostver}/initramfs
+fi
 setenv bootargs "\${fdtargs} \${bootpart} ostree=/ostree/\${ostver} \${rootpart} ${OSTREE_CONSOLE} ${OSTREE_BSP_ARGS} \${smp} flux=fluxdata\${labelpre}"
 if test "\${no_fatwrite}" = yes; then
  setenv bootargs "\${bootargs} no_fatwrite=yes"
@@ -348,9 +352,14 @@ if test ! -n \${use_fdtdtb} || test \${use_fdtdtb} -lt 1; then
   setenv loaddtb ext4load \${devtype} \${devnum}:\${mmcpart} \${fdt_addr} \${ostver}/\${fdt_file};run loaddtb
  fi
 fi
-run loadramdisk
-run loadkernel
-${OSTREE_UBOOT_CMD} \${loadaddr} \${initrd_addr} \${fdt_addr}
+if test -n "\${load_fitimage_addr}"; then
+  run loadfit
+  bootm \${load_fitimage_addr}
+else
+  run loadramdisk
+  run loadkernel
+  ${OSTREE_UBOOT_CMD} \${loadaddr} \${initrd_addr} \${fdt_addr}
+fi
 fi
 EOF
 }
