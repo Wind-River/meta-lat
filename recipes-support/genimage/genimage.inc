@@ -37,6 +37,8 @@ SRC_URI = "\
            file://genimage/data/post_rootfs/run.ssh_allow_root_login \
            file://genimage/data/post_ustart/nxp_s32g.sh \
            file://genimage/data/post_wic/nxp_s32g.sh \
+           file://genimage/data/post_ustart/aptiv_cvc_sousa.sh \
+           file://genimage/data/post_wic/aptiv_cvc_sousa.sh \
            file://genimage/data/yaml_example/feature/vboxguestdrivers.yaml \
            file://genimage/data/yaml_example/feature/xfce_desktop.yaml \
            file://genimage/data/yaml_example/feature/set_root_password.yaml \
@@ -100,6 +102,7 @@ SRC_URI = "\
            file://genimage/doc/target_nxp-imx8.README.md.in \
            file://genimage/doc/target_marvell-cn96xx.README.md.in \
            file://genimage/doc/target_nxp-s32g.README.md.in \
+           file://genimage/doc/target_aptiv_cvc_sousa.README.md.in \
            file://genimage/doc/target_intel-socfpga-64.README.md.in \
            file://genimage/doc/target_ti-j72xx.README.md.in \
            file://genimage/doc/target_nxp-ls1028.README.md.in \
@@ -267,8 +270,10 @@ do_install:append() {
 
 USTART_POST_SCRIPT ??= ""
 USTART_POST_SCRIPT:nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/nxp_s32g.sh"
+USTART_POST_SCRIPT:aptiv_cvc_sousa = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/aptiv_cvc_sousa.sh"
 WIC_POST_SCRIPT ??= ""
 WIC_POST_SCRIPT:nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/nxp_s32g.sh"
+WIC_POST_SCRIPT:aptiv_cvc_sousa = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/aptiv_cvc_sousa.sh"
 
 DEFAULT_DEBIAN_MIRROR ??= "http://ftp.us.debian.org/debian"
 DEFAULT_DEBIAN_DISTRO ??= "bullseye"
@@ -308,6 +313,8 @@ python __anonymous () {
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'marvell_cn96xx noarch octeontx2')
     elif machine == 'nxp-s32g':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch nxp_s32g')
+    elif machine == 'aptiv_cvc_sousa':
+        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch aptiv_cvc_sousa')
     elif machine == 'intel-socfpga-64':
         d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 intel_socfpga_64 noarch')
     elif machine == 'ti-j72xx':

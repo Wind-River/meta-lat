@@ -152,6 +152,7 @@ OSTREE_SUPPORTED_ARM64_MACHINES ??= " \
     nxp-s32g \
     intel-socfpga-64 \
     ti-j72xx \
+    aptiv_cvc_sousa \
 "
 
 OSTREE_SUPPORTED_ARM32_MACHINES ??= " \
