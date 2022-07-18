@@ -136,6 +136,18 @@ DEFAULT_PACKAGES_marvell_cn96xx = '''
     u-boot-uenv
 '''.split()
 
+DEFAULT_PACKAGES_aptiv_cvc_sousa = '''
+    u-boot-uenv
+    kernel-devicetree
+    kernel-image-image
+    linuxptp
+    linuxptp-configs
+    can-utils
+    i2c-tools
+    u-boot-s32
+    atf-s32g
+'''.split()
+
 DEFAULT_PACKAGES_nxp_s32g = '''
     u-boot-uenv
     kernel-devicetree
@@ -215,6 +227,7 @@ DEFAULT_PACKAGES = {
     'nxp-imx8': DEFAULT_PACKAGES_nxp_imx8 + DEFAULT_PACKAGES_COMMON,
     'marvell-cn96xx': DEFAULT_PACKAGES_marvell_cn96xx + DEFAULT_PACKAGES_COMMON,
     'nxp-s32g': DEFAULT_PACKAGES_nxp_s32g + DEFAULT_PACKAGES_COMMON,
+    'aptiv_cvc_sousa': DEFAULT_PACKAGES_aptiv_cvc_sousa + DEFAULT_PACKAGES_COMMON,
     'intel-socfpga-64': DEFAULT_PACKAGES_intel_socfpga_64 + DEFAULT_PACKAGES_COMMON,
     'ti-j72xx': DEFAULT_PACKAGES_ti_j72xx + DEFAULT_PACKAGES_COMMON,
     'nxp-ls1028': DEFAULT_PACKAGES_nxp_ls1028 + DEFAULT_PACKAGES_COMMON,
