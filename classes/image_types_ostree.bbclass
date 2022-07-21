@@ -487,3 +487,84 @@ python __anonymous() {
         msg += "Due to GPG homedir path length limit, please set GPG_PATH shorter than 80 characters"
         raise bb.parse.SkipRecipe(msg)
 }
+
+def get_fluxdata_size(d):
+    import subprocess
+
+    overhead_factor = float(d.getVar("IMAGE_OVERHEAD_FACTOR"))
+    fluxdata_dir = d.expand("${WORKDIR}/rootfs_ota_var")
+    output = subprocess.check_output(["du", "-ks", fluxdata_dir])
+    size_kb = int(output.split()[0])
+    base_size = size_kb * overhead_factor
+    bb.debug(1, '%f = %d * %f' % (base_size, size_kb, overhead_factor))
+
+    if base_size != int(base_size):
+        base_size = int(base_size + 1)
+    else:
+        base_size = int(base_size)
+
+    # Extra 512MB for /var
+    base_size += 512*1024
+    bb.debug(1, 'returning %d' % (base_size))
+    return base_size
+
+def get_apps_size(d):
+    import subprocess
+
+    overhead_factor = float(d.getVar("IMAGE_OVERHEAD_FACTOR"))
+    fluxdata_dir = d.expand("${WORKDIR}/rootfs_ota_apps")
+    output = subprocess.check_output(["du", "-ks", fluxdata_dir])
+    size_kb = int(output.split()[0])
+    base_size = size_kb * overhead_factor
+    bb.debug(1, '%f = %d * %f' % (base_size, size_kb, overhead_factor))
+
+    if base_size != int(base_size):
+        base_size = int(base_size + 1)
+    else:
+        base_size = int(base_size)
+
+    # Extra 512MB for /apps
+    base_size += 512*1024
+    bb.debug(1, 'returning %d' % (base_size))
+    return base_size
+
+python do_write_wks_template:prepend() {
+    fluxdata_dir = d.expand("${WORKDIR}/rootfs_ota_var")
+    if os.path.exists(fluxdata_dir):
+        template_body = d.getVar('_WKS_TEMPLATE')
+
+        root_size = d.getVar("OSTREE_WKS_ROOT_SIZE") or None
+        if root_size is None:
+            # KB --> MB
+            _size = get_rootfs_size(d)//1024 + 1
+            root_size = "--size=%dM --overhead-factor 1" % _size
+        template_body = template_body.replace("@OSTREE_WKS_ROOT_SIZE@", str(root_size))
+
+        if oe.types.boolean(d.getVar('IS_FMU_ENABLED')):
+            apps_size = d.getVar("OSTREE_WKS_APPS_SIZE") or None
+            if apps_size is None:
+                _size = get_apps_size(d)
+                apps_size = "--size=%dM --overhead-factor 1" % _size
+            template_body = template_body.replace("@OSTREE_WKS_APPS_SIZE@", str(apps_size))
+
+        fluxdata_size = d.getVar("OSTREE_WKS_FLUX_SIZE") or None
+        if fluxdata_size is None:
+            # KB --> MB
+            _size = get_fluxdata_size(d)//1024 + 1
+            fluxdata_size = "--size=%dM --overhead-factor 1" % _size
+        template_body = template_body.replace("@OSTREE_WKS_FLUX_SIZE@", str(fluxdata_size))
+
+        d.setVar("_WKS_TEMPLATE", template_body)
+        bb.debug(1, "_WKS_TEMPLATE %s" % template_body)
+}
+
+# Need add do_write_wks_template firstly, otherwise
+# do_write_wks_template:prepend doesn't work
+python () {
+    if d.getVar('USING_WIC'):
+        wks_file_u = d.getVar('WKS_FULL_PATH', False)
+        wks_file = d.expand(wks_file_u)
+        base, ext = os.path.splitext(wks_file)
+        if ext == '.in' and os.path.exists(wks_file):
+            bb.build.addtask('do_write_wks_template', 'do_image_wic', 'do_image_otaimg', d)
+}
