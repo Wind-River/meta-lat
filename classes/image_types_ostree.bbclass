@@ -531,31 +531,26 @@ def get_apps_size(d):
 python do_write_wks_template:prepend() {
     fluxdata_dir = d.expand("${WORKDIR}/rootfs_ota_var")
     if os.path.exists(fluxdata_dir):
-        template_body = d.getVar('_WKS_TEMPLATE')
-
         root_size = d.getVar("OSTREE_WKS_ROOT_SIZE") or None
         if root_size is None:
             # KB --> MB
             _size = get_rootfs_size(d)//1024 + 1
             root_size = "--size=%dM --overhead-factor 1" % _size
-        template_body = template_body.replace("@OSTREE_WKS_ROOT_SIZE@", str(root_size))
+        d.setVar('OSTREE_WKS_ROOT_SIZE', root_size)
 
         if oe.types.boolean(d.getVar('IS_FMU_ENABLED')):
             apps_size = d.getVar("OSTREE_WKS_APPS_SIZE") or None
             if apps_size is None:
                 _size = get_apps_size(d)
                 apps_size = "--size=%dM --overhead-factor 1" % _size
-            template_body = template_body.replace("@OSTREE_WKS_APPS_SIZE@", str(apps_size))
+            d.setVar('OSTREE_WKS_APPS_SIZE', apps_size)
 
         fluxdata_size = d.getVar("OSTREE_WKS_FLUX_SIZE") or None
         if fluxdata_size is None:
             # KB --> MB
             _size = get_fluxdata_size(d)//1024 + 1
             fluxdata_size = "--size=%dM --overhead-factor 1" % _size
-        template_body = template_body.replace("@OSTREE_WKS_FLUX_SIZE@", str(fluxdata_size))
-
-        d.setVar("_WKS_TEMPLATE", template_body)
-        bb.debug(1, "_WKS_TEMPLATE %s" % template_body)
+        d.setVar('OSTREE_WKS_FLUX_SIZE', fluxdata_size)
 }
 
 # Need add do_write_wks_template firstly, otherwise
