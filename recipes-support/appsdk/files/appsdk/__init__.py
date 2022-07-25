@@ -117,6 +117,9 @@ def main():
     # Add exampleyamls to appsdk
     genimage.set_subparser_exampleyamls(subparsers)
 
+    # Add genfitimage to appsdk
+    genimage.set_subparser_genfitimage(subparsers)
+
     argcomplete.autocomplete(parser)
 
     if len(sys.argv) == 1:

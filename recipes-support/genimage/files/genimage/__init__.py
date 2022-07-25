@@ -44,12 +44,14 @@ from genimage.genyaml import set_subparser_genyaml
 from genimage.exampleyamls import set_subparser_exampleyamls
 from genimage.geninitramfs import set_subparser_geninitramfs
 from genimage.gencontainer import set_subparser_gencontainer
+from genimage.genfitimage import set_subparser_genfitimage
 
 from genimage.genimage import main
 from genimage.genyaml import main_genyaml
 from genimage.exampleyamls import main_exampleyamls
 from genimage.geninitramfs import main_geninitramfs
 from genimage.gencontainer import main_gencontainer
+from genimage.genfitimage import main_genfitimage
 
 __all__ = [
     "set_subparser",
@@ -62,6 +64,7 @@ __all__ = [
     "main_genyaml",
     "main_geninitramfs",
     "main_gencontainer",
+    "main_genfitimage",
 ]
 
 

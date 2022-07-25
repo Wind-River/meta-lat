@@ -10,6 +10,7 @@ SRC_URI = "\
            file://crossscript_wrapper.in \
            file://genimage/__init__.py \
            file://genimage/genimage.py \
+           file://genimage/genfitimage.py \
            file://genimage/genyaml.py \
            file://genimage/genXXX.py \
            file://genimage/exampleyamls.py \
@@ -18,6 +19,7 @@ SRC_URI = "\
            file://genimage/utils.py \
            file://genimage/constant.py.in \
            file://genimage/debian_constant.py.in \
+           file://genimage/fit_constant.py.in \
            file://genimage/package_manager/__init__.py \
            file://genimage/package_manager/rpm/__init__.py \
            file://genimage/package_manager/deb/__init__.py \
@@ -73,6 +75,7 @@ SRC_URI = "\
            file://genimage/data/pykwalify/genimage-schema.yaml \
            file://genimage/data/pykwalify/gencontainer-schema.yaml \
            file://genimage/data/pykwalify/geninitramfs-schema.yaml \
+           file://genimage/data/pykwalify/genfitimage-schema.yaml \
            file://genimage/data/pykwalify/partial-schemas.yaml \
            file://genimage/data/pykwalify/ext.py \
            file://genimage/data/yaml_template/startup-container.yaml.in \
@@ -227,6 +230,7 @@ do_copy_src() {
 python do_write_py_template () {
     # constant.py.in -> constant.py and expand variables
     py_templates = [os.path.join(d.getVar("WORKDIR"),"genimage","constant.py.in"),
+                    os.path.join(d.getVar("WORKDIR"),"genimage","fit_constant.py.in"),
                     os.path.join(d.getVar("WORKDIR"),"genimage","debian_constant.py.in")]
     for py_t in py_templates:
         body = "null"
@@ -296,6 +300,12 @@ DEFAULT_RPM_PACKAGE_FEED ??= ""
 DEFAULT_DEB_PACKAGE_FEED ??= ""
 REMOTE_RPM_PKGDATADIR ??= ""
 REMOTE_DEB_PKGDATADIR ??= ""
+DEPLOY_URIS ??= "${PACKAGE_FEED_URIS}"
+DEPLOY_BASE_PATHS ??= "images/${MACHINE}"
+
+FIT_LX_FDT ?= ""
+FIT_LX_FDT:aptiv_cvc_sousa = "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', False))}"
+
 python __anonymous () {
     machine = d.getVar('MACHINE')
     if machine == 'bcm-2xxx-rpi4':
