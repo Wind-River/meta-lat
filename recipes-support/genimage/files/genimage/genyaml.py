@@ -28,6 +28,7 @@ from genimage.genXXX import GenXXX
 from genimage.genXXX import set_parser
 
 import genimage.constant as constant
+from genimage.constant import USE_FIT
 from genimage.constant import DEFAULT_MACHINE
 from genimage.constant import DEFAULT_PACKAGES
 from genimage.constant import OSTREE_INITRD_PACKAGES
@@ -45,6 +46,7 @@ from genimage.geninitramfs import GenYoctoInitramfs
 from genimage.geninitramfs import GenExtDebInitramfs
 from genimage.gencontainer import  GenYoctoContainer
 from genimage.gencontainer import  GenExtDebContainer
+from genimage.genfitimage import GenFitImage
 
 import genimage.utils as utils
 
@@ -64,6 +66,9 @@ def set_parser_genyaml(parser=None):
         supported_types.append('pxe')
         supported_types.append('vmdk')
         supported_types.append('vdi')
+
+    if USE_FIT == "1":
+        supported_types.append('fit')
 
     parser = set_parser(parser, supported_types)
     parser.add_argument('-g', '--gpgpath',
@@ -109,7 +114,8 @@ def complete_url(**kwargs):
 genclass = {
     "genimage": {"rpm": GenYoctoImage, "deb":GenYoctoImage, "external-debian":GenExtDebImage},
     "gencontainer": {"rpm": GenYoctoContainer, "deb":GenYoctoContainer, "external-debian":GenExtDebContainer},
-    "geninitramfs": {"rpm": GenYoctoInitramfs, "deb":GenYoctoInitramfs, "external-debian":GenExtDebInitramfs}
+    "geninitramfs": {"rpm": GenYoctoInitramfs, "deb":GenYoctoInitramfs, "external-debian":GenExtDebInitramfs},
+    "genfitimage": {"rpm": GenFitImage, "deb":GenFitImage, "external-debian":GenFitImage}
 }
 
 class GenYaml():
@@ -166,6 +172,11 @@ class GenYaml():
             return "gencontainer"
         elif 'initramfs' in image_types:
             return "geninitramfs"
+        elif 'fit' in image_types:
+            if USE_FIT != '1':
+                logger.error("The image type `fit' is not supported")
+                sys.exit(1)
+            return "genfitimage"
 
         return "genimage"
 

@@ -26,6 +26,7 @@ import subprocess
 from texttable import Texttable
 
 from genimage.utils import set_logger
+from genimage.constant import USE_FIT
 from genimage.constant import DEFAULT_MACHINE
 from genimage.constant import SUPPORTED_PKGTYPES
 from genimage.constant import DEFAULT_IMAGE_PKGTYPE
@@ -183,6 +184,10 @@ def _main_run_internal(args):
                 f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % constant.DEFAULT_IMAGE)
 
         utils.deploy_kickstart_example(args.pkg_type, outdir)
+
+    if USE_FIT == "1":
+        cmd = "genyaml -d -o {0} --type fit".format(outdir)
+        utils.run_cmd_oneshot(cmd)
 
     utils.remove(os.path.join(outdir, "deploy"), recurse=True)
 
