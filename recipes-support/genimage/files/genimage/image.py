@@ -198,6 +198,8 @@ class CreateWicImage(Image):
                 wks_content = f.read()
                 wks_content = os.path.expandvars(wks_content)
                 for e in ['OSTREE_WKS_ROOT_SIZE', 'OSTREE_WKS_FLUX_SIZE']:
+                    if e not in os.environ:
+                        continue
                     wks_content = wks_content.replace('@%s@'%e, os.environ[e])
             self.wks_full_path = os.path.join(self.deploydir, os.path.basename(base))
             open(self.wks_full_path, "w").write(wks_content)
