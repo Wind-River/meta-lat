@@ -12,6 +12,7 @@ set -e
 # GPGPATH
 # DEFAULT_INITRD_NAME
 # OSTREE_KERNEL
+# USE_FIT
 # RAMDISK_EXT
 # KERNEL_DEVICETREE
 # EFI_SECURE_BOOT
@@ -159,7 +160,12 @@ do_image_ostree() {
 	#deploy the device tree file
 	mkdir -p usr/lib/ostree-boot
 	cp $DEPLOY_DIR_IMAGE/${OSTREE_KERNEL} usr/lib/ostree-boot/vmlinuz-${checksum}
-	cp $DEPLOY_DIR_IMAGE/${DEFAULT_INITRD_NAME}-${MACHINE}${RAMDISK_EXT} usr/lib/ostree-boot/initramfs-${checksum}
+	if [ "${USE_FIT}" != "1" ]; then
+		cp $DEPLOY_DIR_IMAGE/${DEFAULT_INITRD_NAME}-${MACHINE}${RAMDISK_EXT} usr/lib/ostree-boot/initramfs-${checksum}
+	else
+		# Workaround ostree
+		touch usr/lib/ostree-boot/initramfs-${checksum}
+	fi
 
 	if [ "${EFI_SECURE_BOOT}" = "enable" ]; then
 		if [ -f $DEPLOY_DIR_IMAGE/${OSTREE_KERNEL}.p7b ] ; then

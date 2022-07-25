@@ -14,6 +14,7 @@ set -e
 # OSTREE_SKIP_BOOT_DIFF
 # OSTREE_REMOTE_URL
 # EFI_SECURE_BOOT
+# USE_FIT
 
 OSTREE_BRANCHNAME="${IMAGE_NAME}"
 OSTREE_REMOTE_NAME="${OSTREE_OSNAME}"
@@ -120,7 +121,7 @@ do_image_otaimg() {
 
 		bootdir=$(grep ^bootdir= ${PHYS_SYSROOT}/boot/loader/uEnv.txt)
 		bootdir=${bootdir#bootdir=}
-		if [ "$bootdir" != "" ] && [ -e "${PHYS_SYSROOT}/boot$bootdir" ] ; then
+		if [ "$bootdir" != "" ] && [ -e "${PHYS_SYSROOT}/boot$bootdir" ] && [ "${USE_FIT}" != "1" ] ; then
 			cp -r ${PHYS_SYSROOT}/boot$bootdir/*  $WORKDIR/rootfs_ota_uboot
 		fi
 		printf "123A" >  $WORKDIR/rootfs_ota_uboot/boot_ab_flag
