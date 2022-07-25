@@ -609,6 +609,15 @@ class CreateOstreeOTA(Image):
                                   'ostree_remote_url'
                                  })
 
+    def _add_keys(self):
+        self.image_boot_files = constant.IMAGE_BOOT_FILES
+        self.use_fit = '0'
+
+
+    def set_fit(self, boot_files='', use_fit='1'):
+        self.use_fit = use_fit
+        self.image_boot_files = boot_files
+
     def create(self):
         ota_env = os.environ.copy()
         ota_env['DEPLOY_DIR_IMAGE'] = self.deploydir
@@ -621,8 +630,9 @@ class CreateOstreeOTA(Image):
         ota_env['OSTREE_OSNAME'] = self.ostree_osname
         ota_env['OSTREE_SKIP_BOOT_DIFF'] = self.ostree_skip_boot_diff
         ota_env['OSTREE_REMOTE_URL'] = self.ostree_remote_url
-        ota_env['IMAGE_BOOT_FILES'] = constant.IMAGE_BOOT_FILES
+        ota_env['IMAGE_BOOT_FILES'] = self.image_boot_files
         ota_env['OSTREE_COPY_IMAGE_BOOT_FILES'] = constant.OSTREE_COPY_IMAGE_BOOT_FILES
+        ota_env['USE_FIT'] = self.use_fit
         cmd = os.path.expandvars("$OECORE_NATIVE_SYSROOT/usr/share/genimage/scripts/run.do_image_otaimg")
         res, output = utils.run_cmd(cmd, env=ota_env)
         if res:
