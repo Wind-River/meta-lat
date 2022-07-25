@@ -512,6 +512,14 @@ class CreateOstreeRepo(Image):
     def _set_allow_keys(self):
         self.allowed_keys.update({"gpgid", "gpg_password", "gpg_path"})
 
+    def _add_keys(self):
+        self.ostree_kernel = constant.OSTREE_KERNEL
+        self.use_fit = '0'
+
+    def set_fit(self, ostree_kernel='fitimage', use_fit='1'):
+        self.ostree_kernel = ostree_kernel
+        self.use_fit = use_fit
+
     def create(self):
         ostreerepo_env = os.environ.copy()
         ostreerepo_env['IMAGE_ROOTFS'] = self.target_rootfs
@@ -524,7 +532,8 @@ class CreateOstreeRepo(Image):
         ostreerepo_env['OSTREE_GPG_PASSPHRASE'] = self.gpg_password
         ostreerepo_env['GPGPATH'] = self.gpg_path
 
-        ostreerepo_env['OSTREE_KERNEL'] = constant.OSTREE_KERNEL
+        ostreerepo_env['USE_FIT'] = self.use_fit
+        ostreerepo_env['OSTREE_KERNEL'] = self.ostree_kernel
         ostreerepo_env['RAMDISK_EXT'] = constant.RAMDISK_EXT
         ostreerepo_env['KERNEL_DEVICETREE'] = constant.KERNEL_DEVICETREE
 
