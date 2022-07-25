@@ -35,6 +35,7 @@ setuptools.setup(
             'genyaml=genimage:main_genyaml',
             'exampleyamls=genimage:main_exampleyamls',
             'geninitramfs=genimage:main_geninitramfs',
+            'genfitimage=genimage:main_genfitimage',
             'gencontainer=genimage:main_gencontainer'
         ],
     },

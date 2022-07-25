@@ -1,0 +1,67 @@
+#
+# Copyright (c) 2022 Wind River Systems, Inc.
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+type: map
+mapping:
+  name:
+    include: name_str
+  machine:
+    include: machine_str
+  image_type:
+    include: image_type_seq
+  boot-atf:
+    type: str
+  boot-scr:
+    type: str
+  boot-scr-pre:
+    type: str
+  fit-config:
+    type: str
+  fit-input-files:
+    type: map
+    mapping:
+      lx-kernel:
+        type: str
+      lx-initrd:
+        type: str
+      lx-fdtb:
+        type: str
+      vx-kernel:
+        type: str
+      hvp:
+        type: str
+      hvp-fdt:
+        type: str
+  ostree:
+    include: ostree_map
+  rootfs-images:
+    type: map
+    mapping:
+      lx-rootfs:
+        type: str
+      lx-manifest:
+        type: str
+      vx-app:
+        type: str
+  gpg:
+    include: gpg_map
+  wic-config:
+    type: str
+  lx-rootfs-script:
+    type: str
+  vx-app-script:
+    type: str
+  environments:
+    include: environments_seq
+  wic-post-script:
+    type: str
+
+schema;image_type_seq:
+  type: seq
+  sequence:
+    - type: str
+      enum: ['fit']
+      nullable: False
+  nullable: False
