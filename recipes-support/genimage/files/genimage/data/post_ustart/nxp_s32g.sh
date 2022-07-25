@@ -11,11 +11,8 @@ set -e
 # IMAGE_NAME
 # DATETIME
 # MACHINE
-S32G_PLAT="rdb2 evb rdb3"
-UBOOT_CONFIG="s32g274ardb2 s32g2xxaevb s32g399ardb3"
+UBOOT_CONFIG="s32g274ardb2 s32g2xxaevb s32g399ardb3 s32g3xxaevb"
 UBOOT_BINARY="u-boot-s32.bin"
-ATF_S32G_ENABLE="1"
-
 USTART_SRC_GZIMAGE_LINK="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}.ustart.img.gz"
 USTART_SRC_GZIMAGE="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-${DATETIME}.ustart.img.gz"
 USTART_SRC_IMAGE="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-${DATETIME}.ustart.img"
@@ -30,25 +27,26 @@ remove_link() {
 
 gunzip -f -k $USTART_SRC_GZIMAGE
 
-j=0;
-for plat in ${S32G_PLAT}; do
-    j=$(expr $j + 1);
-    type=`echo ${UBOOT_CONFIG} | awk -v "n=$j" '{print $n}'`;
-    uimage="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-${plat}-${DATETIME}.ustart.img"
-    uzimage=${uimage}.gz
-    uzimagelink="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-${plat}.ustart.img.gz"
-    cp ${USTART_SRC_IMAGE} ${uimage}
-    if [ -n "${ATF_S32G_ENABLE}" -a -e ${DEPLOY_DIR_IMAGE}/atf-${type}.s32 ]; then
-        dd if=${DEPLOY_DIR_IMAGE}/atf-${type}.s32 of=${uimage} conv=notrunc bs=256 count=1 seek=0;
-        dd if=${DEPLOY_DIR_IMAGE}/atf-${type}.s32 of=${uimage} conv=notrunc bs=512 seek=1 skip=1;
-    elif [ -e ${DEPLOY_DIR_IMAGE}/${UBOOT_BINARY}-${type} ]; then
-        dd if=${DEPLOY_DIR_IMAGE}/${UBOOT_BINARY}-${type} of=${uimage} conv=notrunc bs=256 count=1 seek=0;
-        dd if=${DEPLOY_DIR_IMAGE}/${UBOOT_BINARY}-${type} of=${uimage} conv=notrunc bs=512 seek=1 skip=1;
-    fi;
-    remove_link $uzimagelink
-    pigz -f $uimage
-    ln -snf -r $uzimage $uzimagelink
-done;
+for plat in ${UBOOT_CONFIG}; do
+    atf_s32="${DEPLOY_DIR_IMAGE}/atf-$plat.s32"
+    if [ $plat = "s32g3xxaevb" ]; then
+        plat="evb3"
+    elif [ $plat = "s32g2xxaevb" ]; then
+        plat="evb"
+    else
+        plat="$(echo $plat | grep -o '....$')"
+    fi
+    ofname="$DEPLOY_DIR_IMAGE/${IMAGE_NAME}-${MACHINE}-$plat.ustart.img"
+    cp $USTART_SRC_IMAGE $ofname
+    if [ "$plat" = "s32g2xxaevb" ] && [ "${HSE_SEC_ENABLED}" = "1" ]; then
+        dd if=$atf_s32 of=$ofname bs=512 seek=1 skip=1 conv=notrunc,fsync
+        dd if=$atf_s32.signature of=$ofname  bs=512 seek=9 conv=notrunc,fsync
+    else
+        dd if=$atf_s32 of=$ofname conv=notrunc bs=256 count=1 seek=0
+        dd if=$atf_s32 of=$ofname conv=notrunc bs=512 seek=1 skip=1
+    fi
+    pigz $ofname
+done
 
 rm -f ${USTART_SRC_IMAGE}
 remove_link ${USTART_SRC_GZIMAGE_LINK}
