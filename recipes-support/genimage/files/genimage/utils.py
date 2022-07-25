@@ -393,6 +393,9 @@ def check_gpg_keys(gpg_data):
 
     # The feature is supposed to be "ostree, rpm(todo), secure boot, ima(todo)"
     for feature in ['ostree', 'grub']:
+        if feature not in gpg_data:
+            continue
+
         if feature == 'ostree':
             gpgkey = os.path.expandvars(gpg_data[feature]['gpgkey'])
             gpgid = gpg_data[feature]['gpgid']
