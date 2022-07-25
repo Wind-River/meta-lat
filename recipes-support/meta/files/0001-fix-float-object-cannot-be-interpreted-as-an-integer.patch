@@ -1,0 +1,34 @@
+From 8600af5adc1345fca15bb426142e1384b5dc55d1 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Mon, 25 Jul 2022 10:29:04 +0800
+Subject: [PATCH] fix float object cannot be interpreted as an integer
+
+...
+  File"scripts/lib/wic/partition.py", line 259, in prepare_rootfs_ext
+    os.ftruncate(sparse.fileno(), rootfs_size * 1024)
+TypeError: 'float' object cannot be interpreted as an integer
+...
+
+Upstream-Status: Pending
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ scripts/lib/wic/partition.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/lib/wic/partition.py b/scripts/lib/wic/partition.py
+index 971609f9e1..f70d804500 100644
+--- a/scripts/lib/wic/partition.py
++++ b/scripts/lib/wic/partition.py
+@@ -104,7 +104,7 @@ class Partition():
+             logger.debug("Added %d extra blocks to %s to get to %d total blocks",
+                          extra_blocks, self.mountpoint, rootfs_size)
+ 
+-        return rootfs_size
++        return int(rootfs_size)
+ 
+     @property
+     def disk_size(self):
+-- 
+2.27.0
+
