@@ -154,7 +154,7 @@ For runqemu without KVM:
 Prerequisite: The remote ostree repo is available (The ostree_remote_url of
 ostree section in Yaml is set correctly)
 
-Because dnf can't upgrade kernel on the ostree image, so run the following
+Because dnf can't upgrade the kernel on the ostree image, so run the following
 command to ensure kernel is up to date and reboot, this action is only needed
 when kernel is upgraded in the repo.
     $ ostree_upgrade.sh -b

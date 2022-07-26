@@ -1,6 +1,6 @@
 # Wind River Linux target images
 
-The images are built from Wind River Linux, which support ostree, docker, kubernetes and other features in the packages feeds. The images can be highly customized, they can be customized by package manager dnf, or use the script gen-image to rebuild them from source.
+The images are built from Wind River Linux, which support ostree, docker, kubernetes and other features in the packages feeds. The images can be highly customized, by package manager dnf, or use the script gen-image to rebuild them from source.
 
 ## Features
 Arch: aarch64 (cortexa53)
@@ -94,12 +94,12 @@ login with root and change password for the first login.
 Prerequisite: The remote ostree repo is available (The ostree_remote_url of
 ostree section in Yaml is set correctly)
 
-Because dnf can't upgrade kernel on the ostree image, so run the following
+Because dnf can't upgrade the kernel on the ostree image, run the following
 command to ensure kernel is up to date and reboot, this action is only needed
-when kernel is upgraded in the repo.
+when the kernel is upgraded in the repo.
     $ ostree_upgrade.sh -b
 
-Note, the previous action is only needed when kernel is upgraded in the repo,
+Note, the previous action is only needed when the kernel is upgraded in the repo,
 otherwise it is not needed.
 
 @PACKAGE_MANAGER_SECTION@
