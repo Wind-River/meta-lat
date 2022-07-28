@@ -40,6 +40,7 @@ from genimage.sysdef import install_files
 import genimage.utils as utils
 
 import genimage.fit_constant as fit_constant
+import genimage.constant as constant
 
 from genimage.constant import USE_FIT
 from genimage.constant import DEFAULT_MACHINE
@@ -48,6 +49,7 @@ from genimage.fit_constant import DEFAULT_GPG_DATA
 from genimage.fit_constant import DEFAULT_FIT_IMAGE_NAME
 from genimage.fit_constant import DEFAULT_FIT_CONFIG
 from genimage.fit_constant import DEFAULT_WIC_CONFIG
+from genimage.constant import DEFAULT_WIC_FMU_CONFIG
 from genimage.fit_constant import DEFAULT_BOOT_SCR
 from genimage.fit_constant import DEFAULT_BOOT_ATF
 from genimage.fit_constant import DEFAULT_BOOT_SCR_PRE
@@ -172,7 +174,10 @@ class GenFitImage(GenXXX):
         self.data['rootfs-images'] = DEFAULT_ROOTFS_IMAGES
         self.data["ostree"] = DEFAULT_OSTREE_DATA
         self.data["gpg"] = DEFAULT_GPG_DATA
-        self.data['wic-config'] = DEFAULT_WIC_CONFIG
+        if constant.IS_FMU_ENABLED == "true":
+            self.data['wic-config'] = DEFAULT_WIC_FMU_CONFIG
+        else:
+            self.data['wic-config'] = DEFAULT_WIC_CONFIG
         self.data['lx-rootfs-script'] = DEFAULT_LX_ROOTFS_SCRIPT
         self.data['vx-app-script'] = DEFAULT_VX_APP_SCRIPT
         self.data['wic-post-script'] = DEFAULT_WIC_POST_SCRIPT

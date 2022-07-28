@@ -15,6 +15,8 @@ set -e
 # OSTREE_REMOTE_URL
 # EFI_SECURE_BOOT
 # USE_FIT
+# IS_FMU_ENABLED
+# APP_DIRECTORY
 
 OSTREE_BRANCHNAME="${IMAGE_NAME}"
 OSTREE_REMOTE_NAME="${OSTREE_OSNAME}"
@@ -190,6 +192,14 @@ do_image_otaimg() {
 	rm -rf $WORKDIR/rootfs_ota_boot
 	mv ${PHYS_SYSROOT}/boot $WORKDIR/rootfs_ota_boot
 	mkdir -p ${PHYS_SYSROOT}/boot
+
+	if [ "${IS_FMU_ENABLED}" = "true" ]; then
+		# Remove leading / in ${APP_DIRECTORY}
+		app_path=${APP_DIRECTORY#/}
+		wic_deployed_apps_path=$(find ${PHYS_SYSROOT}/ostree/deploy/${OSTREE_OSNAME}/deploy/ -maxdepth 2 -name "${app_path}"|head -1)
+		rm -rf ${WORKDIR}/rootfs_ota_apps
+		cp ${wic_deployed_apps_path} -ar $WORKDIR/rootfs_ota_apps
+	fi
 
 	# rootfs partition
 	rm -rf $WORKDIR/rootfs_ota
