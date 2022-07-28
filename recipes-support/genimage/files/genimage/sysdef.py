@@ -125,7 +125,7 @@ def install_files(files, target_rootfs):
             utils.mkdirhier(dst)
 
         if src.startswith("http:") or src.startswith("https:") or src.startswith("ftp:"):
-            cmd = "wget --progress=dot -c -t 2 -T 30 --passive-ftp --no-check-certificate %s" % src
+            cmd = "wget --progress=dot -t 2 -T 30 --passive-ftp --no-check-certificate %s" % src
             if os.path.isdir(dst):
                 cmd += " -P %s" % dst
             else:
