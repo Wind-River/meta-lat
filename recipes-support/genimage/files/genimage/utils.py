@@ -773,3 +773,38 @@ def create_syslinux_cfg(entries, output_dir, syslinux_cfg_entry=None, image_type
         f.write(content)
 
     return syslinux_cfg
+
+def replace_str_in_file(old_str, new_str, src_file, dst_file=None):
+    if not old_str:
+        logger.error("old_str is not set")
+        return False
+    if not new_str:
+        logger.error("new_str is not set")
+        return False
+    if not src_file:
+        logger.error("No src file specified")
+        return False
+    if not os.path.exists(src_file):
+        logger.error("The src file %s does not exist", src_file)
+        return False
+
+    if dst_file is None:
+        dst_file = src_file
+
+    try:
+        with open(src_file, "r") as f:
+            content = f.read()
+    except Exception as e:
+        logger.error("Read %s failed\n%s" % (src_file, e))
+        return False
+
+    content = content.replace(old_str, new_str)
+
+    try:
+        with open(dst_file, "w") as f:
+            f.write(content)
+    except Exception as e:
+        logger.error("Write %s failed\n%s" % (dst_file, e))
+        return False
+
+    return True

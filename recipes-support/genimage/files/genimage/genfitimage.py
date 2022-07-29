@@ -283,6 +283,7 @@ class GenFitImage(GenXXX):
             src = self.data['fit-input-files'].get(key, False)
             if not src:
                 continue
+            src = os.path.expandvars(src)
             # src is url or path, fetch it
             if src.startswith("http") or os.path.exists(src):
                 dst = os.path.join(self.deploydir, 'downloads', os.path.basename(src))
@@ -294,6 +295,7 @@ class GenFitImage(GenXXX):
             src = self.data['rootfs-images'].get(key, False)
             if not src:
                 continue
+            src = os.path.expandvars(src)
             # src is url or path, fetch it
             if src.startswith("http") or os.path.exists(src):
                 dst = os.path.join(self.deploydir, 'downloads', os.path.basename(src))
