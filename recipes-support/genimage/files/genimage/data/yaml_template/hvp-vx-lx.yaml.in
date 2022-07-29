@@ -1,0 +1,69 @@
+name: hvp-vx-lx
+machine: aptiv_cvc_sousa
+image_type:
+- fit
+fit-config: |
+  /dts-v1/;
+  / {
+        description = "Fit image: linux + initramfs + fdtb + fdtbo";
+        #address-cells = <1>;
+        images {
+            hvp_kernel {
+                description = "Hypervisor VMM";
+                data = /incbin/("@hvp@");
+                type = "kernel";
+                arch = "arm64";
+                os = "linux";
+                compression = "none";
+                load = <0x85300000>;
+                entry = <0x85300000>;
+                hash {
+                    algo = "sha1";
+                };
+            };
+
+            vx_kernel {
+                description = "Hypervisor VM VxWorks Image";
+                data = /incbin/("@vx-kernel@");
+                type = "kernel";
+                arch = "arm64";
+                os = "linux";
+                compression = "none";
+                load = <0xa5300000>;
+                entry = <0xa5300000>;
+                hash {
+                    algo = "sha1";
+                };
+            };
+
+            lx_kernel {
+                description = "Linux kernel";
+                data = /incbin/("@lx-kernel@");
+                type = "kernel";
+                arch = "arm64";
+                os = "linux";
+                compression = "none";
+                load = <0xcf880000>;
+                entry = <0xcf880000>;
+                hash-1 {
+                    algo = "sha1";
+                };
+            };
+        };
+
+        configurations {
+            default = "wrhv";
+            wrhv {
+                description = "Boot Hypervisor";
+                kernel = "hvp_kernel";
+                loadables = "vx_kernel", "lx_kernel";
+                hash-1 {
+                    algo = "sha1";
+                };
+            };
+        };
+    };
+fit-input-files:
+  lx-kernel: @DEFAULT_DEPLOY@/Image-initramfs-aptiv_cvc_sousa.bin
+  vx-kernel: $VXWORKS_URL/vxWorks.bin
+  hvp: $HVP_URL/hypervisor.bin
