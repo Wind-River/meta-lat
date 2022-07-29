@@ -2,6 +2,7 @@ SUMMARY = "Provide wic tool"
 DESCRIPTION = "A wic tool which is working on Yocto build system \
 poky (oe-core and bitbake)"
 
+LICENSE = "GPL-2.0-only & MIT"
 LICENSE = "GPL-2.0 & MIT"
 LIC_FILES_CHKSUM = " \
     file://LICENSE.MIT;md5=030cb33d2af49ccebca74d0588b84a21 \
