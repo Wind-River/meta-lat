@@ -21,7 +21,7 @@ DEFAULT_FIT_IMAGE_NAME = "${LAT_DEFAULT_IMAGE}-fit"
 DEFAULT_FIT_CONFIG = '''\
 /dts-v1/;
 / {
-      description = "Fit image: linux + initramfs + fdtb + fdtbo";
+      description = "Fit image: linux + initramfs + fdtb";
       #address-cells = <1>;
       images {
           lx-kernel {
