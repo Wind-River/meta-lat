@@ -100,7 +100,7 @@ DEFAULT_FIT_INPUTS = {
   'lx-fdtb': '${DEPLOY_URIS}/${DEPLOY_BASE_PATHS}/${FIT_LX_FDT}',
   'vx-kernel': None,
   'hvp': None,
-  'hvp-fdt': None,
+  'hvp-b': None,
 }
 
 DEFAULT_ROOTFS_IMAGES = {

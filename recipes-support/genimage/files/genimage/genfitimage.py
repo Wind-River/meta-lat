@@ -146,7 +146,7 @@ class GenFitImage(GenXXX):
         self.wic_post_script = None
         self.fit_inputs = {}
         self.rootfs_images = {}
-        for key in ['lx-kernel', 'lx-initrd', 'lx-fdtb', 'vx-kernel', 'hvp', 'hvp-fdt']:
+        for key in ['lx-kernel', 'lx-initrd', 'lx-fdtb', 'vx-kernel', 'hvp', 'hvp-b']:
             self.fit_inputs[key] = None
 
         for key in ['lx-rootfs', 'vx-app']:

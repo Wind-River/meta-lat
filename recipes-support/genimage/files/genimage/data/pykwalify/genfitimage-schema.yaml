@@ -32,7 +32,7 @@ mapping:
         type: str
       hvp:
         type: str
-      hvp-fdt:
+      hvp-b:
         type: str
   ostree:
     include: ostree_map
