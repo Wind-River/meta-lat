@@ -22,6 +22,20 @@ fit-config: |
                 };
             };
 
+            hvp_kernel_b {
+                description = "Hypervisor VMM for Rollback";
+                data = /incbin/("@hvp-b@");
+                type = "kernel";
+                arch = "arm64";
+                os = "linux";
+                compression = "none";
+                load = <0x85300000>;
+                entry = <0x85300000>;
+                hash {
+                    algo = "sha1";
+                };
+            };
+
             vx_kernel {
                 description = "Hypervisor VM VxWorks Image";
                 data = /incbin/("@vx-kernel@");
@@ -61,9 +75,18 @@ fit-config: |
                     algo = "sha1";
                 };
             };
+            wrhv_b {
+                description = "Boot Hypervisor for Rollback";
+                kernel = "hvp_kernel_b";
+                loadables = "vx_kernel", "lx_kernel";
+                hash-1 {
+                    algo = "sha1";
+                };
+            };
         };
     };
 fit-input-files:
   lx-kernel: @DEFAULT_DEPLOY@/Image-initramfs-aptiv_cvc_sousa.bin
   vx-kernel: $VXWORKS_URL/vxWorks.bin
-  hvp: $HVP_URL/hypervisor.bin
+  hvp: $HVP_URL/hypervisor-main.bin
+  hvp-b: $HVP_URL/hypervisor-rollback.bin
