@@ -134,7 +134,7 @@ do_install:append() {
     fi
 
     install -d ${D}${base_bindir}
-    for app in genimage geninitramfs gencontainer genyaml exampleyamls; do
+    for app in genimage geninitramfs gencontainer genyaml exampleyamls genfitimage; do
         install -m 0755 ${D}${bindir}/$app ${D}${base_bindir}/$app
         create_wrapper ${D}${bindir}/$app PATH='$(dirname `readlink -fn $0`):$PATH'
     done
