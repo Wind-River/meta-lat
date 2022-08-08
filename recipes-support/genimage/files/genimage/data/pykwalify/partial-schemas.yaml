@@ -187,6 +187,8 @@ schema;ostree_map:
     ostree_osname:
       type: str
       nullable: False
+    ostree_branchname:
+      type: str
     ostree_remote_url:
       type: str
       desc: URL of OSTree repository for upgrade, if you bake it in, you can run ostree_upgrade.sh each time you you rebuild and publish the updates
