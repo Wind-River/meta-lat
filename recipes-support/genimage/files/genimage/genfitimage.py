@@ -173,6 +173,7 @@ class GenFitImage(GenXXX):
         self.data['fit-input-files'] = DEFAULT_FIT_INPUTS
         self.data['rootfs-images'] = DEFAULT_ROOTFS_IMAGES
         self.data["ostree"] = DEFAULT_OSTREE_DATA
+        self.data["ostree"]['ostree_branchname'] = constant.DEFAULT_IMAGE
         self.data["gpg"] = DEFAULT_GPG_DATA
         if constant.IS_FMU_ENABLED == "true":
             self.data['wic-config'] = DEFAULT_WIC_FMU_CONFIG
@@ -511,6 +512,7 @@ class GenFitImage(GenXXX):
         ostree_repo = CreateOstreeRepo(
                         image_name=self.image_name,
                         image_manifest=self.data['rootfs-images'].get('lx-manifest', None),
+                        ostree_branchname=self.data['ostree'].get('ostree_branchname', None),
                         workdir=self.workdir,
                         machine=self.machine,
                         target_rootfs=self.target_lxrootfs,
@@ -526,6 +528,7 @@ class GenFitImage(GenXXX):
     def do_ostree_ota(self):
         ostree_ota = CreateOstreeOTA(
                         image_name=self.image_name,
+                        ostree_branchname=self.data['ostree'].get('ostree_branchname', None),
                         workdir=self.workdir,
                         machine=self.machine,
                         deploydir=self.deploydir,

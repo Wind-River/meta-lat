@@ -510,7 +510,7 @@ class CreateVMImage(Image):
 
 class CreateOstreeRepo(Image):
     def _set_allow_keys(self):
-        self.allowed_keys.update({"gpgid", "gpg_password", "gpg_path", "image_manifest"})
+        self.allowed_keys.update({"gpgid", "gpg_password", "gpg_path", "image_manifest", "ostree_branchname"})
 
     def _add_keys(self):
         self.ostree_kernel = constant.OSTREE_KERNEL
@@ -538,6 +538,9 @@ class CreateOstreeRepo(Image):
         ostreerepo_env['KERNEL_DEVICETREE'] = constant.KERNEL_DEVICETREE
         ostreerepo_env['IS_FMU_ENABLED'] = constant.IS_FMU_ENABLED
         ostreerepo_env['APP_DIRECTORY'] = constant.APP_DIRECTORY
+
+        if self.ostree_branchname:
+            ostreerepo_env['OSTREE_BRANCHNAME'] = self.ostree_branchname
 
         if self.image_manifest:
             ostreerepo_env['MANIFEST'] = self.image_manifest
@@ -610,6 +613,7 @@ class CreateOstreeOTA(Image):
         self.allowed_keys.update({'gpgid',
                                   'ostree_use_ab',
                                   'ostree_osname',
+                                  'ostree_branchname',
                                   'ostree_skip_boot_diff',
                                   'ostree_remote_url'
                                  })
@@ -640,6 +644,9 @@ class CreateOstreeOTA(Image):
         ota_env['USE_FIT'] = self.use_fit
         ota_env['IS_FMU_ENABLED'] = constant.IS_FMU_ENABLED
         ota_env['APP_DIRECTORY'] = constant.APP_DIRECTORY
+
+        if self.ostree_branchname:
+            ota_env['OSTREE_BRANCHNAME'] = self.ostree_branchname
 
         cmd = os.path.expandvars("$OECORE_NATIVE_SYSROOT/usr/share/genimage/scripts/run.do_image_otaimg")
         res, output = utils.run_cmd(cmd, env=ota_env)

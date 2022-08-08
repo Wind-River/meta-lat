@@ -21,7 +21,9 @@ set -e
 # IS_FMU_ENABLED
 # APP_DIRECTORY
 OSTREE_REPO="${DEPLOY_DIR_IMAGE}/ostree_repo"
-OSTREE_BRANCHNAME="${IMAGE_NAME}"
+if [ -z "${OSTREE_BRANCHNAME}" ]; then
+  OSTREE_BRANCHNAME="${IMAGE_NAME}"
+fi
 export TZ='UTC'
 DATETIME="`date +"%Y%m%d%H%M%S"`"
 
