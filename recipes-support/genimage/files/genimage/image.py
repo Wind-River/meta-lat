@@ -510,7 +510,7 @@ class CreateVMImage(Image):
 
 class CreateOstreeRepo(Image):
     def _set_allow_keys(self):
-        self.allowed_keys.update({"gpgid", "gpg_password", "gpg_path"})
+        self.allowed_keys.update({"gpgid", "gpg_password", "gpg_path", "image_manifest"})
 
     def _add_keys(self):
         self.ostree_kernel = constant.OSTREE_KERNEL
@@ -538,6 +538,9 @@ class CreateOstreeRepo(Image):
         ostreerepo_env['KERNEL_DEVICETREE'] = constant.KERNEL_DEVICETREE
         ostreerepo_env['IS_FMU_ENABLED'] = constant.IS_FMU_ENABLED
         ostreerepo_env['APP_DIRECTORY'] = constant.APP_DIRECTORY
+
+        if self.image_manifest:
+            ostreerepo_env['MANIFEST'] = self.image_manifest
 
         cmd = os.path.expandvars("$OECORE_NATIVE_SYSROOT/usr/share/genimage/scripts/run.do_image_ostree")
         res, output = utils.run_cmd(cmd, env=ostreerepo_env)

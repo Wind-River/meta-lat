@@ -510,6 +510,7 @@ class GenFitImage(GenXXX):
     def do_ostree_repo(self):
         ostree_repo = CreateOstreeRepo(
                         image_name=self.image_name,
+                        image_manifest=self.data['rootfs-images'].get('lx-manifest', None),
                         workdir=self.workdir,
                         machine=self.machine,
                         target_rootfs=self.target_lxrootfs,

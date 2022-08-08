@@ -25,8 +25,9 @@ DATETIME="`date +"%Y%m%d%H%M%S"`"
 
 SELINUX=""
 
-MANIFEST="${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${MACHINE}.manifest"
-
+if [ -z "${MANIFEST}" ]; then
+  MANIFEST="${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${MACHINE}.manifest"
+fi
 if [ $MACHINE = "intel-x86-64" ]; then
   GRUB_USED="true"
 fi
