@@ -536,7 +536,6 @@ class CreateOstreeRepo(Image):
         ostreerepo_env['OSTREE_KERNEL'] = self.ostree_kernel
         ostreerepo_env['RAMDISK_EXT'] = constant.RAMDISK_EXT
         ostreerepo_env['KERNEL_DEVICETREE'] = constant.KERNEL_DEVICETREE
-        ostreerepo_env['IS_FMU_ENABLED'] = constant.IS_FMU_ENABLED
         ostreerepo_env['APP_DIRECTORY'] = constant.APP_DIRECTORY
 
         if self.ostree_branchname:
@@ -642,7 +641,6 @@ class CreateOstreeOTA(Image):
         ota_env['IMAGE_BOOT_FILES'] = self.image_boot_files
         ota_env['OSTREE_COPY_IMAGE_BOOT_FILES'] = constant.OSTREE_COPY_IMAGE_BOOT_FILES
         ota_env['USE_FIT'] = self.use_fit
-        ota_env['IS_FMU_ENABLED'] = constant.IS_FMU_ENABLED
         ota_env['APP_DIRECTORY'] = constant.APP_DIRECTORY
 
         if self.ostree_branchname:

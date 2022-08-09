@@ -175,10 +175,8 @@ class GenFitImage(GenXXX):
         self.data["ostree"] = DEFAULT_OSTREE_DATA
         self.data["ostree"]['ostree_branchname'] = constant.DEFAULT_IMAGE
         self.data["gpg"] = DEFAULT_GPG_DATA
-        if constant.IS_FMU_ENABLED == "true":
-            self.data['wic-config'] = DEFAULT_WIC_FMU_CONFIG
-        else:
-            self.data['wic-config'] = DEFAULT_WIC_CONFIG
+        self.data['ota-manager'] = 'fmu'  if constant.IS_FMU_ENABLED == 'true' else ''
+        self.data['wic-config'] = DEFAULT_WIC_FMU_CONFIG if constant.IS_FMU_ENABLED == 'true' else DEFAULT_WIC_CONFIG
         self.data['lx-rootfs-script'] = DEFAULT_LX_ROOTFS_SCRIPT
         self.data['vx-app-script'] = DEFAULT_VX_APP_SCRIPT
         self.data['wic-post-script'] = DEFAULT_WIC_POST_SCRIPT
@@ -227,6 +225,10 @@ class GenFitImage(GenXXX):
                                                  'wic-post-script',
                                                  'environments']:
                 self.data[k] = list(sorted(set(v)))
+
+        if self.data['ota-manager'] != 'fmu' and self.data['wic-config'].find(' --label apps ') > 0:
+            logger.error("The ota-manager is not `fmu', `apps' partition is not required in wic-config, remove it")
+            sys.exit(1)
 
     def _save_output_yaml(self):
         # The output yaml does not require to include default packages
@@ -410,6 +412,12 @@ class GenFitImage(GenXXX):
             if not self.fit_inputs[k]:
                 continue
             script_content = script_content.replace(rep_str, self.fit_inputs[k])
+
+        for k in self.data:
+            rep_str = '@%s@' % k
+            if not isinstance(self.data[k], str):
+                continue
+            script_content = script_content.replace(rep_str, self.data[k])
 
         lx_rootfs_script = os.path.join(self.workdir, os.path.basename(self.lx_rootfs_script))
         try:

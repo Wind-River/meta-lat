@@ -18,8 +18,6 @@ set -e
 # EFI_SECURE_BOOT
 # OSTREE_MULTIPLE_KERNELS
 # OSTREE_DEFAULT_KERNEL
-# IS_FMU_ENABLED
-# APP_DIRECTORY
 OSTREE_REPO="${DEPLOY_DIR_IMAGE}/ostree_repo"
 if [ -z "${OSTREE_BRANCHNAME}" ]; then
   OSTREE_BRANCHNAME="${IMAGE_NAME}"
@@ -51,9 +49,6 @@ do_image_ostree() {
 	OSTREE_REPO_TEMP="${WORKDIR}/ostree_repo.temp.$$"
 	OSTREE_ROOTFS=`mktemp -du ${WORKDIR}/ostree-root-XXXXX`
 	cp -a ${IMAGE_ROOTFS} ${OSTREE_ROOTFS}
-	if [ "${IS_FMU_ENABLED}" = "true" ]; then
-		rm -rf ${OSTREE_ROOTFS}${APP_DIRECTORY}/*
-	fi
 	chmod a+rx ${OSTREE_ROOTFS}
 	sync
 
@@ -266,9 +261,6 @@ echo -n "#######################################################################
 		echo "LABEL=otaefi     /boot/efi    auto   ro 0 0" >>usr/etc/fstab
 	fi
 	echo "LABEL=fluxdata	 /var    auto   defaults 0 0" >>usr/etc/fstab
-	if [ "${IS_FMU_ENABLED}" = "true" ]; then
-		echo "LABEL=apps    /apps  auto   defaults 0 0" >>usr/etc/fstab
-	fi
 
 	cd $WORKDIR
 
