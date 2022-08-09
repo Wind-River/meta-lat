@@ -82,7 +82,7 @@ def _exampleyamls_sysdef(args):
         for name in files:
             if name.endswith(".in"):
                 src = os.path.join(root, name)
-                with open(src, "r+") as f:
+                with open(src, "r") as f:
                     content = f.read()
                     content = content.replace("@MACHINE@", DEFAULT_MACHINE)
                 dst = os.path.join(root, name[:-3])
@@ -93,7 +93,7 @@ def _exampleyamls_sysdef(args):
 def _exampleyamls_install_over_wifi(yamltemplate_dir, outdir):
     for wifi in ["psk", "eap"]:
         src = os.path.join(yamltemplate_dir, "install-over-wifi-%s.yaml" % wifi)
-        with open(src, "r+") as f:
+        with open(src, "r") as f:
             content = f.read()
             content = content.replace("@MACHINE@", DEFAULT_MACHINE)
 
