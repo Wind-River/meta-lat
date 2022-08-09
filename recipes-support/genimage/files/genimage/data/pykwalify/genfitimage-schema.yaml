@@ -47,6 +47,8 @@ mapping:
         type: str
   gpg:
     include: gpg_map
+  ota-manager:
+    type: str
   wic-config:
     type: str
   lx-rootfs-script:
