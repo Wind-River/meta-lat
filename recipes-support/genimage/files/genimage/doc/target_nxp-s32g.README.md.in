@@ -67,7 +67,7 @@ The <boardtype> is rdb3 or evb3 which depends on your hardware.
     $ zcat deploy/@IMAGE_NAME@-<boardtype>.ustart.img.gz | sudo dd of=/dev/sdX bs=1M status=progress
 
     For wic image
-    $ zcat deploy/@IMAGE_NAME@-<boardtype>.wic | sudo dd of=/dev/sdX bs=1M status=progress
+    $ sudo dd if=deploy/@IMAGE_NAME@-<boardtype>.wic of=/dev/sdX bs=1M status=progress
 
     $ sync
     $ eject /dev/sdX
@@ -106,7 +106,7 @@ otherwise it is not needed.
 
 ## Sources
 Source code required to build the image is provided here:
-https://distro.windriver.com/dist/wrlinux/lts-21/sources
+https://distro.windriver.com/dist/wrlinux/lts-22/sources
 
 ## License
 The image is provided under the GPL-2.0 license.
