@@ -90,22 +90,22 @@ part / --source rootfs --rootfs-dir=${LAT_WORKDIR}/vxapp --ondisk mmcblk --fstyp
 part / --source rootfs --rootfs-dir=${LAT_WORKDIR}/rootfs_ota_var --ondisk mmcblk --fstype=ext4 --label fluxdata --align 4
 '''
 
-DEFAULT_DEPLOY_URL = "${DEPLOY_URIS}/${DEPLOY_BASE_PATHS}"
-DEFAULT_BOOT_ATF = "${DEPLOY_URIS}/${DEPLOY_BASE_PATHS}/atf-${MACHINE}.s32"
-DEFAULT_BOOT_SCR = '${DEPLOY_URIS}/${DEPLOY_BASE_PATHS}/boot.scr'
+DEFAULT_DEPLOY_URL = "${DEPLOY_URIS}${DEPLOY_BASE_PATHS}"
+DEFAULT_BOOT_ATF = "${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/atf-${MACHINE}.s32"
+DEFAULT_BOOT_SCR = '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/boot.scr'
 DEFAULT_BOOT_SCR_PRE = 'setenv load_fitimage_addr 0xE0000000; '
 DEFAULT_FIT_INPUTS = {
-  'lx-kernel': '${DEPLOY_URIS}/${DEPLOY_BASE_PATHS}/Image.gz',
-  'lx-initrd': '${DEPLOY_URIS}/${DEPLOY_BASE_PATHS}/${OSTREE_INITRAMFS_IMAGE}-${MACHINE}.cpio.gz',
-  'lx-fdtb': '${DEPLOY_URIS}/${DEPLOY_BASE_PATHS}/${FIT_LX_FDT}',
+  'lx-kernel': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/Image.gz',
+  'lx-initrd': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/${OSTREE_INITRAMFS_IMAGE}-${MACHINE}.cpio.gz',
+  'lx-fdtb': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/${FIT_LX_FDT}',
   'vx-kernel': None,
   'hvp': None,
   'hvp-b': None,
 }
 
 DEFAULT_ROOTFS_IMAGES = {
-  'lx-rootfs': '${DEPLOY_URIS}/${DEPLOY_BASE_PATHS}/${LAT_DEFAULT_IMAGE}-${MACHINE}.tar.bz2',
-  'lx-manifest': '${DEPLOY_URIS}/${DEPLOY_BASE_PATHS}/${LAT_DEFAULT_IMAGE}-${MACHINE}.manifest',
+  'lx-rootfs': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/${LAT_DEFAULT_IMAGE}-${MACHINE}.tar.bz2',
+  'lx-manifest': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/${LAT_DEFAULT_IMAGE}-${MACHINE}.manifest',
   'vx-app': None
 }
 
