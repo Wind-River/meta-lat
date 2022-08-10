@@ -254,6 +254,7 @@ class GenFitImage(GenXXX):
                 continue
             # src is url or path, fetch it
             if src.startswith("http") or os.path.exists(src):
+                src = os.path.expandvars(src)
                 dst = os.path.join(self.deploydir, 'downloads', os.path.basename(src))
                 fetch_node = {'src': src, 'dst': dst}
                 install_files([fetch_node], self.deploydir)
