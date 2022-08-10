@@ -170,10 +170,10 @@ OSTREE_KERNEL ??= "${KERNEL_IMAGETYPE}"
 RAMDISK_EXT ?= ".${INITRAMFS_FSTYPES}"
 
 BOOTFILES ??= ""
-BOOTFILES_intel-socfpga-64 = "u-boot-dtb.img u-boot.img u-boot.itb ghrd.core.rbf"
+BOOTFILES:intel-socfpga-64 = "u-boot-dtb.img u-boot.img u-boot.itb ghrd.core.rbf"
 
 OSTREE_WIFI_PACKAGES ??= ""
-OSTREE_WIFI_PACKAGES_intel-x86-64 = " \
+OSTREE_WIFI_PACKAGES:intel-x86-64 = " \
     packagegroup-base-wifi \
     linux-firmware-iwlwifi-6000g2a-6 \
     linux-firmware-iwlwifi-6000g2b-6 \
