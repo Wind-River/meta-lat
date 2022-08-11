@@ -64,8 +64,17 @@ DEFAULT_FIT_CONFIG = '''\
       };
 
       configurations {
-          default = "conf-linux";
-          conf-linux {
+          default = "wrhv";
+          wrhv {
+              description = "Linux";
+              kernel = "lx-kernel";
+              fdt = "lx-fdtb";
+              ramdisk = "lx-initrd";
+              hash-1 {
+                  algo = "sha1";
+              };
+          };
+          wrhv_b {
               description = "Linux";
               kernel = "lx-kernel";
               fdt = "lx-fdtb";
