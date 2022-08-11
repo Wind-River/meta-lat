@@ -27,7 +27,7 @@ remove_link() {
 for plat in ${UBOOT_CONFIG}; do
     atf_s32="${DEPLOY_DIR_IMAGE}/atf-$plat.s32"
     ofname="${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${MACHINE}-${plat}-${DATETIME}.rootfs.wic"
-    cp $USTART_SRC_IMAGE.rootfs.wic $ofname
+    cp $USTART_SRC_IMAGE $ofname
     if [ "$plat" = "s32g2xxaevb" ] && [ "${HSE_SEC_ENABLED}" = "1" ]; then
         dd if=$atf_s32 of=$ofname bs=512 seek=1 skip=1 conv=notrunc,fsync
         dd if=$atf_s32.signature of=$ofname  bs=512 seek=9 conv=notrunc,fsync
@@ -42,7 +42,7 @@ for plat in ${UBOOT_CONFIG}; do
     else
         plat="$(echo $plat | grep -o '....$')"
     fi
-    linkname="${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}-$plat.wic"
+    linkname="${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${MACHINE}-$plat.wic"
     ln -sf $ofname $linkname
 done
 remove_link ${USTART_SRC_IMAGE_LINK}
