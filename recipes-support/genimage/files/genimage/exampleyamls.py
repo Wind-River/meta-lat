@@ -122,7 +122,8 @@ def _main_run_internal(args):
     machine_yaml = os.path.join(yamlexample_dir, 'machine', '{0}.yaml'.format(DEFAULT_MACHINE))
     image_yamls = glob.glob(os.path.join(yamlexample_dir, 'images', '*.yaml'))
 
-    utils.remove(os.path.join(outdir, "*"), recurse=True)
+    for base in ["*.yaml", "feature", "sysdef"]:
+        utils.remove(os.path.join(outdir, base), recurse=True)
     if args.pkg_type == "rpm":
         for image_yaml in image_yamls:
             if image_yaml.endswith('container-base.yaml'):
