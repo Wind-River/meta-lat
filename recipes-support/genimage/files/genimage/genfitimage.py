@@ -516,7 +516,7 @@ class GenFitImage(GenXXX):
 
         logger.info("Deploy Directory: %s\n%s", self.deploydir, table.draw())
 
-    @show_task_info("Create Ostree Repo")
+    @show_task_info("Create OSTree Repo")
     def do_ostree_repo(self):
         ostree_repo = CreateOstreeRepo(
                         image_name=self.image_name,
@@ -533,7 +533,7 @@ class GenFitImage(GenXXX):
         ostree_repo.set_fit(ostree_kernel='fitimage', use_fit='1')
         ostree_repo.create()
 
-    @show_task_info("Create Ostree OTA")
+    @show_task_info("Create OSTree OTA")
     def do_ostree_ota(self):
         ostree_ota = CreateOstreeOTA(
                         image_name=self.image_name,
