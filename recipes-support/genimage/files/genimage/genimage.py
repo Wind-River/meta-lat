@@ -443,7 +443,7 @@ class GenImage(GenXXX):
                             vm_type="vdi")
         vdi.create()
 
-    @show_task_info("Create Ostree Repo")
+    @show_task_info("Create OSTree Repo")
     def do_ostree_repo(self):
         workdir = os.path.join(self.workdir, self.image_name)
         ostree_repo = CreateOstreeRepo(
@@ -461,7 +461,7 @@ class GenImage(GenXXX):
 
         ostree_repo.gen_env(self.data)
 
-    @show_task_info("Create Ostree OTA")
+    @show_task_info("Create OSTree OTA")
     def do_ostree_ota(self):
         workdir = os.path.join(self.workdir, self.image_name)
         ostree_ota = CreateOstreeOTA(
@@ -509,7 +509,7 @@ class GenImage(GenXXX):
 
         if any(img_type in self.image_type for img_type in ["ostree-repo", "wic", "ustart", "vmdk", "vdi"]):
             output = subprocess.check_output("ls -d  ostree_repo", shell=True, cwd=self.deploydir)
-            table.add_row(["Ostree Repo", output.strip()])
+            table.add_row(["OSTree Repo", output.strip()])
 
         if "wic" in self.image_type:
 
@@ -907,7 +907,7 @@ class GenExtDebImage(GenImage):
             if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
                 utils.run_cmd_oneshot("ln -snf -r %s.sig bzImage.sig" % kernel, cwd=self.deploydir)
 
-    @show_task_info("Create External Debian Ostree Repo")
+    @show_task_info("Create External Debian OSTree Repo")
     def do_ostree_repo(self):
         workdir = os.path.join(self.workdir, self.image_name)
         ostree_repo = CreateExtDebOstreeRepo(
