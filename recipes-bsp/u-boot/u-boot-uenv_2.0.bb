@@ -151,7 +151,11 @@ ${OSTREE_BOOTSCR_PRECMD}
 setenv machine_name ${MACHINE}
 setenv bretry 32
 if test \${skip_script_fdt} != yes; then setenv fdt_file $default_dtb; fi
-setenv ninst ${OSTREE_NET_INSTALL}
+if test -n "\${load_fitimage_addr}"; then
+  setenv ninst 0
+else
+  setenv ninst ${OSTREE_NET_INSTALL}
+fi
 setenv A 5
 setenv B 7
 setenv ex _b
