@@ -12,7 +12,7 @@ inherit deploy
 DEFAULT_DTB ??= ""
 OSTREE_UBOOT_CMD ??= "bootz"
 OSTREE_BOOTSCR ??= "fs_links"
-OSTREE_NET_INSTALL ??= "1"
+OSTREE_NET_INSTALL ??= "${@oe.utils.conditional('OSTREE_USE_FIT', '1', '0', '1', d)}"
 OSTREE_NETINST_ARGS ??= "instab=${OSTREE_USE_AB}"
 OSTREE_NETINST_BRANCH ??= "core-image-minimal"
 OSTREE_NETINST_DEV ??= "/dev/mmcblk0"
