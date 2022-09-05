@@ -5,7 +5,7 @@ image_type:
 fit-config: |
   /dts-v1/;
   / {
-        description = "Fit image: linux + initramfs + fdtb + fdtbo";
+        description = "Fit image: HVP + VxWorks + Linux";
         #address-cells = <1>;
         images {
             hvp_kernel {
