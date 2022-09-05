@@ -96,6 +96,7 @@ class DnfRpm(PackageManager):
         else:
             gpg_opts += 'gpgcheck=0\n'
 
+        utils.remove(os.path.join(self.temp_dir, "yum.repos.d"), recurse=True)
         utils.mkdirhier(os.path.join(self.temp_dir, "yum.repos.d"))
         utils.mkdirhier(os.path.join(self.target_rootfs, "etc", "yum.repos.d"))
         for uri in remote_uris:
