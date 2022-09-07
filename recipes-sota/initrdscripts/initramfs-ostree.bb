@@ -12,10 +12,37 @@ PR = "r9"
 
 OSTREE_ALLOW_RM_VAR ??= ""
 
-RDEPENDS:${PN} = "util-linux-sfdisk gptfdisk e2fsprogs-mke2fs bash"
+RDEPENDS:${PN} = " \
+    ${PN}-installer \
+    ${PN}-init \
+    ${PN}-console \
+"
+
+RDEPENDS:${PN}-installer = " \
+    util-linux-sfdisk \
+    gptfdisk \
+    e2fsprogs-mke2fs \
+    bash \
+"
 
 do_configure() {
 }
+
+ALLOW_EMPTY:${PN} = "1"
+PACKAGES = "${PN}-installer ${PN}-init ${PN}-console"
+
+FILES:${PN}-installer = " \
+    /install \
+    /lat-installer.sh \
+    /lat-installer.hook \
+"
+FILES:${PN}-init = " \
+    /init \
+    /init.luks-ostree \
+"
+FILES:${PN}-console = " \
+    /dev/console \
+"
 
 do_install() {
 	install -m 0755 ${WORKDIR}/init-ostree-install.sh ${D}/install
