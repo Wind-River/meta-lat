@@ -1,5 +1,4 @@
 #!/bin/sh
-
 #/*
 #*init.sh , a script to init the ostree system in initramfs
 #* 
@@ -313,11 +312,16 @@ fi
 
 sed "/LABEL=otaboot[\t ]*\/boot[\t ]/s/LABEL=otaboot/${OSTREE_BOOT_DEVICE}/g" -i ${ROOT_MOUNT}/etc/fstab
 sed "/LABEL=otaboot_b[\t ]*\/boot[\t ]/s/LABEL=otaboot_b/${OSTREE_BOOT_DEVICE}/g" -i ${ROOT_MOUNT}/etc/fstab
-noflux=`ostree config --repo=/sysroot/ostree/repo get upgrade.noflux 2> /dev/null`
-if [ "$noflux" = 1 ] ; then
-    sed "s/^LABEL=fluxdata.*//" -i ${ROOT_MOUNT}/etc/fstab
-else
-    sed "/LABEL=fluxdata[\t ]*\/var[\t ]/s/LABEL=fluxdata/LABEL=${OSTREE_LABEL_FLUXDATA}/g" -i ${ROOT_MOUNT}/etc/fstab
+
+which ostree 2>/dev/null && has_ostree_cmd=1
+
+if [ -n "$has_ostree_cmd" ]; then
+	noflux=`ostree config --repo=/sysroot/ostree/repo get upgrade.noflux 2> /dev/null`
+	if [ "$noflux" = 1 ] ; then
+	    sed "s/^LABEL=fluxdata.*//" -i ${ROOT_MOUNT}/etc/fstab
+	else
+	    sed "/LABEL=fluxdata[\t ]*\/var[\t ]/s/LABEL=fluxdata/LABEL=${OSTREE_LABEL_FLUXDATA}/g" -i ${ROOT_MOUNT}/etc/fstab
+	fi
 fi
 
 # If we pass args to bash, it will assume they are text files
@@ -329,7 +333,7 @@ fi
 # Check for skip-boot-diff
 if [ "${SKIP_BOOT_DIFF}" != "" ] ; then
 	skip="${SKIP_BOOT_DIFF}"
-else
+elif [ -n "$has_ostree_cmd" ]; then
 	skip=`ostree config --repo=/sysroot/ostree/repo get upgrade.skip-boot-diff 2> /dev/null`
 fi
 
@@ -337,7 +341,7 @@ if [ "$skip" = "" ] ; then
 	skip=0
 fi
 
-if [ ${skip} -lt 1 ] ; then
+if [ ${skip} -lt 1 -a -n "$has_ostree_cmd" ] ; then
 
 	/usr/bin/ostree fsck --repo=/sysroot/ostree/repo
 	if [ $? -ne 0 ]; then
@@ -346,7 +350,7 @@ if [ ${skip} -lt 1 ] ; then
 	fi
 fi
 
-if [ ${skip} -lt 2 ] ; then
+if [ ${skip} -lt 2 -a -n "$has_ostree_cmd" ] ; then
 
 	ostree_ref="${OSTREE_DEPLOY##*/}"
 	ostree_ref="${ostree_ref%%.*}"
