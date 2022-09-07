@@ -1,8 +1,10 @@
 # Netboot initramfs image.
 DESCRIPTION = "OSTree initramfs image"
 
+OSTREE_INSTALLER ??= "1"
+
 PACKAGE_INSTALL = " \
-  initramfs-ostree-installer \
+  ${@bb.utils.contains('OSTREE_INSTALLER', '1', 'initramfs-ostree-installer', '', d)} \
   initramfs-ostree-init \
   initramfs-ostree-console \
 "
@@ -56,11 +58,11 @@ add_gpg_key() {
 	fi
 	if [ -n "${OSTREE_GPGID}" ] ; then
 		FAIL=1
-		if [ -f $gpg_path/pubring.gpg ]; then
+		if [ ${OSTREE_INSTALLER} = 1 -a -f $gpg_path/pubring.gpg ]; then
 			cp $gpg_path/pubring.gpg ${IMAGE_ROOTFS}/usr/share/ostree/trusted.gpg.d/pubring.gpg
 			FAIL=0
 		fi
-		if [ -f $gpg_path/pubring.kbx ]; then
+		if [ ${OSTREE_INSTALLER} = 1 -a -f $gpg_path/pubring.kbx ]; then
 			cp $gpg_path/pubring.kbx ${IMAGE_ROOTFS}/usr/share/ostree/trusted.gpg.d/pubkbx.gpg
 			FAIL=0
 		fi
