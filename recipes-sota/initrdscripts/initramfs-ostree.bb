@@ -12,17 +12,75 @@ PR = "r9"
 
 OSTREE_ALLOW_RM_VAR ??= ""
 
+INITRAMFS_FEATURES ??= "busybox"
+PkgsBusyBox = "busybox busybox-udhcpc"
+PkgsCoreUtils = "coreutils \
+    dhcp-client \
+    util-linux \
+    util-linux-umount \
+    util-linux-mount \
+    util-linux-setsid \
+    iproute2 \
+"
+INITRAMFS_PKGS = "${@bb.utils.contains('INITRAMFS_FEATURES', 'busybox', "${PkgsBusyBox}", "${PkgsCoreUtils}", d)}"
+
 RDEPENDS:${PN} = " \
     ${PN}-installer \
     ${PN}-init \
     ${PN}-console \
 "
-
 RDEPENDS:${PN}-installer = " \
+    killall \
+    init-ifupdown \
+    ifupdown \
+    debianutils-run-parts \
+    iproute2-ip \
+    kmod \
+    bzip2 \
+    gnupg \
+    kbd \
+    util-linux-blkid \
+    util-linux-lsblk \
+    util-linux-fdisk \
+    util-linux-fsck \
+    util-linux-blockdev \
+    dosfstools \
+    curl \
+    udev \
+    mdadm \
+    base-passwd \
+    rng-tools \
+    e2fsprogs-tune2fs \
+    e2fsprogs-e2fsck \
+    eject \
+    pv \
+    mttyexec \
+    gzip \
+    findutils \
+    tar \
+    grep \
+    grub \
+    sed \
+    gawk \
+    glib-networking \
+    ca-certificates \
     util-linux-sfdisk \
     gptfdisk \
     e2fsprogs-mke2fs \
     bash \
+    ostree \
+    ${INITRAMFS_PKGS} \
+"
+RDEPENDS:${PN}-init = " \
+    udev \
+    busybox \
+    util-linux-blkid \
+    util-linux-lsblk \
+    util-linux-sfdisk \
+    util-linux-blockdev \
+    e2fsprogs-resize2fs \
+    e2fsprogs-mke2fs \
+    ostree-switchroot \
 "
 
 do_configure() {
