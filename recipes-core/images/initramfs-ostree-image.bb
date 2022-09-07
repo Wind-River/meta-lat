@@ -1,60 +1,10 @@
 # Netboot initramfs image.
 DESCRIPTION = "OSTree initramfs image"
 
-INITRAMFS_FEATURES ??= "busybox"
-
-PkgsBusyBox = "busybox busybox-udhcpc"
-PkgsCoreUtils = "coreutils \
-  dhcp-client \
-  util-linux \
-  util-linux-umount \
-  util-linux-mount \
-  util-linux-setsid \
-  util-linux-switch-root \
-  iproute2"
-
-INITRAMFS_PKGS = "${@bb.utils.contains('INITRAMFS_FEATURES', 'busybox', "${PkgsBusyBox}", "${PkgsCoreUtils}", d)}"
-
-PACKAGE_INSTALL = "ostree \
-  ostree-switchroot \
-  initramfs-ostree \
-  bash \
-  killall \
-  init-ifupdown \
-  ifupdown \
-  debianutils-run-parts \
-  iproute2-ip \
-  kmod \
-  bzip2 \
-  gnupg \
-  kbd \
-  util-linux-blkid \
-  util-linux-lsblk \
-  util-linux-fdisk \
-  util-linux-fsck \
-  util-linux-blockdev \
-  dosfstools \
-  curl \
-  udev \
-  mdadm \
-  base-passwd \
-  rng-tools \
-  e2fsprogs-tune2fs \
-  e2fsprogs-resize2fs \
-  e2fsprogs-e2fsck \
-  eject \
-  pv \
-  mttyexec \
-  gzip \
-  findutils \
-  tar \
-  grep \
-  grub \
-  sed \
-  gawk \
-  glib-networking \
-  ca-certificates \
-  ${INITRAMFS_PKGS} \
+PACKAGE_INSTALL = " \
+  initramfs-ostree-installer \
+  initramfs-ostree-init \
+  initramfs-ostree-console \
 "
 
 PACKAGE_EXCLUDE += "python"
