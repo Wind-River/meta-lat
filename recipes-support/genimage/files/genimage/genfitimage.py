@@ -254,7 +254,7 @@ class GenFitImage(GenXXX):
                 continue
             # src is url or path, fetch it
             src = os.path.expandvars(src)
-            if src.startswith("http") or os.path.exists(src):
+            if src.startswith("http") or os.path.exists(src) or src.startswith("mc cp"):
                 dst = os.path.join(self.deploydir, 'downloads', os.path.basename(src))
                 fetch_node = {'src': src, 'dst': dst}
                 install_files([fetch_node], self.deploydir)
@@ -289,7 +289,7 @@ class GenFitImage(GenXXX):
                 continue
             src = os.path.expandvars(src)
             # src is url or path, fetch it
-            if src.startswith("http") or os.path.exists(src):
+            if src.startswith("http") or os.path.exists(src) or src.startswith("mc cp"):
                 dst = os.path.join(self.deploydir, 'downloads', os.path.basename(src))
                 fetch_node = {'src': src, 'dst': dst}
                 install_files([fetch_node], self.deploydir)
@@ -301,7 +301,7 @@ class GenFitImage(GenXXX):
                 continue
             src = os.path.expandvars(src)
             # src is url or path, fetch it
-            if src.startswith("http") or os.path.exists(src):
+            if src.startswith("http") or os.path.exists(src) or src.startswith("mc cp"):
                 dst = os.path.join(self.deploydir, 'downloads', os.path.basename(src))
                 fetch_node = {'src': src, 'dst': dst}
                 install_files([fetch_node], self.deploydir)
