@@ -137,6 +137,15 @@ def install_files(files, target_rootfs):
                 logger.debug('output: %s' % output)
             except subprocess.CalledProcessError as e:
                 raise Exception("%s\n%s" % (str(e), e.output.decode('utf-8')))
+        elif src.startswith("mc cp"):
+            cmd = src + " " + dst
+            try:
+                logger.debug(cmd)
+                output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+                output = output.decode('utf-8')
+                logger.debug('output: %s' % output)
+            except subprocess.CalledProcessError as e:
+                raise Exception("%s\n%s" % (str(e), e.output.decode('utf-8')))
         else:
             if os.path.isdir(dst):
                 dst = os.path.join(dst, os.path.basename(src))
