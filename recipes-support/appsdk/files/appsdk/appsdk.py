@@ -626,7 +626,12 @@ find {0} {1} -type f | xargs -n100 file | grep ":.*\(ASCII\|script\|source\).*te
         cmd = cmd + " -bb %s" % specfile
         # run rpmbuild command
         logger.debug(cmd)
-        output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT).decode('utf-8')
+        try:
+            output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT).decode('utf-8')
+        except:
+            logger.error(output)
+            logger.error("Command Failed: %s", cmd)
+            sys.exit(1)
 
         # control the output according to log level
         out_lines = output.split('\n')
