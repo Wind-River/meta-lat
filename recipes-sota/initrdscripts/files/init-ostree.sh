@@ -310,6 +310,14 @@ if [ -z ${OSTREE_DEPLOY} ]; then
 	fatal
 fi
 
+which lsattr >/dev/null && which chattr >/dev/null && has_immutable_test=1
+if [ -n "$has_immutable_test" ]; then
+	lsattr $OSTREE_DEPLOY -d -l | grep Immutable -q
+	if [ $? -ne 0 ]; then
+		chattr +i $OSTREE_DEPLOY
+	fi
+fi
+
 sed "/LABEL=otaboot[\t ]*\/boot[\t ]/s/LABEL=otaboot/${OSTREE_BOOT_DEVICE}/g" -i ${ROOT_MOUNT}/etc/fstab
 sed "/LABEL=otaboot_b[\t ]*\/boot[\t ]/s/LABEL=otaboot_b/${OSTREE_BOOT_DEVICE}/g" -i ${ROOT_MOUNT}/etc/fstab
 
