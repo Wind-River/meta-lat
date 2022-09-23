@@ -87,7 +87,7 @@ do_configure() {
 }
 
 ALLOW_EMPTY:${PN} = "1"
-PACKAGES = "${PN}-installer ${PN}-init ${PN}-console"
+PACKAGES = "${PN}-installer ${PN}-init ${PN}-console ${PN}"
 
 FILES:${PN}-installer = " \
     /install \
