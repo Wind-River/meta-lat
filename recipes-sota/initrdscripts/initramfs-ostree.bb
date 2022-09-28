@@ -23,6 +23,7 @@ PkgsCoreUtils = "coreutils \
     iproute2 \
 "
 INITRAMFS_PKGS = "${@bb.utils.contains('INITRAMFS_FEATURES', 'busybox', "${PkgsBusyBox}", "${PkgsCoreUtils}", d)}"
+INITRAMFS_PKGS:append:x86-64 = " grub"
 
 RDEPENDS:${PN} = " \
     ${PN}-installer \
@@ -59,7 +60,6 @@ RDEPENDS:${PN}-installer = " \
     findutils \
     tar \
     grep \
-    grub \
     sed \
     gawk \
     glib-networking \
