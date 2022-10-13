@@ -853,7 +853,8 @@ class GenExtDebImage(GenImage):
         utils.mkdirhier(rootfs_efi)
 
         # Copy grub.cfg to rootfs
-        utils.run_cmd_oneshot("cp -f %s %s/" % (self.data['gpg']['grub']['BOOT_GRUB_CFG'], rootfs_efi))
+        if not os.path.exists(os.path.join(rootfs_efi, "grub.cfg")):
+            utils.run_cmd_oneshot("cp -f %s %s/" % (self.data['gpg']['grub']['BOOT_GRUB_CFG'], rootfs_efi))
 
         # Set environment OSTREE_MULTIPLE_KERNELS and OSTREE_DEFAULT_KERNEL for run.do_image_ostree
         kernels = list()
@@ -913,8 +914,7 @@ class GenExtDebImage(GenImage):
             # Copy no secure boot loader to rootfs if it is not available
             src = self.data['gpg']['grub']['BOOT_NOSIG_GRUB']
             dst = os.path.join(rootfs_efi, "bootx64.efi")
-            if not os.path.exists(dst):
-                utils.run_cmd_oneshot("cp -f %s %s" % (src, dst))
+            utils.run_cmd_oneshot("cp -f %s %s" % (src, dst))
 
         # Make sure deploy dir clean
         utils.run_cmd_oneshot("rm -f vmlinuz-*-amd64* *.efi* grub.cfg*", cwd=self.deploydir)
@@ -930,7 +930,7 @@ class GenExtDebImage(GenImage):
         utils.run_cmd_oneshot("cp %s/boot/vmlinuz-*-amd64* %s" % (rootfs.target_rootfs, self.deploydir))
 
         # Copy boot loader to deploy dir
-        utils.run_cmd_oneshot("cp -f %s/* %s" % (rootfs_efi, self.deploydir))
+        utils.run_cmd_oneshot("cp -r -f %s/* %s" % (rootfs_efi, self.deploydir))
 
         # Create symlink bzIamge to kernel
         for kernel in glob.glob(os.path.join(self.deploydir, 'vmlinuz-*-amd64')):
