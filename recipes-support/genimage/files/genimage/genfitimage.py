@@ -404,13 +404,13 @@ class GenFitImage(GenXXX):
 
         for k in self.data['rootfs-images']:
             rep_str = '@%s@' % k
-            if not self.rootfs_images[k]:
+            if not self.rootfs_images.get(k):
                 continue
             script_content = script_content.replace(rep_str, self.rootfs_images[k])
 
         for k in self.data['fit-input-files']:
             rep_str = '@%s@' % k
-            if not self.fit_inputs[k]:
+            if not self.fit_inputs.get(k):
                 continue
             script_content = script_content.replace(rep_str, self.fit_inputs[k])
 
