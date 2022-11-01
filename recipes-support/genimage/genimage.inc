@@ -4,7 +4,7 @@ LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=12f884d2ae1ff87c09e5b7ccc2c4ca7e"
 
 SRC_URI = "\
-           file://COPYING \
+           file://genimage/COPYING \
            file://bash_tab_completion.sh \
            file://crossscripts/depmodwrapper \
            file://crossscript_wrapper.in \
@@ -119,7 +119,9 @@ SRC_URI = "\
            file://setup.py \
 "
 
-S = "${WORKDIR}/sources"
+S = "${WORKDIR}/genimage"
+
+SETUPTOOLS_SETUP_PATH = "${WORKDIR}/sources"
 
 inherit setuptools3
 
@@ -142,11 +144,11 @@ OCI_IMAGE_LABELS ?= ""
 # key=value list of environment variables
 OCI_IMAGE_ENV_VARS ?= ""
 
-do_unpack[vardeps] += "MACHINE PACKAGE_FEED_BASE_PATHS PACKAGE_FEED_ARCHS PACKAGE_FEED_URIS PACKAGE_CLASSES OSTREE_OSNAME"
-do_unpack[vardeps] += "DEBIAN_CUSTOMIZE_FEED_URI DEFAULT_DEBIAN_MIRROR"
-do_unpack[vardeps] += "OSTREE_USE_AB"
+do_patch[vardeps] += "MACHINE PACKAGE_FEED_BASE_PATHS PACKAGE_FEED_ARCHS PACKAGE_FEED_URIS PACKAGE_CLASSES OSTREE_OSNAME"
+do_patch[vardeps] += "DEBIAN_CUSTOMIZE_FEED_URI DEFAULT_DEBIAN_MIRROR"
+do_patch[vardeps] += "OSTREE_USE_AB"
 
-do_unpack:append() {
+do_patch:append() {
     bb.build.exec_func('do_write_py_template', d)
     bb.build.exec_func('do_copy_src', d)
     bb.build.exec_func('do_create_cross_cmd_wrapper', d)
@@ -218,14 +220,15 @@ PKG_MNGT_PACKAGE = " \
 "
 
 do_copy_src() {
-    install -m 0644 ${WORKDIR}/COPYING ${S}/
-    install -d ${S}/genimage
-    install -m 0644 ${WORKDIR}/genimage/*.py ${S}/genimage
-    cp -rf ${WORKDIR}/genimage/package_manager ${S}/genimage/
+    install -d ${SETUPTOOLS_SETUP_PATH}
+    install -m 0644 ${WORKDIR}/genimage/COPYING ${SETUPTOOLS_SETUP_PATH}/
+    install -d ${SETUPTOOLS_SETUP_PATH}/genimage
+    install -m 0644 ${WORKDIR}/genimage/*.py ${SETUPTOOLS_SETUP_PATH}/genimage
+    cp -rf ${WORKDIR}/genimage/package_manager ${SETUPTOOLS_SETUP_PATH}/genimage/
 
-    install -m 0644 ${WORKDIR}/METADATA.in ${S}
-    install -m 0644 ${WORKDIR}/README.md ${S}
-    install -m 0644 ${WORKDIR}/setup.py ${S}
+    install -m 0644 ${WORKDIR}/METADATA.in ${SETUPTOOLS_SETUP_PATH}
+    install -m 0644 ${WORKDIR}/README.md ${SETUPTOOLS_SETUP_PATH}
+    install -m 0644 ${WORKDIR}/setup.py ${SETUPTOOLS_SETUP_PATH}
 }
 
 python do_write_py_template () {
