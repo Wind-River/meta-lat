@@ -65,7 +65,7 @@ def install_contains(guest_yamls, args):
            "wic" in image_type:
 
             if args.gpgpath:
-                extra_options += " -g %s" % self.args.gpgpath
+                extra_options += " -g %s" % args.gpgpath
 
             rc, output = utils.run_cmd("genimage %s %s" % (yaml_files, extra_options), shell=True)
             if rc != 0:
