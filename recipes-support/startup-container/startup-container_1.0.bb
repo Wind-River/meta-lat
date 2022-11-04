@@ -14,6 +14,10 @@ SRC_URI =  " \
 RDEPENDS:${PN} = " \
     bash \
     docker \
+    start-container \
+"
+RDEPENDS:start-container = " \
+    docker \
 "
 
 inherit allarch systemd
@@ -34,7 +38,9 @@ do_install () {
     install -d ${D}/var/docker-images/
 }
 
-FILES:${PN} += "${systemd_unitdir}/system /var/docker-images"
+PACKAGES += "start-container"
+FILES:${PN} += "${systemd_unitdir}/system/load-docker-images.service /var/docker-images"
+FILES:start-container = "${systemd_unitdir}/system/start-container@.service"
 
 inherit features_check
 REQUIRED_DISTRO_FEATURES = "lat"
