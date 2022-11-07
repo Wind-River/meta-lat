@@ -777,6 +777,7 @@ class GenExtDebImage(GenImage):
         self.data['debootstrap-mirror'] = deb_constant.DEFAULT_DEBIAN_MIRROR
         self.data['debootstrap-key'] = ""
         self.data['apt-keys'] = []
+        self.data['initramfs-sign-script'] = []
         self.data['iso-post-script'] = deb_constant.SCRIPT_DEBIAN_INSTALL_PXE
         self.data['multiple-kernels'] = deb_constant.MULTIPLE_KERNELS
         self.data['default-kernel'] = deb_constant.DEFAULT_KERNEL
@@ -897,18 +898,6 @@ class GenExtDebImage(GenImage):
                 if not os.path.exists(dst):
                     utils.run_cmd_oneshot("cp -f %s %s" % (src, dst))
 
-            # Sign grub.cfg and LockDown.efi
-            gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
-            gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
-            gpgpath = self.data['gpg']['gpg_path']
-            for f in ['grub.cfg', 'LockDown.efi']:
-                unsign_file = os.path.join(rootfs_efi, f)
-                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, unsign_file)
-
-            # Sign kernel
-            for kernel in glob.glob(os.path.join(rootfs.target_rootfs, 'boot', 'vmlinuz-*-amd64')):
-                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, kernel)
-
         # No secure boot
         else:
             # Copy no secure boot loader to rootfs if it is not available
@@ -964,12 +953,6 @@ class GenExtDebImage(GenImage):
         image = os.path.join(self.deploydir, image_name)
         if os.path.exists(os.path.realpath(image)):
             logger.info("Reuse existed Initramfs")
-            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
-                utils.run_cmd_oneshot("chmod 777 %s" % self.deploydir)
-                gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
-                gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
-                gpgpath = self.data['gpg']['gpg_path']
-                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, image)
             return
 
         logger.info("External Debian Initramfs was not found, create one")
@@ -994,15 +977,6 @@ class GenExtDebImage(GenImage):
             sys.exit(1)
 
         scriptFile.file.close()
-
-        if os.path.exists(os.path.realpath(image)):
-            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
-                utils.run_cmd_oneshot("chmod 777 %s" % self.deploydir)
-                gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
-                gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
-                gpgpath = self.data['gpg']['gpg_path']
-                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, image)
-            return
 
     @show_task_info("Create Debian Miniboot Initramfs")
     def do_ostree_mini_initramfs(self):
@@ -1046,15 +1020,21 @@ class GenExtDebImage(GenImage):
         utils.run_cmd_oneshot(cmd)
 
         if os.path.exists(os.path.realpath(miniboot_image)):
-            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
-                utils.run_cmd_oneshot("chmod 777 %s" % self.deploydir)
-                gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
-                gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
-                gpgpath = self.data['gpg']['gpg_path']
-                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, miniboot_image)
-
             utils.remove(os.path.join(miniboot_initramfs), recurse=True)
             return
+
+    @show_task_info("Sign Initramfs And Mini_initramfs")
+    def do_ostree_sign(self):
+        initramfs_sign_script = None
+        if self.data.get('initramfs-sign-script', None):
+            initramfs_sign_script = os.path.join(self.workdir, "initramfs-sign-script.sh")
+            with open(initramfs_sign_script, 'w') as f:
+                f.write("#!/usr/bin/env bash\n")
+                f.write("set -x\n")
+                f.write(self.data.get('initramfs-sign-script') + "\n")
+            os.chmod(initramfs_sign_script, 0o777)
+        cmd = ". {0}".format(initramfs_sign_script)
+        utils.run_cmd_oneshot(cmd)
 
 def _main_run_internal(args):
 
@@ -1077,6 +1057,7 @@ def _main_run_internal(args):
     create.do_ostree_initramfs()
     if pkg_type == "external-debian":
         create.do_ostree_mini_initramfs()
+        create.do_ostree_sign()
 
     # WIC image requires ostress repo
     if any(img_type in create.image_type for img_type in ["ostree-repo", "wic", "iso", "ustart", "vmdk", "vdi", "pxe"]):
