@@ -43,8 +43,8 @@ fit-config: |
                 arch = "arm64";
                 os = "linux";
                 compression = "none";
-                load = <0xa5300000>;
-                entry = <0xa5300000>;
+                load = <0xa5700000>;
+                entry = <0xa5700000>;
                 hash {
                     algo = "sha1";
                 };
