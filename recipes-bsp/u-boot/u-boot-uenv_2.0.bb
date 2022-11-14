@@ -430,3 +430,6 @@ do_deploy() {
 addtask do_deploy after do_compile before do_build
 
 COMPATIBLE_HOST = "(aarch64|arm).*-linux"
+
+inherit features_check
+REQUIRED_DISTRO_FEATURES = "ostree"

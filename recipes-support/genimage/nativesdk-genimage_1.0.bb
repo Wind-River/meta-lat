@@ -102,3 +102,6 @@ python __anonymous () {
     d.setVar("DEFAULT_LOCAL_RPM_PACKAGE_FEED", "")
     d.setVar("DEFAULT_LOCAL_DEB_PACKAGE_FEED", "")
 }
+
+inherit features_check
+REQUIRED_DISTRO_FEATURES = "ostree lat"
