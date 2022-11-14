@@ -42,3 +42,6 @@ python do_prepare_recipe_sysroot:prepend () {
     elif machine in (d.getVar('OSTREE_SUPPORTED_ARM32_MACHINES') or '').split():
         d.setVar('TARGET_ARCH', 'arm')
 }
+
+inherit features_check
+REQUIRED_DISTRO_FEATURES = "ostree lat"

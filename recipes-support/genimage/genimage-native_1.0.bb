@@ -252,3 +252,6 @@ python __anonymous () {
 EXCLUDE_FROM_WORLD = "1"
 
 inherit native
+
+inherit features_check
+REQUIRED_DISTRO_FEATURES = "ostree lat"

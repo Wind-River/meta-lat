@@ -24,3 +24,6 @@ RDEPENDS:${PN} = " \
 inherit nativesdk
 
 FILES:${PN} = "${SDKPATHNATIVE}"
+
+inherit features_check
+REQUIRED_DISTRO_FEATURES = "ostree lat"
