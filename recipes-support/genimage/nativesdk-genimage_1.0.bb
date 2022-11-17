@@ -68,8 +68,6 @@ SRC_URI += "\
            file://add_path.sh \
 "
 
-inherit nativesdk
-
 do_install:append() {
 	mkdir -p ${D}${SDKPATHNATIVE}/environment-setup.d
 	install -m 0755 ${WORKDIR}/add_path.sh ${D}${SDKPATHNATIVE}/environment-setup.d
@@ -105,3 +103,6 @@ python __anonymous () {
 
 inherit features_check
 REQUIRED_DISTRO_FEATURES = "ostree lat"
+
+# this inherit needs to be the last one due to 'native-last' QA check
+inherit nativesdk

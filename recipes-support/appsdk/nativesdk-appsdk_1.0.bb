@@ -21,9 +21,10 @@ RDEPENDS:${PN} = " \
     nativesdk-python3-argcomplete \
 "
 
-inherit nativesdk
-
 FILES:${PN} = "${SDKPATHNATIVE}"
 
 inherit features_check
 REQUIRED_DISTRO_FEATURES = "ostree lat"
+
+# this inherit needs to be the last one due to 'native-last' QA check
+inherit nativesdk

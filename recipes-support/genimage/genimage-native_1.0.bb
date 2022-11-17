@@ -251,7 +251,8 @@ python __anonymous () {
 
 EXCLUDE_FROM_WORLD = "1"
 
-inherit native
-
 inherit features_check
 REQUIRED_DISTRO_FEATURES = "ostree lat"
+
+# this inherit needs to be the last one due to 'native-last' QA check
+inherit native

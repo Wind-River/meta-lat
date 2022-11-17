@@ -24,8 +24,6 @@ DEPENDS = " \
     python3-argcomplete-native \
 "
 
-inherit native
-
 do_install:append() {
 	install -d ${D}${base_bindir}
 	install -m 0755 ${D}${bindir}/appsdk ${D}${base_bindir}/appsdk
@@ -45,3 +43,6 @@ python do_prepare_recipe_sysroot:prepend () {
 
 inherit features_check
 REQUIRED_DISTRO_FEATURES = "ostree lat"
+
+# this inherit needs to be the last one due to 'native-last' QA check
+inherit native
