@@ -371,17 +371,35 @@ python __anonymous () {
         if not d.getVar('RPM_PACKAGE_FEED_BASE_PATHS'):
             d.setVar('RPM_PACKAGE_FEED_BASE_PATHS', 'rpm')
 
-    remote_rpm_uris = get_remote_uris(d.getVar('RPM_PACKAGE_FEED_URIS') or "",
-                                      d.getVar('RPM_PACKAGE_FEED_BASE_PATHS') or "",
-                                      d.getVar('RPM_PACKAGE_FEED_ARCHS'))
+    rpm_uris = d.getVar('RPM_PACKAGE_FEED_URIS') or ""
+    rpm_base_paths = d.getVar('RPM_PACKAGE_FEED_BASE_PATHS') or ""
+    remote_rpm_uris = get_remote_uris(rpm_uris, rpm_base_paths, d.getVar('RPM_PACKAGE_FEED_ARCHS'))
     d.setVar("DEFAULT_RPM_PACKAGE_FEED", remote_rpm_uris)
-    d.setVar("REMOTE_RPM_PKGDATADIR", d.expand("${RPM_PACKAGE_FEED_URIS}/${RPM_PACKAGE_FEED_BASE_PATHS}"))
 
-    if d.getVar('DEB_PACKAGE_FEED_URIS'):
-        remote_deb_uris = get_remote_uris(d.getVar('DEB_PACKAGE_FEED_URIS') or "",
-                                          d.getVar('DEB_PACKAGE_FEED_BASE_PATHS') or "",
-                                          d.getVar('DEB_PACKAGE_FEED_ARCHS'))
+    if not d.getVar('REMOTE_RPM_PKGDATADIR'):
+        if rpm_uris and rpm_base_paths:
+            rpm_uris_list = rpm_uris.split()
+            rpm_base_paths_list = rpm_base_paths.split()
+            if len(rpm_uris_list) > 1:
+                bb.note("Found multiple RPM_PACKAGE_FEED_URIS, default pkgdata to the first one")
+            if len(rpm_base_paths_list) > 1:
+                bb.note("Found multiple RPM_PACKAGE_FEED_BASE_PATHS, default pkgdata to the first one")
+            d.setVar("REMOTE_RPM_PKGDATADIR", "%s/%s" % (rpm_uris_list[0], rpm_base_paths_list[0]))
+
+    deb_uris = d.getVar('DEB_PACKAGE_FEED_URIS') or ""
+    if deb_uris:
+        deb_base_paths = d.getVar('DEB_PACKAGE_FEED_BASE_PATHS') or ""
+        remote_deb_uris = get_remote_uris(deb_uris, deb_base_paths, d.getVar('DEB_PACKAGE_FEED_ARCHS'))
         d.setVar("DEFAULT_DEB_PACKAGE_FEED", remote_deb_uris)
-        d.setVar("REMOTE_DEB_PKGDATADIR", d.expand("${DEB_PACKAGE_FEED_URIS}/${DEB_PACKAGE_FEED_BASE_PATHS}"))
 
+        if not d.getVar("REMOTE_DEB_PKGDATADIR"):
+            if deb_uris and deb_base_paths:
+                deb_uris_list = deb_uris.split()
+                deb_base_paths_list = deb_base_paths.split()
+                if len(deb_uris_list) > 1:
+                    bb.note("Found multiple DEB_PACKAGE_FEED_URIS, default pkgdata to the first one")
+                if len(deb_base_paths_list) > 1:
+                    bb.note("Found multiple DEB_PACKAGE_FEED_BASE_PATHS, default pkgdata to the first one")
+                d.setVar("REMOTE_DEB_PKGDATADIR", "%s/%s" % (deb_uris_list[0], deb_base_paths_list[0]))
+            d.setVar("REMOTE_DEB_PKGDATADIR", d.expand("${@d.getVar('DEB_PACKAGE_FEED_URIS').split()[0]}/${DEB_PACKAGE_FEED_BASE_PATHS}"))
 }
