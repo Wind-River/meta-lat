@@ -390,6 +390,7 @@ write_wic() {
 			fatal "Error running: $cmd"
 		fi
 	fi
+	echo "Rename `ls out-tmp/*.direct` to ustart.img"
 	mv out-tmp/*.direct ustart.img
 	mv out-tmp/*.bmap ustart.img.bmap
 	rm -rf out-tmp
