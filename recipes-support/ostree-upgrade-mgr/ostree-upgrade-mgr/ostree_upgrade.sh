@@ -60,7 +60,7 @@ get_upgrade_part_label() {
 
 	NO_AB=`ostree config --repo=/sysroot/ostree/repo get upgrade.no-ab 2> /dev/null`
 
-	echo "$labelroot" | fgrep "${BACKUP_PART_INDICATOR}" >> /dev/null
+	echo "$labelroot" | grep -F "${BACKUP_PART_INDICATOR}" >> /dev/null
 	if [ $? -ne 0 -a "${NO_AB}" != "1" ]; then
 		UPGRADE_ROOT_LABEL="${labelroot}${BACKUP_PART_INDICATOR}"
 		UPGRADE_BOOT_LABEL="${labelboot}${BACKUP_PART_INDICATOR}"
