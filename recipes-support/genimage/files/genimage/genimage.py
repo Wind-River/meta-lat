@@ -1004,6 +1004,58 @@ class GenExtDebImage(GenImage):
                 utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, image)
             return
 
+    @show_task_info("Create Debian Miniboot Initramfs")
+    def do_ostree_mini_initramfs(self):
+        # If the Initramfs is generated, reuse it
+        image_name = "{0}-{1}.cpio.gz".format(deb_constant.DEFAULT_INITRD_NAME, self.machine)
+        image = os.path.join(self.deploydir, image_name)
+
+        if not os.path.exists(os.path.realpath(image)):
+            logger.error("External Debian Initramfs %s doesn't exist", image)
+            sys.exit(1)
+
+        logger.info("Reuse existed Initramfs for miniboot")
+
+        miniboot_initramfs = os.path.join(self.deploydir, "miniboot_rootfs")
+        if os.path.exists(miniboot_initramfs):
+            utils.remove(os.path.join(miniboot_initramfs), recurse=True)
+        utils.mkdirhier(miniboot_initramfs)
+
+        # extract the stardard initramfs and remove the unneeded files
+        cmd = "cd %s && gzip -d --stdout %s | cpio -i -d -H newc" % (miniboot_initramfs, image)
+        utils.run_cmd_oneshot(cmd)
+
+        # Removing (not needed for initial boot):
+        # These are found by examination via ncdu:
+        # - rt kernel modules
+        # - all __pycache__ directories
+        # - locale entries - we are using the default "C" locale for initial boot
+        # - vim - no need for an editor
+        cmd = "cd %s && rm -rf lib/modules/5*rt*amd64 && rm -rf usr/bin/vim.basic " % miniboot_initramfs
+        cmd += " && rm -rf usr/share/locale/* && rm -rf usr/share/info/* "
+        cmd += " && find . -type d -name '__pycache__' -print0 | xargs -0 rm -rf "
+        utils.run_cmd_oneshot(cmd)
+
+        miniboot_imagename = "initrd-mini"
+        miniboot_imagedir = os.path.join(self.target_rootfs, "var/miniboot")
+        utils.mkdirhier(miniboot_imagedir)
+        miniboot_image = os.path.join(miniboot_imagedir, miniboot_imagename)
+
+        cmd = "cd %s && find . 2>/dev/null | cpio -o -H newc -R root:root | xz -9 --format=lzma > \"%s\"" % \
+            (miniboot_initramfs, miniboot_image)
+        utils.run_cmd_oneshot(cmd)
+
+        if os.path.exists(os.path.realpath(miniboot_image)):
+            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
+                utils.run_cmd_oneshot("chmod 777 %s" % self.deploydir)
+                gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
+                gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
+                gpgpath = self.data['gpg']['gpg_path']
+                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, miniboot_image)
+
+            utils.remove(os.path.join(miniboot_initramfs), recurse=True)
+            return
+
 def _main_run_internal(args):
 
     pkg_type = GenImage._get_pkg_type(args)
@@ -1023,6 +1075,8 @@ def _main_run_internal(args):
         logger.debug("Create Target Rootfs: %s" % create.target_rootfs)
 
     create.do_ostree_initramfs()
+    if pkg_type == "external-debian":
+        create.do_ostree_mini_initramfs()
 
     # WIC image requires ostress repo
     if any(img_type in create.image_type for img_type in ["ostree-repo", "wic", "iso", "ustart", "vmdk", "vdi", "pxe"]):
