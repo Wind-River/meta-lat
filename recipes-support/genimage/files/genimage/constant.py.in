@@ -218,6 +218,11 @@ DEFAULT_PACKAGES_axxiaarm = '''
     kernel-devicetree
 '''.split()
 
+DEFAULT_PACKAGES_amd_snowyowl_64 = '''
+    kernel-image-bzimage
+    grub-efi
+'''.split()
+
 # default rootfs: ${LAT_DEFAULT_IMAGE}
 DEFAULT_PACKAGES = {
     'intel-x86-64': DEFAULT_PACKAGES_intel_x86_64 + DEFAULT_PACKAGES_COMMON,
@@ -236,6 +241,7 @@ DEFAULT_PACKAGES = {
     'nxp-lx2xxx': DEFAULT_PACKAGES_nxp_lx2xxx + DEFAULT_PACKAGES_COMMON,
     'axxiaarm64': DEFAULT_PACKAGES_axxiaarm64 + DEFAULT_PACKAGES_COMMON,
     'axxiaarm': DEFAULT_PACKAGES_axxiaarm + DEFAULT_PACKAGES_COMMON,
+    'amd-snowyowl-64' : DEFAULT_PACKAGES_amd_snowyowl_64 + DEFAULT_PACKAGES_COMMON,
 }
 
 DEFAULT_OSTREE_WIFI_PACKAGES = '''

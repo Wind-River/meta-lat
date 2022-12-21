@@ -26,7 +26,7 @@ OCI_IMAGE_TAG="${OCI_IMAGE_TAG:-latest}"
 OCI_IMAGE_RUNTIME_UID="${OCI_IMAGE_RUNTIME_UID:-}"
 
 OCI_IMAGE_SUBARCH="${OCI_IMAGE_SUBARCH:-}"
-if [ $MACHINE = "intel-x86-64" ]; then
+if [ $MACHINE = "intel-x86-64" ] || [ $MACHINE = "amd-snowyowl-64" ]; then
     OCI_IMAGE_ARCH="${OCI_IMAGE_ARCH:-x86-64}"
 else
     OCI_IMAGE_ARCH="${OCI_IMAGE_ARCH:-aarch64}"

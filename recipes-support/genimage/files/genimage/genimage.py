@@ -632,7 +632,7 @@ class GenYoctoImage(GenImage):
                                                       self.data["ostree"]['ostree_use_ab'],
                                                       self.data["ostree"]['ostree_remote_url'])
             rootfs.add_rootfs_post_scripts(script_cmd)
-        elif self.machine == "intel-x86-64":
+        elif self.machine == "intel-x86-64" or self.machine == "amd-snowyowl-64":
             os.environ['OSTREE_CONSOLE'] = self.data["ostree"]['OSTREE_CONSOLE']
             script_cmd = os.path.join(self.data_dir, 'post_rootfs', 'update_grub_cfg.sh')
             script_cmd = "{0} {1}".format(script_cmd, rootfs.target_rootfs)
@@ -662,7 +662,7 @@ class GenYoctoImage(GenImage):
         super(GenYoctoImage, self)._do_rootfs_post(rootfs)
 
         # Copy kernel image, boot files, device tree files to deploy dir
-        if self.machine == "intel-x86-64":
+        if self.machine == "intel-x86-64" or self.machine == "amd-snowyowl-64":
             for files in ["boot/bzImage*", "boot/efi/EFI/BOOT/*"]:
                 cmd = "cp -rf {0}/{1} {2}".format(self.target_rootfs, files, self.deploydir)
                 utils.run_cmd_oneshot(cmd)
@@ -670,7 +670,6 @@ class GenYoctoImage(GenImage):
                 cmd = "ln -snf -r {0} {1}".format(os.path.join(self.deploydir, "bootx64.efi"),
                                                   os.path.join(self.deploydir, "grub-efi-bootx64.efi"))
                 utils.run_cmd_oneshot(cmd)
-
         else:
             cmd = "cp -rf {0}/boot/* {1}".format(self.target_rootfs, self.deploydir)
             utils.run_cmd_oneshot(cmd)

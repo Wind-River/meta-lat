@@ -30,7 +30,7 @@ SELINUX=""
 if [ -z "${MANIFEST}" ]; then
   MANIFEST="${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${MACHINE}.manifest"
 fi
-if [ $MACHINE = "intel-x86-64" ]; then
+if [ $MACHINE = "intel-x86-64" ] || [ $MACHINE = "amd-snowyowl-64" ]; then
   GRUB_USED="true"
 fi
 

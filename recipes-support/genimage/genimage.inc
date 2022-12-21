@@ -117,6 +117,7 @@ SRC_URI = "\
            file://genimage/doc/target_nxp-lx2xxx.README.md.in \
            file://genimage/doc/target_axxiaarm64.README.md.in \
            file://genimage/doc/target_axxiaarm.README.md.in \
+           file://genimage/doc/target_amd-snowyowl-64.README.md.in \
            file://METADATA.in \
            file://README.md \
            file://setup.py \

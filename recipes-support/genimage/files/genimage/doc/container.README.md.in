@@ -19,6 +19,7 @@ The images are built from Wind River Linux Assembly Tool Application SDK
         nxp-lx2xxx
         axxiaarm64
         axxiaarm
+        amd-snowyowl-64
 
 ## How to run an instance of container with docker
         $ docker load -i DEPLOYDIR/@IMAGE_NAME@.docker-image.tar.bz2

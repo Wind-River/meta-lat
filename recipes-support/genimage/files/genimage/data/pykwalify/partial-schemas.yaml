@@ -17,7 +17,7 @@ schema;package_str:
 
 schema;machine_str:
   type: str
-  enum: ['intel-x86-64', 'bcm-2xxx-rpi4', 'xilinx-zynq', 'xilinx-zynqmp', 'nxp-imx6', 'nxp-imx8', 'marvell-cn96xx', 'nxp-s32g', 'aptiv_cvc_sousa', 'intel-socfpga-64', 'ti-j72xx', 'nxp-ls1028', 'nxp-ls1043', 'nxp-lx2xxx', 'axxiaarm64', 'axxiaarm']
+  enum: ['intel-x86-64', 'bcm-2xxx-rpi4', 'xilinx-zynq', 'xilinx-zynqmp', 'nxp-imx6', 'nxp-imx8', 'marvell-cn96xx', 'nxp-s32g', 'aptiv_cvc_sousa', 'intel-socfpga-64', 'ti-j72xx', 'nxp-ls1028', 'nxp-ls1043', 'nxp-lx2xxx', 'axxiaarm64', 'axxiaarm', 'amd-snowyowl-64']
   nullable: False
 
 schema;package_feeds_seq:

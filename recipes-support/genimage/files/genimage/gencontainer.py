@@ -142,7 +142,7 @@ class GenYoctoContainer(GenContainer):
         super(GenYoctoContainer, self)._parse_default()
         self.data['remote_pkgdatadir'] = DEFAULT_REMOTE_PKGDATADIR[self.pkg_type] if utils.is_sdk() else ""
         self.data['features'] =  DEFAULT_IMAGE_FEATURES
-        if DEFAULT_MACHINE == 'intel-x86-64':
+        if DEFAULT_MACHINE == 'intel-x86-64' or DEFAULT_MACHINE == 'amd-snowyowl-64':
             self.data['container_oci']['OCI_IMAGE_ARCH'] = 'x86-64'
         elif DEFAULT_MACHINE in SUPPORTED_ARM64_MACHINES:
             self.data['container_oci']['OCI_IMAGE_ARCH'] = 'aarch64'

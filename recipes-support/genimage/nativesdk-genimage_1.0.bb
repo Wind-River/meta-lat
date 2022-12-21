@@ -85,7 +85,7 @@ python __anonymous () {
         d.appendVar('OVERRIDES', ':aarch64:{0}'.format(machine))
     elif machine in (d.getVar('OSTREE_SUPPORTED_ARM32_MACHINES') or "").split():
         d.appendVar('OVERRIDES', ':arm:{0}'.format(machine))
-    elif machine == 'intel-x86-64':
+    elif machine == 'intel-x86-64' or machine == 'amd-snowyowl-64':
         d.appendVar('OVERRIDES', ':x86-64:{0}'.format(machine))
 
         if bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', True, False, d):

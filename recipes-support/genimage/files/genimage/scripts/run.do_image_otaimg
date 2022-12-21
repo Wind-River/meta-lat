@@ -24,7 +24,7 @@ OSTREE_REPO="${DEPLOY_DIR_IMAGE}/ostree_repo"
 OSTREE_KERNEL_ARGS="ro rootwait"
 DISTRO=${OSTREE_OSNAME}
 OSTREE_GRUB2_EXEC="$OECORE_NATIVE_SYSROOT/usr/lib/ostree/ostree-grub-generator"
-if [ $MACHINE = "intel-x86-64" ]; then
+if [ $MACHINE = "intel-x86-64" ] || [ $MACHINE = "amd-snowyowl-64" ]; then
   OSTREE_BOOTLOADER="grub"
 else
   OSTREE_BOOTLOADER="u-boot"
