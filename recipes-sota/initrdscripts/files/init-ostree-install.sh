@@ -494,7 +494,9 @@ do_dhcp() {
 			if [ "${DHCPARGS}" != "" ] ; then
 				/sbin/udhcpc -i ${DHCPARGS}
 			else
-				/sbin/udhcpc
+				while read nic; do
+					/sbin/udhcpc -i $nic -n
+				done <<< $(ls /sys/class/net |grep -v ^lo\$ |grep -v ^sit0)
 			fi
 		else
 			dhcpcd ${DHCPARGS}
