@@ -124,6 +124,9 @@ secure-boot-map:
   uboot-sign-key: @DEFAULT_DEPLOY@/${UBOOT_SIGN_KEYNAME}.key
   uboot-sign-img-key: @DEFAULT_DEPLOY@/${UBOOT_SIGN_IMG_KEYNAME}.key
   hse-sign-pub-key: @DEFAULT_DEPLOY@/${HSE_SEC_PUB_KEY}
+fit-kernel-post-script: |
+  set -x
+  mkimage -F -k $UBOOT_SIGN_KEYDIR -r fitimage
 wic-pre-script: |
   #!/usr/bin/env bash
   set -x
@@ -140,4 +143,5 @@ wic-post-script: |
 environments:
 - UBOOT_SIGN_KEYNAME="boot_key"
 - UBOOT_SIGN_IMG_KEYNAME="boot_key_individual"
+- UBOOT_SIGN_KEYDIR="$DEPLOY_DIR_IMAGE/downloads"
 - HSE_SEC_PUB_KEY="rsa2048_public.der"

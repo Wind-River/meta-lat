@@ -25,6 +25,7 @@ from texttable import Texttable
 import signal
 import glob
 import atexit
+from tempfile import NamedTemporaryFile
 
 from genimage.utils import set_logger
 from genimage.utils import show_task_info
@@ -142,6 +143,7 @@ class GenFitImage(GenXXX):
         self.boot_atf = None
         self.wic_config = None
         self.lx_rootfs_script = None
+        self.fit_kernel_post_script = None
         self.vx_app_script = None
         self.wic_pre_script = None
         self.wic_post_script = None
@@ -179,6 +181,7 @@ class GenFitImage(GenXXX):
         self.data['ota-manager'] = 'fmu'  if constant.IS_FMU_ENABLED == 'true' else ''
         self.data['wic-config'] = DEFAULT_WIC_FMU_CONFIG if constant.IS_FMU_ENABLED == 'true' else DEFAULT_WIC_CONFIG
         self.data['lx-rootfs-script'] = DEFAULT_LX_ROOTFS_SCRIPT
+        self.data['fit-kernel-post-script'] = None
         self.data['vx-app-script'] = DEFAULT_VX_APP_SCRIPT
         self.data['wic-pre-script'] = None
         self.data['wic-post-script'] = DEFAULT_WIC_POST_SCRIPT
@@ -224,6 +227,7 @@ class GenFitImage(GenXXX):
         for k,v in self.data.items():
             if isinstance(v, list) and k not in ['lx-rootfs-script',
                                                  'vx-app-script',
+                                                 'fit-kernel-post-script',
                                                  'wic-pre-script',
                                                  'wic-post-script',
                                                  'environments']:
@@ -249,6 +253,7 @@ class GenFitImage(GenXXX):
                          'boot-atf': 'atf-%s.s32' % self.data['machine'],
                          'fit-config': '%s-%s.its' % (self.data['name'], self.data['machine']),
                          'lx-rootfs-script': '%s-lxrootfs.sh' % (self.data['name']),
+                         'fit-kernel-post-script': '%s-fitkernel-postscript.sh' % (self.data['name']),
                          'vx-app-script': '%s-vxapp.sh' % (self.data['name']),
                          'wic-pre-script': '%s-wic-pre.sh' % (self.data['name']),
                          'wic-post-script': '%s-wic-post.sh' % (self.data['name']),
@@ -282,6 +287,8 @@ class GenFitImage(GenXXX):
                 self.wic_config = dst
             elif key == 'lx-rootfs-script':
                 self.lx_rootfs_script = dst
+            elif key == 'fit-kernel-post-script':
+                self.fit_kernel_post_script = dst
             elif key == 'vx-app-script':
                 self.vx_app_script = dst
             elif key == 'wic-post-script':
@@ -400,6 +407,32 @@ class GenFitImage(GenXXX):
         if res != 0:
             logger.error(output)
             sys.exit(1)
+
+        self._run_fit_kernel_post_script()
+
+    def _run_fit_kernel_post_script(self):
+        if not self.fit_kernel_post_script:
+            return
+        os.chmod(self.fit_kernel_post_script, 0o777)
+
+        logger.debug("Executing '%s' fit-kernel-post-script..." % self.fit_kernel_post_script)
+        scriptFile = NamedTemporaryFile(delete=True, dir=".")
+        with open(scriptFile.name, 'w') as f:
+            f.write("#!/usr/bin/env bash\n")
+            f.write(self.fit_kernel_post_script + "\n")
+        os.chmod(scriptFile.name, 0o777)
+        scriptFile.file.close()
+
+        env = os.environ.copy()
+        env['IMAGE_ROOTFS'] = os.path.join(self.workdir, 'rootfs')
+        env['DEPLOY_DIR_IMAGE'] = self.deploydir
+        env['WORKDIR'] = self.workdir
+        env['IMAGE_NAME'] = self.image_name
+        env['MACHINE'] = self.machine
+        res, output = utils.run_cmd(scriptFile.name, shell=True, env=env, cwd=self.deploydir)
+        if res:
+            raise Exception("Executing %s fit-kernel-post-script failed\nExit code %d. Output:\n%s"
+                               % (self.fit_kernel_post_script, res, output))
 
     @show_task_info("Create Linux rootfs")
     def do_lx_rootfs(self):

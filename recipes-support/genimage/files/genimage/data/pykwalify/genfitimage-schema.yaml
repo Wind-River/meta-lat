@@ -53,6 +53,8 @@ mapping:
     type: str
   lx-rootfs-script:
     type: str
+  fit-kernel-post-script:
+    type: str
   vx-app-script:
     type: str
   environments:
