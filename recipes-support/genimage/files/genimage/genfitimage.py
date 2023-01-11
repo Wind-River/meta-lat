@@ -343,6 +343,12 @@ class GenFitImage(GenXXX):
         if not self.args.no_clean:
             atexit.register(utils.cleanup, self.workdir, self.data['ostree']['ostree_osname'])
 
+        for env in self.data.get('environments', []):
+            k,v = env.split('=', 1)
+            v = v.strip('"\'')
+            logger.debug("Environment %s=%s", k, v)
+            os.environ[k] = v
+
     def do_patch(self):
         self._modify_boot_scr()
 
