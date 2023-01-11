@@ -59,6 +59,8 @@ mapping:
     include: environments_seq
   wic-post-script:
     type: str
+  secure-boot-map:
+    include: sb_map
 
 schema;image_type_seq:
   type: seq
@@ -67,3 +69,22 @@ schema;image_type_seq:
       enum: ['fit']
       nullable: False
   nullable: False
+
+schema;sb_map:
+  type: map
+  mapping:
+    dd_offset:
+      type: str
+      nullable: False
+    boot-atf-sig:
+      type: str
+      nullable: False
+    uboot-sign-key:
+      type: str
+      nullable: False
+    uboot-sign-img-key:
+      type: str
+      nullable: False
+    hse-sign-pub-key:
+      type: str
+      nullable: False

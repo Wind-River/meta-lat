@@ -118,6 +118,12 @@ fit-input-files:
   vx-kernel: $VXWORKS_URL/vxWorks.bin
   hvp: $HVP_URL/hypervisor-main.bin
   hvp-b: $HVP_URL/hypervisor-rollback.bin
+secure-boot-map:
+  dd_offset: @DEFAULT_DEPLOY@/aptiv_cvc_sousa_dd_offset
+  boot-atf-sig: @DEFAULT_DEPLOY@/atf-aptiv_cvc_sousa.s32.signature
+  uboot-sign-key: @DEFAULT_DEPLOY@/${UBOOT_SIGN_KEYNAME}.key
+  uboot-sign-img-key: @DEFAULT_DEPLOY@/${UBOOT_SIGN_IMG_KEYNAME}.key
+  hse-sign-pub-key: @DEFAULT_DEPLOY@/${HSE_SEC_PUB_KEY}
 wic-post-script: |
   #!/usr/bin/env bash
   set -x

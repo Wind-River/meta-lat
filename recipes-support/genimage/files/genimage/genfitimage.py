@@ -307,6 +307,18 @@ class GenFitImage(GenXXX):
                 install_files([fetch_node], self.deploydir)
                 self.rootfs_images[key] = dst
 
+        for key in self.data.get('secure-boot-map', []):
+            src = self.data['secure-boot-map'].get(key, False)
+            if not src:
+                continue
+            src = os.path.expandvars(src)
+            # src is url or path, fetch it
+            if src.startswith("http") or os.path.exists(src) or src.startswith("mc cp"):
+                dst = os.path.join(self.deploydir, 'downloads', os.path.basename(src))
+                fetch_node = {'src': src, 'dst': dst}
+                install_files([fetch_node], self.deploydir)
+
+
     def do_prepare(self):
         super(GenFitImage, self).do_prepare()
         self.workdir = os.path.realpath(os.path.join(self.args.workdir, "workdir", self.image_name))
