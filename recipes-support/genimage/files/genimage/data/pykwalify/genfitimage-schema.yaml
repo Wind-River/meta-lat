@@ -57,6 +57,8 @@ mapping:
     type: str
   environments:
     include: environments_seq
+  wic-pre-script:
+    type: str
   wic-post-script:
     type: str
   secure-boot-map:

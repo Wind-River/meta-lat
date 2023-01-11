@@ -175,7 +175,7 @@ class CreateInitramfs(Image):
 
 class CreateWicImage(Image):
     def _set_allow_keys(self):
-        self.allowed_keys.update({"wks_file", "post_script"})
+        self.allowed_keys.update({"wks_file", "pre_script", "post_script"})
 
     def _add_keys(self):
         self.wks_full_path = ""
@@ -236,6 +236,10 @@ class CreateWicImage(Image):
         wic_env['MACHINE'] = self.machine
         wic_env['WKS_FILE'] = self.wks_full_path
         wic_env['DATETIME'] = self.date
+
+        self._pre_wic()
+
+
         if 'LD_PRELOAD' in wic_env:
             del wic_env['LD_PRELOAD']
         cmd = os.path.join(wic_env['OECORE_NATIVE_SYSROOT'], "usr/share/genimage/scripts/run.do_image_wic")
@@ -247,6 +251,30 @@ class CreateWicImage(Image):
         self._create_symlinks()
 
         self._post_wic()
+
+    def _pre_wic(self):
+        if not self.pre_script:
+            return
+
+        logger.debug("Executing '%s' preprocess script..." % self.pre_script)
+        scriptFile = NamedTemporaryFile(delete=True, dir=".")
+        with open(scriptFile.name, 'w') as f:
+            f.write("#!/usr/bin/env bash\n")
+            f.write(self.pre_script + "\n")
+        os.chmod(scriptFile.name, 0o777)
+        scriptFile.file.close()
+
+        wic_env = os.environ.copy()
+        wic_env['IMAGE_ROOTFS'] = self.target_rootfs
+        wic_env['DEPLOY_DIR_IMAGE'] = self.deploydir
+        wic_env['WORKDIR'] = self.workdir
+        wic_env['IMAGE_NAME'] = self.image_name
+        wic_env['MACHINE'] = self.machine
+        wic_env['DATETIME'] = self.date
+        res, output = utils.run_cmd(scriptFile.name, shell=True, env=wic_env)
+        if res:
+            raise Exception("Executing %s preprocess wic failed\nExit code %d. Output:\n%s"
+                               % (self.pre_script, res, output))
 
     def _post_wic(self):
         if not self.post_script:

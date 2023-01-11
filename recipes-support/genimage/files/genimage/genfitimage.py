@@ -143,6 +143,7 @@ class GenFitImage(GenXXX):
         self.wic_config = None
         self.lx_rootfs_script = None
         self.vx_app_script = None
+        self.wic_pre_script = None
         self.wic_post_script = None
         self.fit_inputs = {}
         self.rootfs_images = {}
@@ -179,6 +180,7 @@ class GenFitImage(GenXXX):
         self.data['wic-config'] = DEFAULT_WIC_FMU_CONFIG if constant.IS_FMU_ENABLED == 'true' else DEFAULT_WIC_CONFIG
         self.data['lx-rootfs-script'] = DEFAULT_LX_ROOTFS_SCRIPT
         self.data['vx-app-script'] = DEFAULT_VX_APP_SCRIPT
+        self.data['wic-pre-script'] = None
         self.data['wic-post-script'] = DEFAULT_WIC_POST_SCRIPT
         self.data['environments'] = DEFAULT_ENNVIRONMENTS
 
@@ -222,6 +224,7 @@ class GenFitImage(GenXXX):
         for k,v in self.data.items():
             if isinstance(v, list) and k not in ['lx-rootfs-script',
                                                  'vx-app-script',
+                                                 'wic-pre-script',
                                                  'wic-post-script',
                                                  'environments']:
                 self.data[k] = list(sorted(set(v)))
@@ -247,6 +250,7 @@ class GenFitImage(GenXXX):
                          'fit-config': '%s-%s.its' % (self.data['name'], self.data['machine']),
                          'lx-rootfs-script': '%s-lxrootfs.sh' % (self.data['name']),
                          'vx-app-script': '%s-vxapp.sh' % (self.data['name']),
+                         'wic-pre-script': '%s-wic-pre.sh' % (self.data['name']),
                          'wic-post-script': '%s-wic-post.sh' % (self.data['name']),
                          'wic-config': '%s-%s.wks.in' % (self.data['name'], self.data['machine'])}.items():
             src = self.data.get(key, False)
@@ -282,6 +286,8 @@ class GenFitImage(GenXXX):
                 self.vx_app_script = dst
             elif key == 'wic-post-script':
                 self.wic_post_script = dst
+            elif key == 'wic-pre-script':
+                self.wic_pre_script = dst
 
         for key in self.data['fit-input-files']:
             src = self.data['fit-input-files'].get(key, False)
@@ -317,7 +323,6 @@ class GenFitImage(GenXXX):
                 dst = os.path.join(self.deploydir, 'downloads', os.path.basename(src))
                 fetch_node = {'src': src, 'dst': dst}
                 install_files([fetch_node], self.deploydir)
-
 
     def do_prepare(self):
         super(GenFitImage, self).do_prepare()
@@ -564,6 +569,9 @@ class GenFitImage(GenXXX):
 
     @show_task_info("Create Wic Image")
     def do_image_wic(self):
+        if self.wic_pre_script and os.path.exists(self.wic_pre_script):
+            os.chmod(self.wic_pre_script, 0o777)
+
         if self.wic_post_script and os.path.exists(self.wic_post_script):
             os.chmod(self.wic_post_script, 0o777)
         ostree_use_ab = self.data["ostree"].get("ostree_use_ab", '1')
@@ -576,6 +584,7 @@ class GenFitImage(GenXXX):
                         pkg_type = 'rpm',
                         target_rootfs = self.target_lxrootfs,
                         deploydir = self.deploydir,
+                        pre_script = self.wic_pre_script,
                         post_script = self.wic_post_script,
                         wks_file = wks_file)
 
