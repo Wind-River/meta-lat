@@ -394,6 +394,8 @@ class GenFitImage(GenXXX):
             logger.error("Read %s failed\n%s" % (self.fit_config, e))
             raise
 
+        fit_config_content = os.path.expandvars(fit_config_content)
+
         for k in self.data['fit-input-files']:
             rep_str = '@%s@' % k
             if not self.fit_inputs[k]:
