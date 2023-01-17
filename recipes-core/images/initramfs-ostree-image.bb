@@ -21,8 +21,7 @@ IMAGE_LINGUAS = ""
 
 LICENSE = "MIT"
 
-IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
-IMAGE_FSTYPES:append= " ${@oe.utils.conditional('OSTREE_USE_FIT', '1', 'cpio.gz', '', d)}"
+IMAGE_FSTYPES = "${INITRAMFS_FSTYPES} cpio.gz"
 
 # Stop any kind of circular dependency with the flux-ota class
 IMAGE_CLASSES:remove = "flux-ota"
