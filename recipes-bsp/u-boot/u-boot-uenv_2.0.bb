@@ -363,6 +363,12 @@ fi
 if test -n "\${load_fitimage_addr}"; then
   run loadfit
   bootm \${load_fitimage_addr}#\${fitconfig}
+  if test \$? -ne 0; then
+    echo "bootm \${load_fitimage_addr}#\${fitconfig} failed";
+    if test \${bpart} = A; then
+      reset;
+    fi
+  fi
 else
   run loadramdisk
   run loadkernel
