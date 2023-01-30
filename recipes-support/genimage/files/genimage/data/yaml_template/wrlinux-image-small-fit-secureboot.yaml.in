@@ -1,0 +1,103 @@
+name: wrlinux-image-small-fit-secure-boot
+machine: aptiv_cvc_sousa
+image_type:
+- fit
+fit-config: |
+  /dts-v1/;
+  / {
+        description = "Fit image with secure boot: linux + initramfs + fdtb";
+        images {
+            lx-kernel {
+                description = "Linux kernel";
+                data = /incbin/("@lx-kernel@");
+                type = "kernel";
+                arch = "arm64";
+                os = "linux";
+                compression = "none";
+                load = <0x80000000>;
+                entry = <0x80000000>;
+                hash-1 {
+                    algo = "sha256";
+                };
+                signature-1 {
+                    algo = "sha256,rsa2048";
+                    key-name-hint = "${UBOOT_SIGN_IMG_KEYNAME}";
+                };
+            };
+            lx-fdtb {
+                description = "Flattened Device Tree blob";
+                data = /incbin/("@lx-fdtb@");
+                type = "flat_dt";
+                arch = "arm64";
+                compression = "none";
+                load =<0x83000000>;
+                hash-1 {
+                    algo = "sha256";
+                };
+                signature-1 {
+                    algo = "sha256,rsa2048";
+                    key-name-hint = "${UBOOT_SIGN_IMG_KEYNAME}";
+                };
+            };
+        };
+
+        configurations {
+            default = "wrhv";
+            wrhv {
+                description = "Linux";
+                kernel = "lx-kernel";
+                fdt = "lx-fdtb";
+                hash-1 {
+                    algo = "sha256";
+                };
+                signature-1 {
+                    algo = "sha256,rsa2048";
+                    key-name-hint = "${UBOOT_SIGN_KEYNAME}";
+                    padding = "pkcs-1.5";
+                    sign-images = "kernel";
+                };
+            };
+
+            wrhv_b {
+                description = "Linux";
+                kernel = "lx-kernel";
+                fdt = "lx-fdtb";
+                hash-1 {
+                    algo = "sha256";
+                };
+                signature-1 {
+                    algo = "sha256,rsa2048";
+                    key-name-hint = "${UBOOT_SIGN_KEYNAME}";
+                    padding = "pkcs-1.5";
+                    sign-images = "kernel";
+                };
+            };
+        };
+    };
+secure-boot-map:
+  dd_offset: @DEFAULT_DEPLOY@/aptiv_cvc_sousa_dd_offset
+  boot-atf-sig: @DEFAULT_DEPLOY@/atf-aptiv_cvc_sousa.s32.signature
+  uboot-sign-key: @DEFAULT_DEPLOY@/${UBOOT_SIGN_KEYNAME}.key
+  uboot-sign-img-key: @DEFAULT_DEPLOY@/${UBOOT_SIGN_IMG_KEYNAME}.key
+  hse-sign-pub-key: @DEFAULT_DEPLOY@/${HSE_SEC_PUB_KEY}
+fit-kernel-post-script: |
+  set -x
+  mkimage -F -k $UBOOT_SIGN_KEYDIR -r fitimage
+wic-pre-script: |
+  #!/usr/bin/env bash
+  set -x
+  cp -af $DEPLOY_DIR_IMAGE/downloads/${HSE_SEC_PUB_KEY} $WORKDIR/rootfs_ota_uboot/
+wic-post-script: |
+  #!/usr/bin/env bash
+  set -x
+  set -e
+  atf_s32="$DEPLOY_DIR_IMAGE/downloads/atf-aptiv_cvc_sousa.s32"
+  wicimage="$DEPLOY_DIR_IMAGE/$IMAGE_NAME-aptiv_cvc_sousa-$DATETIME.rootfs.wic"
+  dd_offset=`cat $DEPLOY_DIR_IMAGE/downloads/aptiv_cvc_sousa_dd_offset`
+  dd if=$atf_s32 of=$wicimage seek=1 skip=1 conv=notrunc,fsync
+  dd if=$atf_s32.signature of=$wicimage seek=`printf "%d" ${dd_offset}` oflag=seek_bytes conv=notrunc,fsync
+environments:
+- UBOOT_SIGN_KEYNAME="boot_key"
+- UBOOT_SIGN_IMG_KEYNAME="boot_key_individual"
+- UBOOT_SIGN_KEYDIR="$DEPLOY_DIR_IMAGE/downloads"
+- HSE_SEC_PUB_KEY="rsa2048_public.der"

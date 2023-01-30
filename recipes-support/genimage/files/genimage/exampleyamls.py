@@ -191,7 +191,7 @@ def _main_run_internal(args):
         cmd = "genyaml -d -o {0} --type fit".format(outdir)
         utils.run_cmd_oneshot(cmd)
 
-        for yaml in ['hvp-vx-lx.yaml', 'hvp-vx-lx-secureboot.yaml']:
+        for yaml in ['hvp-vx-lx.yaml', 'hvp-vx-lx-secureboot.yaml', 'wrlinux-image-small-fit-secureboot.yaml']:
             hvp_yaml_in = os.path.join(yamltemplate_dir, yaml + '.in')
             hvp_yaml = os.path.join(yamltemplate_dir, yaml)
             if utils.replace_str_in_file("@DEFAULT_DEPLOY@", fit_constant.DEFAULT_DEPLOY_URL, hvp_yaml_in, hvp_yaml):

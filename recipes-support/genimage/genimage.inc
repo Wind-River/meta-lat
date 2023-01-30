@@ -84,6 +84,7 @@ SRC_URI = "\
            file://genimage/data/yaml_template/startup-container.yaml.in \
            file://genimage/data/yaml_template/hvp-vx-lx.yaml.in \
            file://genimage/data/yaml_template/hvp-vx-lx-secureboot.yaml.in \
+           file://genimage/data/yaml_template/wrlinux-image-small-fit-secureboot.yaml.in \
            file://genimage/data/wic/mkhybridiso.wks.in \
            file://genimage/data/kickstart/kickstart.README.md.in \
            file://genimage/data/kickstart/lat-installer.ks \
