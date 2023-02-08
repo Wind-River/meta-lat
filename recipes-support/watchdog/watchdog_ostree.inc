@@ -1,5 +1,5 @@
 def get_arch_setting_watchdog(bb, d):
-    if d.getVar('TRANSLATED_TARGET_ARCH') in [ 'x86-64', 'i686' ]:
+    if d.getVar('TRANSLATED_TARGET_ARCH') in [ 'x86-64', 'i686', 'i586' ]:
         return "x86_64"
     else:
         return "arm"

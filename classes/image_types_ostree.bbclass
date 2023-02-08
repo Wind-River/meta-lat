@@ -127,7 +127,7 @@ create_tarball_and_ostreecommit() {
 			--tree=dir=${OSTREE_ROOTFS} \
 			--skip-if-unchanged \
 			--branch=${_image_basename} \
-			--timestamp=${_timestamp} \
+			--timestamp="${_timestamp}" \
 			--subject="Commit-id: ${_image_basename}-${MACHINE}-${DATETIME}"
 		# Pull new commmit into old repo
 		flock ${OSTREE_REPO}.lock ostree --repo=${OSTREE_REPO} pull-local ${OSTREE_REPO_TEMP} ${_image_basename}
@@ -167,7 +167,7 @@ create_tarball_and_ostreecommit() {
 				--gpg-sign="${OSTREE_GPGID}" \
 				--gpg-homedir=$gpg_path \
 				--branch=${_image_basename} \
-				--timestamp=${_timestamp} \
+				--timestamp="${_timestamp}" \
 				--subject="Commit-id: ${_image_basename}-${MACHINE}-${DATETIME}"
 		else
 			PATH="${WORKDIR}:$PATH" ostree --repo=${OSTREE_REPO_TEMP} commit \
@@ -176,7 +176,7 @@ create_tarball_and_ostreecommit() {
 				--gpg-sign="${OSTREE_GPGID}" \
 				--gpg-homedir=$gpg_path \
 				--branch=${_image_basename} \
-				--timestamp=${_timestamp} \
+				--timestamp="${_timestamp}" \
 				--subject="Commit-id: ${_image_basename}-${MACHINE}-${DATETIME}"
 		fi
 		# Pull new commmit into old repo
