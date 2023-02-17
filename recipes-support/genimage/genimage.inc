@@ -41,6 +41,8 @@ SRC_URI = "\
            file://genimage/data/post_wic/nxp_s32g.sh \
            file://genimage/data/post_ustart/aptiv_cvc_sousa.sh \
            file://genimage/data/post_wic/aptiv_cvc_sousa.sh \
+           file://genimage/data/post_wic/intel_socfpga_64.sh \
+           file://genimage/data/post_ustart/intel_socfpga_64.sh \
            file://genimage/data/yaml_example/feature/vboxguestdrivers.yaml \
            file://genimage/data/yaml_example/feature/xfce_desktop.yaml \
            file://genimage/data/yaml_example/feature/set_root_password.yaml \
@@ -279,9 +281,11 @@ do_install:append() {
 USTART_POST_SCRIPT ??= ""
 USTART_POST_SCRIPT:nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/nxp_s32g.sh"
 USTART_POST_SCRIPT:aptiv_cvc_sousa = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/aptiv_cvc_sousa.sh"
+USTART_POST_SCRIPT:intel-socfpga-64 = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/intel_socfpga_64.sh"
 WIC_POST_SCRIPT ??= ""
 WIC_POST_SCRIPT:nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/nxp_s32g.sh"
 WIC_POST_SCRIPT:aptiv_cvc_sousa = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/aptiv_cvc_sousa.sh"
+WIC_POST_SCRIPT:intel-socfpga-64 = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/intel_socfpga_64.sh"
 
 DEFAULT_DEBIAN_MIRROR ??= "http://ftp.us.debian.org/debian"
 DEFAULT_DEBIAN_DISTRO ??= "bullseye"
