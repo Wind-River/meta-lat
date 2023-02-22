@@ -39,6 +39,7 @@ DO_REBOOT=0
 MERGE_DIR=/etc
 RESET_VAR=0
 UPGRADE_REV=""
+NO_FATWRITE=""
 
 cleanup() {
 	for d in $CLEANUP_MOUNTS ; do
@@ -348,6 +349,23 @@ update_env() {
 		printf "123"${abflag} > $tmpdir/boot_ab_flag
 		# The first 0 is the boot count, the second zero is the boot entry default
 		printf '00WR' > $tmpdir/boot_cnt
+
+                if [ "$NO_FATWRITE" = "yes" ] ; then
+			partbase=`cat /proc/mounts |grep "sysroot " | awk '{print $1}' | head -n 1`
+			### ASSUME sysroot is on a partitio <= 9 ###
+			if [ "${partbase#/dev/mmcblk}" != "${partbase}" ] ; then
+				dev="${partbase::-2}"
+			elif [ "${partbase#/dev/nbd}" != "${partbase}" ] ; then
+				dev="${partbase::-2}"
+			elif [ "${partbase#/dev/nvme}" != "${partbase}" ] ; then
+				dev="${partbase::-2}"
+			elif [ "${partbase#/dev/loop}" != "${partbase}" ] ; then
+				dev="${partbase::-2}"
+			else
+				dev="${partbase::-1}"
+			fi
+			printf '00WR' | dd of=${dev} seek=1024
+		fi
 	fi
 }
 
@@ -357,10 +375,23 @@ check_selinux() {
 	fi
 }
 
+read_args() {
+	CMDLINE=`cat /proc/cmdline`
+	for arg in $CMDLINE; do
+		optarg=`expr "x$arg" : 'x[^=]*=\(.*\)'`
+		case $arg in
+		no_fatwrite=*)
+			NO_FATWRITE="$optarg"
+			;;
+		esac
+	done
+}
+
 run_upgrade() {
 	if [ -e /ostree/repo/RESETVAR ] ; then
 		rm -f /ostree/repo/RESETVAR
 	fi
+	read_args
 	check_selinux
 	prepare_upgrade
 	ostree_upgrade
