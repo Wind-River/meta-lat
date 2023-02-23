@@ -68,7 +68,7 @@ class GenInitramfs(GenXXX):
         self.data['package_feeds'] = DEFAULT_PACKAGE_FEED[self.pkg_type] if utils.is_sdk() or self.pkg_type == "external-debian" else []
         self.data['package_type'] = self.pkg_type
         self.data["gpg"] = constant.DEFAULT_GPG_DATA
-        self.data['packages'] = OSTREE_INITRD_PACKAGES
+        self.data['packages'] = OSTREE_INITRD_PACKAGES[DEFAULT_MACHINE]
         self.data['external-packages'] = []
         self.data['include-default-packages'] = "1"
         self.data['rootfs-pre-scripts'] = ['echo "run script before do_rootfs in $IMAGE_ROOTFS"']

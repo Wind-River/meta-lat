@@ -22,7 +22,6 @@ packages:
 - glib-networking
 - gnupg
 - grep
-- grub
 - gzip
 - initramfs-ostree
 - kbd

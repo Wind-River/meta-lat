@@ -245,13 +245,17 @@ YOUR_WIFI_LINUX_FIRMWARE
 
 OSTREE_WIFI_PACKAGES = "${OSTREE_WIFI_PACKAGES}".split() if "${OSTREE_WIFI_PACKAGES}".strip() else DEFAULT_OSTREE_WIFI_PACKAGES
 
-OSTREE_INITRD_PACKAGES = '''
+OSTREE_INITRD_PACKAGES_x86_64 = '''
+    grub efibootmgr
+'''.split()
+
+OSTREE_INITRD_PACKAGES_COMMON = '''
     glib-networking
     ca-certificates
     init-ifupdown ifupdown
     debianutils-run-parts iproute2-ip
     e2fsprogs-e2fsck killall
-    mttyexec grub eject
+    mttyexec eject
     ostree ostree-switchroot
     initramfs-ostree bash
     kmod bzip2 gnupg kbd
@@ -264,6 +268,26 @@ OSTREE_INITRD_PACKAGES = '''
     e2fsprogs-resize2fs pv gzip findutils
     tar grep sed gawk busybox busybox-udhcpc
 '''.split()
+
+OSTREE_INITRD_PACKAGES = {
+    'intel-x86-64': OSTREE_INITRD_PACKAGES_COMMON + OSTREE_INITRD_PACKAGES_x86_64,
+    'bcm-2xxx-rpi4': OSTREE_INITRD_PACKAGES_COMMON,
+    'xilinx-zynqmp': OSTREE_INITRD_PACKAGES_COMMON,
+    'xilinx-zynq': OSTREE_INITRD_PACKAGES_COMMON,
+    'nxp-imx6': OSTREE_INITRD_PACKAGES_COMMON,
+    'nxp-imx8': OSTREE_INITRD_PACKAGES_COMMON,
+    'marvell-cn96xx': OSTREE_INITRD_PACKAGES_COMMON,
+    'nxp-s32g': OSTREE_INITRD_PACKAGES_COMMON,
+    'aptiv_cvc_sousa': OSTREE_INITRD_PACKAGES_COMMON,
+    'intel-socfpga-64': OSTREE_INITRD_PACKAGES_COMMON,
+    'ti-j72xx': OSTREE_INITRD_PACKAGES_COMMON,
+    'nxp-ls1028': OSTREE_INITRD_PACKAGES_COMMON,
+    'nxp-ls1043': OSTREE_INITRD_PACKAGES_COMMON,
+    'nxp-lx2xxx': OSTREE_INITRD_PACKAGES_COMMON,
+    'axxiaarm64': OSTREE_INITRD_PACKAGES_COMMON,
+    'axxiaarm': OSTREE_INITRD_PACKAGES_COMMON,
+    'amd-snowyowl-64' : OSTREE_INITRD_PACKAGES_COMMON + OSTREE_INITRD_PACKAGES_x86_64,
+}
 
 DEFAULT_CONTAINER_PACKAGES = '''
     base-files
