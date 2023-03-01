@@ -1,7 +1,7 @@
-From 7022f2145c18df9c2c8f58d0a328dbc0ef77c548 Mon Sep 17 00:00:00 2001
+From d5b93ea47e7c457aeb7f9300c736b44c9bef2d74 Mon Sep 17 00:00:00 2001
 From: Hongxu Jia <hongxu.jia@windriver.com>
 Date: Thu, 22 Apr 2021 08:45:17 +0000
-Subject: [PATCH 6/6] customize do_install for lat
+Subject: [PATCH 3/5] customize do_install for lat
 
 Remove useless grub cfg for lat
 
@@ -13,10 +13,10 @@ Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
  1 file changed, 1 insertion(+), 4 deletions(-)
 
 diff --git a/debian/ostree-boot.install b/debian/ostree-boot.install
-index 67b8681f..9f215099 100644
+index f19b664..8780ad1 100644
 --- a/debian/ostree-boot.install
 +++ b/debian/ostree-boot.install
-@@ -1,12 +1,9 @@
+@@ -1,13 +1,10 @@
 -etc/dracut.conf.d/ostree.conf
 -etc/grub.d/15_ostree
  lib/systemd/system-generators/ostree-system-generator
@@ -30,6 +30,7 @@ index 67b8681f..9f215099 100644
  usr/lib/tmpfiles.d/ostree-tmpfiles.conf
 -usr/libexec/libostree/grub2-15_ostree
 +usr/lib/ostree/ostree-grub-generator
+ usr/libexec/libostree/s390x-se-luks-gencpio
 -- 
-2.17.1
+2.34.1
 
