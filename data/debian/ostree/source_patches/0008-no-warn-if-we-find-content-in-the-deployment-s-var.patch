@@ -1,0 +1,36 @@
+From 0cf3db26e3b678c1540d201816ed1d3803bef134 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Wed, 1 Dec 2021 15:43:34 +0800
+Subject: [PATCH 8/9] no warn if we find content in the deployment's /var
+
+Since commit [edf7477e deploy: Warn if we find content in the
+deployment's /var] applied, warns in LAT but harmless
+
+Revert the commit for no warn
+
+http://lxgit.wrs.com/cgit/layers/meta-lat.git/tree/recipes-extended/ostree/files/0008-no-warn-if-we-find-content-in-the-deployment-s-var.patch?h=WRLINUX_CI
+
+Upstream-Status: Inappropriate [LAT specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ src/libostree/ostree-sysroot-deploy.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/src/libostree/ostree-sysroot-deploy.c b/src/libostree/ostree-sysroot-deploy.c
+index 8d138688..435773d8 100644
+--- a/src/libostree/ostree-sysroot-deploy.c
++++ b/src/libostree/ostree-sysroot-deploy.c
+@@ -2847,9 +2847,6 @@ sysroot_initialize_deployment (OstreeSysroot     *self,
+                                cancellable, error))
+     return FALSE;
+ 
+-  if (!lint_deployment_fs (self, new_deployment, deployment_dfd, cancellable, error))
+-    return FALSE;
+-
+   ot_transfer_out_value (out_new_deployment, &new_deployment);
+   return TRUE;
+ }
+-- 
+2.34.1
+

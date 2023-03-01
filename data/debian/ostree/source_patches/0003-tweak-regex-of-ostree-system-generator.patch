@@ -1,7 +1,7 @@
-From 3f6e401e512af954330e5b2d09edabb29b4c6729 Mon Sep 17 00:00:00 2001
+From ad6000d71cdce8957213a8b85315a2f58fb08a54 Mon Sep 17 00:00:00 2001
 From: Hongxu Jia <hongxu.jia@windriver.com>
 Date: Wed, 20 Jun 2018 10:22:09 +0800
-Subject: [PATCH 11/12] tweak regex of ostree-system-generator
+Subject: [PATCH 3/9] tweak regex of ostree-system-generator
 
 The ostree has boot params ostree="/ostree/1" on grub
 and uboot which is a synlink point to
@@ -9,18 +9,19 @@ the dir contains "boot.0/OSTREE_OSNAME/***".
 
 So tweak regex of ostree-system-generator.
 
-Upstream-Status: Inappropriate [OE specific]
+Upstream-Status: Inappropriate [LAT specific]
 
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+Signed-off-by: Zhang Xiao <xiao.zhang@windriver.com>
 ---
  src/libostree/ostree-impl-system-generator.c | 11 ++++++++---
  1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/src/libostree/ostree-impl-system-generator.c b/src/libostree/ostree-impl-system-generator.c
-index ce40a698..d263a4a6 100644
+index 769f0cbd..d0b83e45 100644
 --- a/src/libostree/ostree-impl-system-generator.c
 +++ b/src/libostree/ostree-impl-system-generator.c
-@@ -97,16 +97,21 @@ stateroot_from_ostree_cmdline (const char *ostree_cmdline,
+@@ -96,16 +96,21 @@ stateroot_from_ostree_cmdline (const char *ostree_cmdline,
  {
    static GRegex *regex;
    static gsize regex_initialized;
@@ -46,5 +47,5 @@ index ce40a698..d263a4a6 100644
    return g_match_info_fetch (match, 1);
  }
 -- 
-2.17.1
+2.34.1
 

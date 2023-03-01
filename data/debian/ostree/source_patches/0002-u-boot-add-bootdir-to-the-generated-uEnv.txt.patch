@@ -1,7 +1,7 @@
-From aeef33de102ae7c26ee10b6e02f8caa59cdb0f20 Mon Sep 17 00:00:00 2001
-From: Gatis Paeglis <gatis.paeglis@qt.io>
-Date: Mon, 22 Aug 2016 15:52:21 +0200
-Subject: [PATCH 04/12] u-boot: add 'bootdir' to the generated uEnv.txt
+From c80495cf0fbaff54dc052c3341a5a0cdbfd60388 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Wed, 1 Dec 2021 10:43:46 +0800
+Subject: [PATCH 2/9] u-boot: add 'bootdir' to the generated uEnv.txt
 
 When doing a full copy of:
 
@@ -22,15 +22,25 @@ restrictions on what file system can be used for rootfs as u-boot,
 for example, can not read from BTRFS. So having
 bootdir=/boot/ostree/$os-$bootcsum/ is a better approach here, as
 /boot can be on a separate partition with its own file system type.
+
+Signed-off-by: Gatis Paeglis <gatis.paeglis@qt.io>
+
+Add index for non-default bootdirs in uEnv.txt.
+
+Upstream-Status: Pending
+
+Signed-off-by: Jiang Lu <lu.jiang@windriver.com>
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+Signed-off-by: Zhang Xiao <xiao.zhang@windriver.com>
 ---
  src/libostree/ostree-bootloader-uboot.c | 4 ++++
  1 file changed, 4 insertions(+)
 
 diff --git a/src/libostree/ostree-bootloader-uboot.c b/src/libostree/ostree-bootloader-uboot.c
-index 531a3756..6da41cc4 100644
+index fb2c2fcf..1e139ec5 100644
 --- a/src/libostree/ostree-bootloader-uboot.c
 +++ b/src/libostree/ostree-bootloader-uboot.c
-@@ -113,6 +113,7 @@ create_config_from_boot_loader_entries (OstreeBootloaderUboot     *self,
+@@ -111,6 +111,7 @@ create_config_from_boot_loader_entries (OstreeBootloaderUboot     *self,
    g_autoptr(GPtrArray) boot_loader_configs = NULL;
    OstreeBootconfigParser *config;
    const char *val;
@@ -38,16 +48,16 @@ index 531a3756..6da41cc4 100644
  
    if (!_ostree_sysroot_read_boot_loader_configs (self->sysroot, bootversion, &boot_loader_configs,
                                                   cancellable, error))
-@@ -136,6 +137,9 @@ create_config_from_boot_loader_entries (OstreeBootloaderUboot     *self,
+@@ -134,6 +135,9 @@ create_config_from_boot_loader_entries (OstreeBootloaderUboot     *self,
          }
-       g_ptr_array_add (new_lines, g_strdup_printf ("kernel_image%s=%s", index_suffix, val));
+       g_ptr_array_add (new_lines, g_strdup_printf ("kernel_image%s=/boot%s", index_suffix, val));
  
 +      bootdir = strndup (val, strrchr(val, '/') - val);
-+      g_ptr_array_add (new_lines, g_strdup_printf ("bootdir=%s/", bootdir));
++      g_ptr_array_add (new_lines, g_strdup_printf ("bootdir%s=%s/", index_suffix, bootdir));
 +
        val = ostree_bootconfig_parser_get (config, "initrd");
        if (val)
-         g_ptr_array_add (new_lines, g_strdup_printf ("ramdisk_image%s=%s", index_suffix, val));
+         g_ptr_array_add (new_lines, g_strdup_printf ("ramdisk_image%s=/boot%s", index_suffix, val));
 -- 
-2.17.1
+2.34.1
 
