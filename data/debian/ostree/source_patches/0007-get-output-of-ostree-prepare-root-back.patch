@@ -1,0 +1,36 @@
+From c6c7e2654d8eded8072d23a280ef854e8f2a0c11 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Wed, 1 Dec 2021 17:01:49 +0800
+Subject: [PATCH 7/9] get output of ostree-prepare-root back
+
+The LAT requires the output of ostree-prepare-root, but commit
+[298c601d ostree-prepare-root: Log journal message after finding
+deployment] redirect the output as systemd journal message
+
+Get it back
+
+Upstream-Status: Inappropriate [LAT specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+Signed-off-by: Zhang Xiao <xiao.zhang@windriver.com>
+---
+ src/switchroot/ostree-prepare-root.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/switchroot/ostree-prepare-root.c b/src/switchroot/ostree-prepare-root.c
+index a5fbc8a8..5ccacf6d 100644
+--- a/src/switchroot/ostree-prepare-root.c
++++ b/src/switchroot/ostree-prepare-root.c
+@@ -152,6 +152,9 @@ resolve_deploy_path (const char * root_mountpoint)
+                    "DEPLOYMENT_INODE=%" PRIu64, (uint64_t) stbuf.st_ino,
+                    NULL);
+ #endif
++
++  printf ("Resolved OSTree target to: %s\n", deploy_path);
++
+   return deploy_path;
+ }
+ 
+-- 
+2.34.1
+
