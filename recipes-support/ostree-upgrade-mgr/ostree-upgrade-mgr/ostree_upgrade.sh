@@ -351,18 +351,17 @@ update_env() {
 		printf '00WR' > $tmpdir/boot_cnt
 
                 if [ "$NO_FATWRITE" = "yes" ] ; then
-			partbase=`cat /proc/mounts |grep "sysroot " | awk '{print $1}' | head -n 1`
-			### ASSUME sysroot is on a partitio <= 9 ###
-			if [ "${partbase#/dev/mmcblk}" != "${partbase}" ] ; then
-				dev="${partbase::-2}"
-			elif [ "${partbase#/dev/nbd}" != "${partbase}" ] ; then
-				dev="${partbase::-2}"
-			elif [ "${partbase#/dev/nvme}" != "${partbase}" ] ; then
-				dev="${partbase::-2}"
-			elif [ "${partbase#/dev/loop}" != "${partbase}" ] ; then
-				dev="${partbase::-2}"
+			partbase=$(cat /proc/mounts |grep "sysroot " | awk '{print $1}' | head -n 1)
+			if [ "$(echo "${partbase}" | sed  's#/dev/mmcblk##g')" != "${partbase}" ] ; then
+				dev=$(echo "${partbase}" | sed 's#.\{2\}$##g')
+			elif [ "$(echo "${partbase}" | sed  's#/dev/nbd##g')" != "${partbase}" ] ; then
+				dev=$(echo "${partbase}" | sed 's#.\{2\}$##g')
+			elif [ "$(echo "${partbase}" | sed  's#/dev/nvme##g')" != "${partbase}" ] ; then
+				dev=$(echo "${partbase}" | sed 's#.\{2\}$##g')
+			elif [ "$(echo "${partbase}" | sed  's#/dev/loop##g')" != "${partbase}" ] ; then
+				dev=$(echo "${partbase}" | sed 's#.\{2\}$##g')
 			else
-				dev="${partbase::-1}"
+				dev=$(echo "${partbase}" | sed 's#.$##g')
 			fi
 			printf '00WR' | dd of=${dev} seek=1024
 		fi

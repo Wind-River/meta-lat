@@ -27,21 +27,21 @@ read_args() {
 }
 read_args
 
-partbase=`cat /proc/mounts |grep "sysroot " | awk '{print $1}'`
+partbase=$(cat /proc/mounts |grep "sysroot " | awk '{print $1}')
 ### ASSUME sysroot is on a partitio <= 9 ###
-if [ "${partbase#/dev/mmcblk}" != ${partbase} ] ; then
-	dev="${partbase::-2}"
-elif [ "${partbase#/dev/nbd}" != ${partbase} ] ; then
-	dev="${partbase::-2}"
-elif [ "${partbase#/dev/nvme}" != ${partbase} ] ; then
-	dev="${partbase::-2}"
-elif [ "${partbase#/dev/loop}" != ${partbase} ] ; then
-	dev="${partbase::-2}"
+if [ "$(echo "${partbase}" | sed  's#/dev/mmcblk##g')" != "${partbase}" ] ; then
+	dev=$(echo "${partbase}" | sed 's#.\{2\}$##g')
+elif [ "$(echo "${partbase}" | sed  's#/dev/nbd##g')" != "${partbase}" ] ; then
+	dev=$(echo "${partbase}" | sed 's#.\{2\}$##g')
+elif [ "$(echo "${partbase}" | sed  's#/dev/nvme##g')" != "${partbase}" ] ; then
+	dev=$(echo "${partbase}" | sed 's#.\{2\}$##g')
+elif [ "$(echo "${partbase}" | sed  's#/dev/loop##g')" != "${partbase}" ] ; then
+	dev=$(echo "${partbase}" | sed 's#.\{2\}$##g')
 else
-	dev="${partbase::-1}"
+	dev=$(echo "${partbase}" | sed 's#.$##g')
 fi
 
-part=${partbase::-1}'1'
+part=$(echo "${partbase}" | sed 's#.$##g')'1'
 tdir=`mktemp -d`
 if [ "$tdir" != "" -a "$no_fatwrite" != yes ] ; then
 	mount ${part} ${tdir}
