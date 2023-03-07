@@ -1242,7 +1242,14 @@ if [ "${VSZ}" != 0 -a -n "${KS}" ]; then
 	fi
 fi
 
-partprobe ${INSTDEV}
+retries=1
+while [ "${retries}" -le 5 ]; do
+	sleep 0.1
+	if partprobe "${INSTDEV}"; then
+		break
+	fi
+	retries=$((retries + 1))
+done
 
 if [ -n "${KS}" ]; then
 	./lat-installer.sh pre-install

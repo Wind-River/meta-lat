@@ -153,12 +153,14 @@ OSTREE_SUPPORTED_ARM64_MACHINES ??= " \
     intel-socfpga-64 \
     ti-j72xx \
     aptiv_cvc_sousa \
+    axxiaarm64 \
 "
 
 OSTREE_SUPPORTED_ARM32_MACHINES ??= " \
     xilinx-zynq \
     nxp-imx6 \
     nxp-ls1028 \
+    axxiaarm \
 "
 
 OSTREE_SUPPORTED_ARM_MACHINES ?= " \
@@ -170,7 +172,6 @@ OSTREE_KERNEL ??= "${KERNEL_IMAGETYPE}"
 RAMDISK_EXT ?= ".${INITRAMFS_FSTYPES}"
 
 BOOTFILES ??= ""
-BOOTFILES:intel-socfpga-64 = "u-boot-dtb.img u-boot.img u-boot.itb ghrd.core.rbf"
 
 OSTREE_WIFI_PACKAGES ??= ""
 OSTREE_WIFI_PACKAGES:intel-x86-64 = " \

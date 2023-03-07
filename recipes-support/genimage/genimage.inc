@@ -41,6 +41,8 @@ SRC_URI = "\
            file://genimage/data/post_wic/nxp_s32g.sh \
            file://genimage/data/post_ustart/aptiv_cvc_sousa.sh \
            file://genimage/data/post_wic/aptiv_cvc_sousa.sh \
+           file://genimage/data/post_wic/intel_socfpga_64.sh \
+           file://genimage/data/post_ustart/intel_socfpga_64.sh \
            file://genimage/data/yaml_example/feature/vboxguestdrivers.yaml \
            file://genimage/data/yaml_example/feature/xfce_desktop.yaml \
            file://genimage/data/yaml_example/feature/set_root_password.yaml \
@@ -52,6 +54,7 @@ SRC_URI = "\
            file://genimage/data/yaml_example/images/core-image-sato.yaml \
            file://genimage/data/yaml_example/images/container-base.yaml \
            file://genimage/data/yaml_example/images/initramfs-ostree-image.yaml \
+           file://genimage/data/yaml_example/images/initramfs-ostree-image_x86_64.yaml \
            file://genimage/data/yaml_example/machine/intel-x86-64.yaml \
            file://genimage/data/yaml_example/machine/bcm-2xxx-rpi4.yaml \
            file://genimage/data/yaml_example/sysdef/add-user-home.yaml \
@@ -274,14 +277,23 @@ do_install:append() {
 		sed -i "/packages:/a - ${LAT_XFCE_THEMES}" \
 		    ${D}${datadir}/genimage/data/yaml_example/feature/xfce_desktop.yaml
 	fi
+
+	if [ "${MACHINE}" = "intel-x86-64" ] || [ "${MACHINE}" = "amd-snowyowl-64" ]; then
+		mv ${D}${datadir}/genimage/data/yaml_example/images/initramfs-ostree-image_x86_64.yaml \
+			${D}${datadir}/genimage/data/yaml_example/images/initramfs-ostree-image.yaml
+	else
+		rm ${D}${datadir}/genimage/data/yaml_example/images/initramfs-ostree-image_x86_64.yaml
+	fi
 }
 
 USTART_POST_SCRIPT ??= ""
 USTART_POST_SCRIPT:nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/nxp_s32g.sh"
 USTART_POST_SCRIPT:aptiv_cvc_sousa = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/aptiv_cvc_sousa.sh"
+USTART_POST_SCRIPT:intel-socfpga-64 = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/intel_socfpga_64.sh"
 WIC_POST_SCRIPT ??= ""
 WIC_POST_SCRIPT:nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/nxp_s32g.sh"
 WIC_POST_SCRIPT:aptiv_cvc_sousa = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/aptiv_cvc_sousa.sh"
+WIC_POST_SCRIPT:intel-socfpga-64 = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/intel_socfpga_64.sh"
 
 DEFAULT_DEBIAN_MIRROR ??= "http://ftp.us.debian.org/debian"
 DEFAULT_DEBIAN_DISTRO ??= "bullseye"

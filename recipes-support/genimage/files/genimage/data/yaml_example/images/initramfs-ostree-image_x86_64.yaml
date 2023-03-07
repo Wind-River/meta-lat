@@ -43,6 +43,8 @@ packages:
 - util-linux-lsblk
 - util-linux-mount
 - util-linux-setsid
+- grub
+- efibootmgr
 include-default-packages: '0'
 environments:
 - NO_RECOMMENDATIONS="1"
