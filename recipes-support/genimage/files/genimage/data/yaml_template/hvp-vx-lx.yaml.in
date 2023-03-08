@@ -23,7 +23,7 @@ fit-config: |
             };
 
             hvp_kernel_b {
-                description = "Hypervisor VMM for Rollback";
+                description = "Hypervisor VMM for B";
                 data = /incbin/("@hvp-b@");
                 type = "kernel";
                 arch = "arm64";
@@ -76,7 +76,7 @@ fit-config: |
                 };
             };
             wrhv_b {
-                description = "Boot Hypervisor for Rollback";
+                description = "Boot Hypervisor for B";
                 kernel = "hvp_kernel_b";
                 loadables = "vx_kernel", "lx_kernel";
                 hash-1 {
