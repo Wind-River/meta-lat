@@ -155,9 +155,10 @@ class DnfRpm(PackageManager):
         env['PATH'] = path
         res, output = utils.run_cmd(cmd, print_output=print_output, env=env)
         if res:
-            raise Exception("Could not invoke dnf. Command "
+            logger.error("Could not invoke dnf. Command "
                      "'%s' returned %d:\n%s" % (' '.join(cmd), res, output))
 
+            sys.exit(1)
         return output
 
     def set_exclude(self, package_exclude = None):
