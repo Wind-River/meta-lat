@@ -35,7 +35,7 @@ for config in stratix10 agilex; do
                 wic cp ${file_name} ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${MACHINE}-${config}.ustart.img:1/
         done
 
-        pigz ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${MACHINE}-${config}.ustart.img
+        pigz -f ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${MACHINE}-${config}.ustart.img
         rm -rf ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${MACHINE}-${config}.ustart.img
 
         cd "${DEPLOY_DIR_IMAGE}"

@@ -45,7 +45,7 @@ for plat in ${UBOOT_CONFIG}; do
         dd if=$atf_s32 of=$ofname conv=notrunc bs=256 count=1 seek=0
         dd if=$atf_s32 of=$ofname conv=notrunc bs=512 seek=1 skip=1
     fi
-    pigz $ofname
+    pigz -f $ofname
 done
 
 rm -f ${USTART_SRC_IMAGE}
