@@ -523,7 +523,7 @@ class GenImage(GenXXX):
 
             cmd_wic = cmd_format % "{0}.wic".format(image_name)
             if DEFAULT_MACHINE == "nxp-s32g":
-                cmd_wic = cmd_format % "{0}-{{evb,rdb2,rdb3,evb3}}.wic".format(image_name)
+                cmd_wic = cmd_format % "{0}-{{rdb3,evb3}}.wic".format(image_name)
             if DEFAULT_MACHINE == "intel-socfpga-64":
                 cmd_wic = cmd_format % "{0}-stratix10.wic".format(image_name)
             output = subprocess.check_output(cmd_wic, shell=True, cwd=self.deploydir)
@@ -551,7 +551,7 @@ class GenImage(GenXXX):
         if "ustart" in self.image_type:
             cmd_wic = cmd_format % "{0}.ustart.img.gz".format(image_name)
             if DEFAULT_MACHINE == "nxp-s32g":
-                cmd_wic = cmd_format % "{0}-{{evb,rdb2,rdb3,evb3}}.ustart.img.gz".format(image_name)
+                cmd_wic = cmd_format % "{0}-{{rdb3,evb3}}.ustart.img.gz".format(image_name)
             if DEFAULT_MACHINE == "intel-socfpga-64":
                 cmd_wic = cmd_format % "{0}-stratix10.ustart.img.gz".format(image_name)
             output = subprocess.check_output(cmd_wic, shell=True, cwd=self.deploydir)
