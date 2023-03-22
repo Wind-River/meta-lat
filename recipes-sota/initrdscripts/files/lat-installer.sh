@@ -383,6 +383,11 @@ ks_lat_disk () {
         shift
         continue
         ;;
+      --timeout=*)
+        boot_params="$boot_params instw=$val"
+        shift
+        continue
+        ;;
       *)
         break
         ;;

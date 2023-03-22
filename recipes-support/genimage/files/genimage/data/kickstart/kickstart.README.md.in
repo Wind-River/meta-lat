@@ -100,13 +100,28 @@ No upstream definition, newly added by LAT
 --var-size=
     MB size of var partition (0 for auto expand)
 
+--timeout=
+    Number of seconds to wait before erasing disk, 0 means do not wait
+
 Example:
     # Try to install a list of available devices
     # /dev/nvme0n1,/dev/mmcblk0,/dev/sda,/dev/vda
     # It is useful while install device is not clear
     # The fat size is 32MB, boot size is 512MB, root size is 8096MB,
-    # the rest free disk space is expanded to /var
-    lat-disk --install-device=/dev/nvme0n1,/dev/mmcblk0,/dev/sda,/dev/vda --fat-size=32 --boot-size=512 --root-size=8096 --var-size=0
+    # the rest free disk space is expanded to /var,
+    # wait 60 seconds before erasing disk
+    lat-disk --install-device=/dev/nvme0n1,/dev/mmcblk0,/dev/sda,/dev/vda --fat-size=32 --boot-size=512 --root-size=8096 --var-size=0 --timeout=60
+
+    # Prompt for the installation target device, without wait to ignore option --timeout
+    lat-disk --install-device=ask --timeout=60
+
+    # Set /dev/sda as default installation target, without prompt
+    lat-disk --install-device=/dev/sda --timeout=0
+
+    # Set /dev/sda as default installation target, wait 60 seconds to
+    # prompt for the installation target device
+    lat-disk --install-device=/dev/sda --timeout=60
+
 ```
 
 ### Parma: %pre section
@@ -307,7 +322,7 @@ $ qemu-system-x86_64 -m 2048 \
         -device virtio-net-pci,netdev=net0 -netdev tap,id=net0,ifname=tap0,script=no,downscript=no \
         -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
         -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd \
-        -cdrom ./deploy/wrlinux-image-small-intel-x86-64-cd.iso \
+        -cdrom ./deploy/@IMAGE_NAME@-intel-x86-64-cd.iso \
         -cpu kvm64 -enable-kvm \
         -drive if=pflash,format=qcow2,file=OVMF_CODE.fd \
         -drive if=pflash,format=qcow2,file=OVMF_VARS.fd \
