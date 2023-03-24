@@ -185,7 +185,7 @@ def _main_run_internal(args):
                 f.write("- contains:\n")
                 f.write("  - exampleyamls/%s-intel-x86-64.yaml\n" % constant.DEFAULT_IMAGE)
 
-        utils.deploy_kickstart_example(args.pkg_type, outdir)
+    utils.deploy_kickstart_example(args.pkg_type, outdir)
 
     if USE_FIT == "1":
         cmd = "genyaml -d -o {0} --type fit".format(outdir)

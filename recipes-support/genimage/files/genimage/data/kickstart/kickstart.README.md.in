@@ -3,7 +3,8 @@ Define a limited set of kickstart with limited capabilities, and use
 existing shell commands (such as bash/cat/sed/mount/umount) to implement
 a simplified kickstart framework (lat-installer.sh) in LAT installer
 
-Currently, only USTART/ISO/PXE image on intel-x86-64 have kickstart support
+Currently, the USTART/ISO/PXE images on intel-x86-64 have kickstart support;
+and the USTART image supports kickstart for all BSPs
 
 ## Limited set of kickstart
 
@@ -193,6 +194,11 @@ Example:
 ```
 
 ## Steps of HowTo (by Qemu)
+
+NOTE: The following example is based on intel-x86-64 BSP which is running
+on Qemu simulator; for other BSPs, please choose the proper BSP specific
+yaml and use real board to run
+
 ### Prepare a kickstart file
 ```
 $ exampleyamls @PKG_TYPE@

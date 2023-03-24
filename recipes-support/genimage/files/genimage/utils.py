@@ -647,7 +647,7 @@ def parse_yamls(yaml_files, no_validate=False, pykwalify_schemas=None, quiet=Fal
 def deploy_kickstart_example(pkg_type, outdir):
     native_sysroot = os.environ['OECORE_NATIVE_SYSROOT']
     kickstart_dir = os.path.join(outdir, "kickstart")
-    kickstart_src = os.path.join(native_sysroot, 'usr/share/genimage/data/kickstart/lat-installer*.ks')
+    kickstart_src = os.path.join(native_sysroot, 'usr/share/genimage/data/kickstart/*.ks')
     cmd = "mkdir -p {0} && cp -f {1} {2}/".format(kickstart_dir, kickstart_src, kickstart_dir)
     run_cmd_oneshot(cmd)
 
