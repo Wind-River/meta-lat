@@ -215,6 +215,9 @@ def _main_run_internal(args):
         output = subprocess.check_output("ls sysdef/*.yaml", shell=True, cwd=outdir)
         table.add_row(["System Definition\n Yamls", output])
 
+    output = subprocess.check_output("ls kickstart/*", shell=True, cwd=outdir)
+    table.add_row(["Kickstart", output])
+
     logger.info("Deploy Directory: %s\n%s", outdir, table.draw())
 
     logger.info("Then, run genimage or genyaml with Yaml Files:\nappsdk genimage <Image>.yaml <Feature>.yaml\nOr\nappsdk genyaml <Image>.yaml <Feature>.yaml")
