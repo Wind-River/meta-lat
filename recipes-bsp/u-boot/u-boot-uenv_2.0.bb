@@ -231,10 +231,13 @@ else
 fi
 setenv exinargs
 setenv instdef "$NETINST_ARGS"
+if test -n \${instargs_ext}; then
+ echo "Add extra install args \${instargs_ext} from U-Boot shell"
+fi
 if test -n \${ninstargs}; then
- setenv netinst "\${ninstargs}"
+ setenv netinst "\${ninstargs} \${instargs_ext}"
 else
- setenv netinst "\${netinstpre}fatload \${devtype} \${devnum}:1 \${loadaddr} ${OSTREE_KERNEL};fatload \${devtype} \${devnum}:1 \${initrd_addr} initramfs; setenv bootargs \\"\${fdtargs} \${instdef} ${OSTREE_BSP_ARGS} \${exinargs}\\";${OSTREE_UBOOT_CMD} \${loadaddr} \${initrd_addr} \${fdt_addr}"
+ setenv netinst "\${netinstpre}fatload \${devtype} \${devnum}:1 \${loadaddr} ${OSTREE_KERNEL};fatload \${devtype} \${devnum}:1 \${initrd_addr} initramfs; setenv bootargs \\"\${fdtargs} \${instdef} ${OSTREE_BSP_ARGS} \${instargs_ext}  \${exinargs}\\";${OSTREE_UBOOT_CMD} \${loadaddr} \${initrd_addr} \${fdt_addr}"
 fi
 setenv autoinst echo "!!!Autostarting network install, you have 5 seconds to reset the board!!!"\;sleep 5\;run netinst
 if test "\${no_autonetinst}" != 1 && test -n \${URL} ; then
@@ -355,6 +358,7 @@ setenv bootargs "\${fdtargs} \${bootpart} ostree=/ostree/\${ostver} \${rootpart}
 if test "\${no_fatwrite}" = yes; then
  setenv bootargs "\${bootargs} no_fatwrite=yes"
 fi
+
 if test ! -n \${use_fdtdtb} || test \${use_fdtdtb} -lt 1; then
  if test -n \${fdt_file}; then
   setenv loaddtb ext4load \${devtype} \${devnum}:\${mmcpart} \${fdt_addr} \${ostver}/\${fdt_file};run loaddtb
