@@ -777,6 +777,7 @@ class GenExtDebImage(GenImage):
         self.data['debootstrap-mirror'] = deb_constant.DEFAULT_DEBIAN_MIRROR
         self.data['debootstrap-key'] = ""
         self.data['apt-keys'] = []
+        self.data['initramfs-sign-script'] = []
         self.data['iso-post-script'] = deb_constant.SCRIPT_DEBIAN_INSTALL_PXE
         self.data['multiple-kernels'] = deb_constant.MULTIPLE_KERNELS
         self.data['default-kernel'] = deb_constant.DEFAULT_KERNEL
@@ -853,7 +854,8 @@ class GenExtDebImage(GenImage):
         utils.mkdirhier(rootfs_efi)
 
         # Copy grub.cfg to rootfs
-        utils.run_cmd_oneshot("cp -f %s %s/" % (self.data['gpg']['grub']['BOOT_GRUB_CFG'], rootfs_efi))
+        if not os.path.exists(os.path.join(rootfs_efi, "grub.cfg")):
+            utils.run_cmd_oneshot("cp -f %s %s/" % (self.data['gpg']['grub']['BOOT_GRUB_CFG'], rootfs_efi))
 
         # Set environment OSTREE_MULTIPLE_KERNELS and OSTREE_DEFAULT_KERNEL for run.do_image_ostree
         kernels = list()
@@ -896,25 +898,12 @@ class GenExtDebImage(GenImage):
                 if not os.path.exists(dst):
                     utils.run_cmd_oneshot("cp -f %s %s" % (src, dst))
 
-            # Sign grub.cfg and LockDown.efi
-            gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
-            gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
-            gpgpath = self.data['gpg']['gpg_path']
-            for f in ['grub.cfg', 'LockDown.efi']:
-                unsign_file = os.path.join(rootfs_efi, f)
-                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, unsign_file)
-
-            # Sign kernel
-            for kernel in glob.glob(os.path.join(rootfs.target_rootfs, 'boot', 'vmlinuz-*-amd64')):
-                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, kernel)
-
         # No secure boot
         else:
             # Copy no secure boot loader to rootfs if it is not available
             src = self.data['gpg']['grub']['BOOT_NOSIG_GRUB']
             dst = os.path.join(rootfs_efi, "bootx64.efi")
-            if not os.path.exists(dst):
-                utils.run_cmd_oneshot("cp -f %s %s" % (src, dst))
+            utils.run_cmd_oneshot("cp -f %s %s" % (src, dst))
 
         # Make sure deploy dir clean
         utils.run_cmd_oneshot("rm -f vmlinuz-*-amd64* *.efi* grub.cfg*", cwd=self.deploydir)
@@ -930,7 +919,7 @@ class GenExtDebImage(GenImage):
         utils.run_cmd_oneshot("cp %s/boot/vmlinuz-*-amd64* %s" % (rootfs.target_rootfs, self.deploydir))
 
         # Copy boot loader to deploy dir
-        utils.run_cmd_oneshot("cp -f %s/* %s" % (rootfs_efi, self.deploydir))
+        utils.run_cmd_oneshot("cp -r -f %s/* %s" % (rootfs_efi, self.deploydir))
 
         # Create symlink bzIamge to kernel
         for kernel in glob.glob(os.path.join(self.deploydir, 'vmlinuz-*-amd64')):
@@ -964,12 +953,6 @@ class GenExtDebImage(GenImage):
         image = os.path.join(self.deploydir, image_name)
         if os.path.exists(os.path.realpath(image)):
             logger.info("Reuse existed Initramfs")
-            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
-                utils.run_cmd_oneshot("chmod 777 %s" % self.deploydir)
-                gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
-                gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
-                gpgpath = self.data['gpg']['gpg_path']
-                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, image)
             return
 
         logger.info("External Debian Initramfs was not found, create one")
@@ -995,14 +978,63 @@ class GenExtDebImage(GenImage):
 
         scriptFile.file.close()
 
-        if os.path.exists(os.path.realpath(image)):
-            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
-                utils.run_cmd_oneshot("chmod 777 %s" % self.deploydir)
-                gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
-                gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
-                gpgpath = self.data['gpg']['gpg_path']
-                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, image)
+    @show_task_info("Create Debian Miniboot Initramfs")
+    def do_ostree_mini_initramfs(self):
+        # If the Initramfs is generated, reuse it
+        image_name = "{0}-{1}.cpio.gz".format(deb_constant.DEFAULT_INITRD_NAME, self.machine)
+        image = os.path.join(self.deploydir, image_name)
+
+        if not os.path.exists(os.path.realpath(image)):
+            logger.error("External Debian Initramfs %s doesn't exist", image)
+            sys.exit(1)
+
+        logger.info("Reuse existed Initramfs for miniboot")
+
+        miniboot_initramfs = os.path.join(self.deploydir, "miniboot_rootfs")
+        if os.path.exists(miniboot_initramfs):
+            utils.remove(os.path.join(miniboot_initramfs), recurse=True)
+        utils.mkdirhier(miniboot_initramfs)
+
+        # extract the stardard initramfs and remove the unneeded files
+        cmd = "cd %s && gzip -d --stdout %s | cpio -i -d -H newc" % (miniboot_initramfs, image)
+        utils.run_cmd_oneshot(cmd)
+
+        # Removing (not needed for initial boot):
+        # These are found by examination via ncdu:
+        # - rt kernel modules
+        # - all __pycache__ directories
+        # - locale entries - we are using the default "C" locale for initial boot
+        # - vim - no need for an editor
+        cmd = "cd %s && rm -rf lib/modules/5*rt*amd64 && rm -rf usr/bin/vim.basic " % miniboot_initramfs
+        cmd += " && rm -rf usr/share/locale/* && rm -rf usr/share/info/* "
+        cmd += " && find . -type d -name '__pycache__' -print0 | xargs -0 rm -rf "
+        utils.run_cmd_oneshot(cmd)
+
+        miniboot_imagename = "initrd-mini"
+        miniboot_imagedir = os.path.join(self.target_rootfs, "var/miniboot")
+        utils.mkdirhier(miniboot_imagedir)
+        miniboot_image = os.path.join(miniboot_imagedir, miniboot_imagename)
+
+        cmd = "cd %s && find . 2>/dev/null | cpio -o -H newc -R root:root | xz -9 --format=lzma > \"%s\"" % \
+            (miniboot_initramfs, miniboot_image)
+        utils.run_cmd_oneshot(cmd)
+
+        if os.path.exists(os.path.realpath(miniboot_image)):
+            utils.remove(os.path.join(miniboot_initramfs), recurse=True)
             return
+
+    @show_task_info("Sign Initramfs And Mini_initramfs")
+    def do_ostree_sign(self):
+        initramfs_sign_script = None
+        if self.data.get('initramfs-sign-script', None):
+            initramfs_sign_script = os.path.join(self.workdir, "initramfs-sign-script.sh")
+            with open(initramfs_sign_script, 'w') as f:
+                f.write("#!/usr/bin/env bash\n")
+                f.write("set -x\n")
+                f.write(self.data.get('initramfs-sign-script') + "\n")
+            os.chmod(initramfs_sign_script, 0o777)
+        cmd = ". {0}".format(initramfs_sign_script)
+        utils.run_cmd_oneshot(cmd)
 
 def _main_run_internal(args):
 
@@ -1023,6 +1055,9 @@ def _main_run_internal(args):
         logger.debug("Create Target Rootfs: %s" % create.target_rootfs)
 
     create.do_ostree_initramfs()
+    if pkg_type == "external-debian":
+        create.do_ostree_mini_initramfs()
+        create.do_ostree_sign()
 
     # WIC image requires ostress repo
     if any(img_type in create.image_type for img_type in ["ostree-repo", "wic", "iso", "ustart", "vmdk", "vdi", "pxe"]):

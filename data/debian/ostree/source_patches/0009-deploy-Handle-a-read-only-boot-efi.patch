@@ -1,0 +1,36 @@
+From 6dc6f1e170113ae6ec9e6bf84d96d845496b2df2 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Wed, 1 Dec 2021 11:09:58 +0800
+Subject: [PATCH 9/9] deploy: Handle a read-only /boot/efi
+
+In order to make `admin unlock --hotfix` work, refer upstream commit
+[9a526bba sysroot: Handle ro /boot but rw /sysroot][1], do the same
+thing on /boot/efi
+
+[1] https://github.com/ostreedev/ostree/commit/9a526bbaa5ad6a75e3b0d8052d93934df3e7a20f
+
+Upstream-Status: Inappropriate [LAT specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+Signed-off-by: Zhang Xiao <xiao.zhang@windriver.com>
+---
+ src/libostree/ostree-sysroot.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/libostree/ostree-sysroot.c b/src/libostree/ostree-sysroot.c
+index 266a2975..442ba41f 100644
+--- a/src/libostree/ostree-sysroot.c
++++ b/src/libostree/ostree-sysroot.c
+@@ -351,6 +351,9 @@ _ostree_sysroot_ensure_writable (OstreeSysroot      *self,
+   gboolean did_remount_boot = FALSE;
+   if (!remount_writable ("/boot", &did_remount_boot, error))
+     return FALSE;
++  gboolean did_remount_bootefi = FALSE;
++  if (!remount_writable ("/boot/efi", &did_remount_bootefi, error))
++    return FALSE;
+ 
+   /* Now close and reopen our file descriptors */
+   ostree_sysroot_unload (self);
+-- 
+2.34.1
+

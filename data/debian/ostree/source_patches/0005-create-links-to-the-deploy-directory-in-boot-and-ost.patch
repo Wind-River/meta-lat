@@ -1,7 +1,7 @@
-From 4261eca8a3c72e7a4b29d114f5ef9b1132206533 Mon Sep 17 00:00:00 2001
+From 4e465a491e618078f78bf0ce3a0bc4048e6a8bf2 Mon Sep 17 00:00:00 2001
 From: Hongxu Jia <hongxu.jia@windriver.com>
 Date: Mon, 29 Nov 2021 14:58:16 +0800
-Subject: [PATCH] create links to the deploy directory in /boot and /ostree
+Subject: [PATCH 5/9] create links to the deploy directory in /boot and /ostree
 
 Rework 0001-ostree-bootloader-uboot.c-Create-links-to-the-deploy.patch
 to implement function ostree_bootloader_create_link_to_sysroot to create
@@ -26,6 +26,7 @@ select a rollback or primary boot choices.
 Upstream-Status: pending
 
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+Signed-off-by: Zhang Xiao <xiao.zhang@windriver.com>
 ---
  src/libostree/ostree-bootloader-grub2.c |  7 +++
  src/libostree/ostree-bootloader-uboot.c |  7 +++
@@ -34,7 +35,7 @@ Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
  4 files changed, 89 insertions(+)
 
 diff --git a/src/libostree/ostree-bootloader-grub2.c b/src/libostree/ostree-bootloader-grub2.c
-index 57673c7d..3630251a 100644
+index fff3b95c..352b2196 100644
 --- a/src/libostree/ostree-bootloader-grub2.c
 +++ b/src/libostree/ostree-bootloader-grub2.c
 @@ -337,6 +337,13 @@ _ostree_bootloader_grub2_write_config (OstreeBootloader      *bootloader,
@@ -52,10 +53,10 @@ index 57673c7d..3630251a 100644
    gboolean use_system_grub2_mkconfig = TRUE;
  #ifdef USE_BUILTIN_GRUB2_MKCONFIG
 diff --git a/src/libostree/ostree-bootloader-uboot.c b/src/libostree/ostree-bootloader-uboot.c
-index 2d99466e..4fdbe77c 100644
+index 1e139ec5..8ac67330 100644
 --- a/src/libostree/ostree-bootloader-uboot.c
 +++ b/src/libostree/ostree-bootloader-uboot.c
-@@ -169,6 +169,13 @@ _ostree_bootloader_uboot_write_config (OstreeBootloader          *bootloader,
+@@ -172,6 +172,13 @@ _ostree_bootloader_uboot_write_config (OstreeBootloader *bootloader,
  {
    OstreeBootloaderUboot *self = OSTREE_BOOTLOADER_UBOOT (bootloader);
  
@@ -70,10 +71,10 @@ index 2d99466e..4fdbe77c 100644
    g_autofree char *config_contents =
      glnx_file_get_contents_utf8_at (self->sysroot->sysroot_fd, uboot_config_path, NULL,
 diff --git a/src/libostree/ostree-sysroot-deploy.c b/src/libostree/ostree-sysroot-deploy.c
-index 15a2dee0..c85fdc3d 100644
+index f98b80eb..8b113ea5 100644
 --- a/src/libostree/ostree-sysroot-deploy.c
 +++ b/src/libostree/ostree-sysroot-deploy.c
-@@ -3147,3 +3147,71 @@ ostree_sysroot_deployment_set_mutable (OstreeSysroot     *self,
+@@ -3458,3 +3458,71 @@ ostree_sysroot_deployment_set_mutable (OstreeSysroot     *self,
  
    return TRUE;
  }
@@ -146,10 +147,10 @@ index 15a2dee0..c85fdc3d 100644
 +  return TRUE;
 +}
 diff --git a/src/libostree/ostree-sysroot.h b/src/libostree/ostree-sysroot.h
-index 502cd750..d6935786 100644
+index c240aaa0..25debf57 100644
 --- a/src/libostree/ostree-sysroot.h
 +++ b/src/libostree/ostree-sysroot.h
-@@ -250,4 +250,11 @@ gboolean ostree_sysroot_simple_write_deployment (OstreeSysroot      *sysroot,
+@@ -308,4 +308,11 @@ gboolean ostree_sysroot_simple_write_deployment (OstreeSysroot      *sysroot,
                                                   GCancellable       *cancellable,
                                                   GError            **error);
  
@@ -162,5 +163,5 @@ index 502cd750..d6935786 100644
 +
  G_END_DECLS
 -- 
-2.27.0
+2.34.1
 

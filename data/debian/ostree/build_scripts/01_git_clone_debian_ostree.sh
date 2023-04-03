@@ -23,6 +23,7 @@ fi
 rm -rf ${dest}
 mkdir -p ${dest}
 cd $dest
-git clone --branch debian/buster --single-branch https://salsa.debian.org/debian/ostree.git .
-git checkout debian/2019.1-1 -b debian/2019.1-1
+git clone https://salsa.debian.org/debian/ostree.git .
+git checkout debian/2022.2-1 -b debian/2022.2-1
+apt install fuse3 gjs libfuse3-dev
 apt build-dep -y ostree

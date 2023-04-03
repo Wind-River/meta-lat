@@ -1,0 +1,31 @@
+From 8b5b2e87b53efb151adb9632d601fb68eb095265 Mon Sep 17 00:00:00 2001
+From: Zhang Xiao <xiao.zhang@windriver.com>
+Date: Tue, 15 Nov 2022 07:21:25 +0000
+Subject: [PATCH 5/5] Port lot patches to debian
+
+Upstream-Status: Inappropriate [lat specific]
+
+Signed-off-by: Zhang Xiao <xiao.zhang@windriver.com>
+---
+ debian/patches/series | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/debian/patches/series b/debian/patches/series
+index 53aaf1d..89d7c55 100644
+--- a/debian/patches/series
++++ b/debian/patches/series
+@@ -2,3 +2,12 @@ debian/Skip-test-pull-repeated-during-CI.patch
+ s390x-se-luks-gencpio-Fix-shebang-syntax.patch
+ s390x-se-luks-gencpio-Use-interoperable-path-for-bash.patch
+ test-prune-Read-to-the-end-of-cut-1-output.patch
++lat/0001-fsck-Throw-and-error-and-return-non-zero-for-non-ver.patch
++lat/0002-u-boot-add-bootdir-to-the-generated-uEnv.txt.patch
++lat/0003-tweak-regex-of-ostree-system-generator.patch
++lat/0004-deploy-using-etc-in-runtime-as-merge-source.patch
++lat/0005-create-links-to-the-deploy-directory-in-boot-and-ost.patch
++lat/0006-Allow-updating-files-in-the-boot-directory.patch
++lat/0007-get-output-of-ostree-prepare-root-back.patch
++lat/0008-no-warn-if-we-find-content-in-the-deployment-s-var.patch
++lat/0009-deploy-Handle-a-read-only-boot-efi.patch
+--
+2.34.1
