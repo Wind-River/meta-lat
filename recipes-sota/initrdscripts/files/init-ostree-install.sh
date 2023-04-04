@@ -589,6 +589,8 @@ read_args() {
 				KERNEL_PARAMS="${optarg//,/ }"
 				;;
 			ks=*)
+				KS="$optarg"
+				;;
 			inst.ks=*)
 				KS="$optarg"
 				;;
