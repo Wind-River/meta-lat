@@ -205,10 +205,12 @@ def get_remote_uris(feed_uris, feed_base_paths, feed_archs):
 
     remote_uris = []
     for uri in _construct_uris(feed_uris.split(), feed_base_paths.split()):
-        if feed_archs is not None:
+        if feed_archs:
             for arch in feed_archs.split():
                 repo_uri = uri + "/" + arch
                 remote_uris.append(repo_uri)
+        else:
+            remote_uris.append(uri)
     return ' '.join(remote_uris)
 
 DEFAULT_PACKAGE_FEED = ""
@@ -312,6 +314,8 @@ RPM_PACKAGE_FEED_URIS ??= ""
 DEB_PACKAGE_FEED_URIS ??= ""
 RPM_PACKAGE_FEED_BASE_PATHS ??= ""
 DEB_PACKAGE_FEED_BASE_PATHS ??= ""
+RPM_PACKAGE_FEED_ARCHS ??= ""
+DEB_PACKAGE_FEED_ARCHS ??= ""
 DEFAULT_RPM_PACKAGE_FEED ??= ""
 DEFAULT_DEB_PACKAGE_FEED ??= ""
 REMOTE_RPM_PKGDATADIR ??= ""
@@ -326,41 +330,7 @@ FIT_LX_FDT:aptiv_cvc_sousa = "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', 
 
 python __anonymous () {
     machine = d.getVar('MACHINE')
-    if machine == 'bcm-2xxx-rpi4':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa72 bcm_2xxx_rpi4 noarch')
-        d.setVar('DEB_PACKAGE_FEED_ARCHS', 'cortexa72 bcm_2xxx_rpi4 all')
-    elif machine == 'xilinx-zynqmp':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch xilinx_zynqmp')
-    elif machine == 'xilinx-zynq':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'armv7at2hf_neon noarch xilinx_zynq')
-    elif machine == 'nxp-imx6':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'armv7at2hf_neon noarch nxp_imx6')
-    elif machine == 'nxp-imx8':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'aarch64 noarch nxp_imx8')
-    elif machine == 'marvell-cn96xx':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'marvell_cn96xx noarch octeontx2')
-    elif machine == 'nxp-s32g':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch nxp_s32g')
-    elif machine == 'aptiv_cvc_sousa':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch aptiv_cvc_sousa')
-    elif machine == 'intel-socfpga-64':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 intel_socfpga_64 noarch')
-    elif machine == 'ti-j72xx':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa72 noarch ti_j72xx')
-    elif machine == 'nxp-ls1028':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa72 noarch nxp_ls1028')
-    elif machine == 'nxp-ls1043':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa53 noarch nxp_ls1043')
-    elif machine == 'nxp-lx2xxx':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa72 noarch nxp_lx2xxx')
-    elif machine == 'axxiaarm64':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa57 noarch axxiaarm64')
-    elif machine == 'axxiaarm':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'cortexa15t2_neon noarch axxiaarm')
-    elif machine == 'intel-x86-64':
-        d.setVar('RPM_PACKAGE_FEED_ARCHS', 'corei7_64 intel_x86_64 noarch')
-        d.setVar('DEB_PACKAGE_FEED_ARCHS', 'corei7-64 intel_x86_64 all')
-
+    if machine == 'intel-x86-64':
         if d.getVar('DEBIAN_CUSTOMIZE_FEED_URI') != 'not_set':
             d.appendVar("SUPPORTED_PKGTYPES", " external-debian")
             d.appendVar("DEFAULT_EXTERNAL_DEB_PACKAGE_FEED", d.expand("deb [trusted=yes] ${DEBIAN_CUSTOMIZE_FEED_URI} ./"))
