@@ -502,7 +502,7 @@ parse_ks() {
 
 pre_install() {
   local script=""
-  for script in `ls ${lat_pre_script}/* 2>/dev/null`; do
+  for script in `find ${lat_pre_script} -type f`; do
     echo "Run pre install script ${script}"
     ${script}
     if [ $? -ne 0 ]; then
@@ -530,7 +530,7 @@ post_install() {
 
   mkdir -p ${target_rootfs}/var/home ${target_rootfs}/var/rootdirs/{opt,mnt,media,srv,root}
 
-  for script in `ls ${lat_post_script}/* 2>/dev/null`; do
+  for script in `find ${lat_post_script} -type f`; do
     echo "Run post install script ${script} in ${target_rootfs}"
     chroot ${target_rootfs} ${script}
     if [ $? -ne 0 ]; then
@@ -538,7 +538,7 @@ post_install() {
     fi
   done
 
-  for script in `ls ${lat_post_nochroot_script}/* 2>/dev/null`; do
+  for script in `find ${lat_post_nochroot_script} -type f`; do
     echo "Run post install nochroot script ${script}"
     IMAGE_ROOTFS=${target_rootfs} ${script}
     if [ $? -ne 0 ]; then
@@ -575,7 +575,7 @@ set_network() {
   else
     lat_networkd="${target_rootfs}/etc/systemd/network/"
     mkdir -p ${lat_networkd}
-    for conf in `ls ${lat_network_systemd_dir}/*`; do
+    for conf in `find ${lat_network_systemd_dir} -type f`; do
       cp $conf ${lat_networkd}
       echo "Deploy ${lat_networkd}${conf##*/}"
     done
