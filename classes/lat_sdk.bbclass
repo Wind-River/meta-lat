@@ -39,6 +39,10 @@ copy_pkgdata() {
 }
 
 POPULATE_SDK_PRE_TARGET_COMMAND += "copy_ostree_initramfs_to_sdk;"
+
+# The copy_ostree_initramfs_to_sdk requires {INITRAMFS_IMAGE}-${MACHINE}.${INITRAMFS_FSTYPES}
+do_populate_sdk[depends] += "${INITRAMFS_IMAGE}:do_image_complete"
+
 copy_ostree_initramfs_to_sdk() {
     install -d ${SDK_OUTPUT}${SDKPATHNATIVE}${datadir}/genimage/data/initramfs
     if [ -L ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.${INITRAMFS_FSTYPES} ];then
