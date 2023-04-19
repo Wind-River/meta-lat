@@ -187,6 +187,11 @@ create_grub_cfg() {
 	fi
 	bootargs="${OSTREE_CONSOLE} rdinit=/install instdev=$idev instname=${OSTREE_OSNAME} instbr=$INST_BRANCH insturl=$iurl instab=$OSTREE_USE_AB instsf=1 $EXTRA_INST_ARGS kernelparams=$EXTRA_KERNEL_ARGS"
 
+	grep -q preempt-rt ${DEPLOY_DIR_IMAGE}/bzImage
+	if [ $? -eq 0 ]; then
+		bootargs="$bootargs efi=runtime"
+	fi
+
 	if [ "$OSTREE_FLUX_PART" = "luksfluxdata" -a "$EXTRA_INST_ARGS" = "${EXTRA_INST_ARGS/LUKS/}" ] ; then
 		bootargs="$bootargs LUKS=1"
 	fi
