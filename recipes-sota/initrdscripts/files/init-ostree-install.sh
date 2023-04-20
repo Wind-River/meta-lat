@@ -508,7 +508,7 @@ fatal() {
     if [ -e /install.log -a -e /tmp/lat/report_error_log.sh ]; then
         /bin/bash /tmp/lat/report_error_log.sh
     elif [ -e /install.log ]; then
-        local _dev=$(blkid --label otaboot -o device)
+        local _dev=$(blkid --label otaefi -o device || blkid --label boot -o device || blkid --label instboot -o device)
         if [ "$_dev" != "" ] ; then
             mkdir -p /t
             mount -o rw,noatime $_dev /t
@@ -1565,11 +1565,11 @@ for e in otaboot otaboot_b otaroot otaroot_b fluxdata; do
 	fi
 done
 
-# Save install.log to /root
-if [ -e /install.log -a -d /var1/rootdirs/root ]; then
-    echo "Save install.log to installed /root"
+# Save install.log to /var
+if [ -e /install.log ]; then
+    echo "Save install.log to installed /var"
     sleep 2
-    cp /install.log /var1/rootdirs/root/
+    cp /install.log /var1/
 fi
 
 umount /var1
