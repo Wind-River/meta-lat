@@ -86,7 +86,9 @@ selinux_set_labels (){
     touch ${OSTREE_ROOTFS}/usr/${sysconfdir}/selinux/fixfiles_exclude_dirs
     echo "/ostree" >> ${OSTREE_ROOTFS}/usr/${sysconfdir}/selinux/fixfiles_exclude_dirs
     echo "/sysroot" >> ${OSTREE_ROOTFS}/usr/${sysconfdir}/selinux/fixfiles_exclude_dirs
-    mv ${OSTREE_ROOTFS}/.autorelabel ${OSTREE_ROOTFS}/usr/${sysconfdir}
+    if [ -f ${OSTREE_ROOTFS}/.autorelabel ]; then
+        mv ${OSTREE_ROOTFS}/.autorelabel ${OSTREE_ROOTFS}/usr/${sysconfdir}
+    fi
     sed -i '\/bin\/rm/a \\t/usr/sbin/setfiles -F -q  /etc/selinux/wr-mls/contexts/files/file_contexts /etc' ${OSTREE_ROOTFS}/usr/bin/selinux-autorelabel.sh
     sed -i "s/.autorelabel/etc\/.autorelabel/g" ${OSTREE_ROOTFS}/usr/bin/selinux-autorelabel.sh
 
