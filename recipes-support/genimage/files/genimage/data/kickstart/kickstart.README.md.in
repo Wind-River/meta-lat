@@ -233,7 +233,7 @@ Create a QEMU simulator with 2 disks and 3 network interfaces
 ```
 $ qemu-img create -f raw boot-image-qemu.hddimg 16G
 $ qemu-img create -f raw boot-image-qemu-2.hddimg 16G
-$ cp -fa deploy/@ovmf_code@ OVMF_CODE.fd
+$ cp -fa deploy/ovmf.qcow2 OVMF_CODE.fd
 $ cp -fa deploy/ovmf.vars.qcow2 OVMF_VARS.fd
 $ qemu-system-x86_64 -m 5174 \
         -drive if=none,id=hd,file=boot-image-qemu.hddimg,format=raw \
@@ -319,7 +319,7 @@ Create a QEMU simulator with 1 disk and 1 network interface
 
 ```
 $ qemu-img create -f raw boot-image-qemu.hddimg 16G
-$ cp -fa deploy/@ovmf_code@ OVMF_CODE.fd
+$ cp -fa deploy/ovmf.qcow2 OVMF_CODE.fd
 $ cp -fa deploy/ovmf.vars.qcow2 OVMF_VARS.fd
 $ sudo ${OECORE_NATIVE_SYSROOT}/usr/share/poky/scripts/runqemu-ifup `id -u` `id -g` ${OECORE_NATIVE_SYSROOT}/usr/bin
 
