@@ -180,17 +180,24 @@ ask_dev() {
 		choices=()
 		while IFS="" read -r inp; do
 			choices+=("$inp")
-		done<<< $(lsblk -n -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL |grep disk|grep -v " ${ISO_INSTLABEL}$")
+		done<<< $(lsblk -n -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL -x SIZE |grep disk|grep -v " ${ISO_INSTLABEL}$")
 		echo "$heading"
 		for i in ${!choices[@]}; do
 			[ "${choices[$i]}" = "" ] && continue
 			echo "$i - ${choices[$i]}"
 		done
 		echo "B - Reboot"
+		echo "Press any other key to choose largest disk"
 		out=0
 		IFS='' read -p "Select disk to format and install: " -r reply
 		[ "$reply" = "B" ] && echo b > /proc/sysrq-trigger;
 		[ "$reply" -ge 0 -a "$reply" -lt ${#choices[@]} ] 2> /dev/null && out=1
+		if [ $out = 0 ] ; then
+			reply=$i
+			out=1
+			echo "Choose largest disk: $i"
+		fi
+
 		if [ $out = 1 ] ; then
 			i=$(echo ${choices[$reply]}|awk '{print $1}')
 			IFS='' read -p "ERASE /dev/$i (y/n) " -r reply2
