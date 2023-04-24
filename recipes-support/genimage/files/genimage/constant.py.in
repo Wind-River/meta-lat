@@ -201,8 +201,6 @@ DEFAULT_PACKAGES_nxp_lx2xxx = '''
     i2c-tools
     can-utils
     dce
-    odp
-    ofp
     restool
 '''.split()
 
