@@ -200,6 +200,13 @@ ask_dev() {
 
 		if [ $out = 1 ] ; then
 			i=$(echo ${choices[$reply]}|awk '{print $1}')
+			blkid -p /dev/${i}* | grep ' TYPE=' | grep -v 'LABEL="instboot"' | grep -v "LABEL=\"${ISO_INSTLABEL}\"" -q
+			if [ $? -eq 0 ]; then
+				IFS='' read -p "The disk /dev/$i is not empty, ERASE /dev/$i (y/n) " -r reply2
+				if [ "$reply2" != "y" ] ; then
+					continue
+				fi
+			fi
 			IFS='' read -p "ERASE /dev/$i (y/n) " -r reply2
 			if [ "$reply2" = "y" ] ; then
 				INSTDEV=/dev/$i
