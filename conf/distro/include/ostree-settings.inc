@@ -155,6 +155,7 @@ OSTREE_SUPPORTED_ARM64_MACHINES ??= " \
     aptiv_cvc_sousa \
     axxiaarm64 \
     nxp-ls1043 \
+    nxp-lx2xxx \
 "
 
 OSTREE_SUPPORTED_ARM32_MACHINES ??= " \
