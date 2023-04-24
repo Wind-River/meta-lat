@@ -530,6 +530,7 @@ fatal() {
             echo "Save install-fail.log to partition otaboot($_dev)"
             sleep 2
             cp /install.log /t/install-fail.log
+            chmod 644 /t/install-fail.log
             umount /t
         fi
     fi
@@ -1622,6 +1623,7 @@ if [ -e /install.log ]; then
     echo "Save install.log to installed /var"
     sleep 2
     cp /install.log /var1/
+	chmod 644 /var1/install.log
 fi
 
 umount /var1
