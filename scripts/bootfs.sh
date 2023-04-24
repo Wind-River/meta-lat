@@ -112,10 +112,14 @@ modify_boot_scr() {
 	perl -p -i -e "s#^( *setenv URL) .*#\$1 $iurl# if (\$_ !~ /oURL/) " $OUTDIR/boot.scr.raw
 
 	if [ ${UUID} != "" ]; then
+		fromdev="PUUID=_PUUID_,UUID=_UUID_"
+		fromdev=$(echo "$fromdev" |sed "s/_PUUID_/${UUID}/g")
+		fromdev=$(echo "$fromdev" |sed "s/_UUID_/$(echo ${UUID:0:4}-${UUID:4:4}|sed 's/[a-z]/\U&/g')/g")
+
 		idev="PUUID=_PUUID_,UUID=_UUID_"
 		idev=$(echo "$idev" |sed "s/_PUUID_/${UUID}/g")
 		idev=$(echo "$idev" |sed "s/_UUID_/$(echo ${UUID:0:4}-${UUID:4:4}|sed 's/[a-z]/\U&/g')/g")
-		perl -p -i -e "s#instdev=.*?([ \"])#instdev=$idev\$1#" $OUTDIR/boot.scr.raw
+		perl -p -i -e "s#instdev=.*?([ \"])#instdev=$idev fromdev=$fromdev\$1#" $OUTDIR/boot.scr.raw
 	fi
 
 	if [ -n "$INST_DEV" ] ; then
@@ -177,6 +181,9 @@ create_grub_cfg() {
 		idev=$INST_DEV
 	fi
 	if [ ${UUID} != "" ]; then
+	    fromdev="PUUID=_PUUID_,UUID=_UUID_"
+	    fromdev=$(echo "$fromdev" |sed "s/_PUUID_/${UUID}/g")
+	    fromdev=$(echo "$fromdev" |sed "s/_UUID_/$(echo ${UUID:0:4}-${UUID:4:4}|sed 's/[a-z]/\U&/g')/g")
 	    idev=$(echo "$idev" |sed "s/_PUUID_/${UUID}/g")
 	    idev=$(echo "$idev" |sed "s/_UUID_/$(echo ${UUID:0:4}-${UUID:4:4}|sed 's/[a-z]/\U&/g')/g")
 	fi
@@ -185,7 +192,7 @@ create_grub_cfg() {
 	if [ "$INST_URL" != "" ] ; then
 		iurl="$INST_URL"
 	fi
-	bootargs="${OSTREE_CONSOLE} rdinit=/install instdev=$idev instname=${OSTREE_OSNAME} instbr=$INST_BRANCH insturl=$iurl instab=$OSTREE_USE_AB instsf=1 $EXTRA_INST_ARGS kernelparams=$EXTRA_KERNEL_ARGS"
+	bootargs="${OSTREE_CONSOLE} rdinit=/install instdev=$idev instname=${OSTREE_OSNAME} instbr=$INST_BRANCH insturl=$iurl instab=$OSTREE_USE_AB instsf=1 $EXTRA_INST_ARGS kernelparams=$EXTRA_KERNEL_ARGS fromdev=$fromdev"
 
 	grep -q preempt-rt ${DEPLOY_DIR_IMAGE}/bzImage
 	if [ $? -eq 0 ]; then
@@ -224,7 +231,7 @@ if [ "\${boot_part}" = "" ] ; then
   fi
 fi
 
-menuentry "OSTree Install $idev" --unrestricted {
+menuentry "OSTree Install from $fromdev" --unrestricted {
     set fallback=1
     efi-watchdog enable 0 180
     linux \${prefix}/bzImage $bootargs

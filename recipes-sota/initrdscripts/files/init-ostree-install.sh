@@ -28,6 +28,7 @@ The arguments to this script are passed through the kernel boot arguments.
 
 REQUIRED:
  rdinit=/install		- Activates the installer
+ fromdev=/dev/YOUR_DEVCICE	- The device of installer image, PUUID=x, UUID=y, LABEL=x
  instdev=/dev/YOUR_DEVCICE	- One or more devices separated by a comma
 	  where the first valid device found is used as the install device,
           OR use "ask" to ask for device, OR use LABEL=x, PUUID=x, UUID=x
@@ -621,6 +622,8 @@ read_args() {
 				IP=$optarg ;;
 			instl=*)
 				INSTL=$optarg ;;
+			fromdev=*)
+				FROMDEV=$optarg ;;
 			instdev=*)
 				INSTDEV=$optarg ;;
 			instw=*)
@@ -1032,6 +1035,41 @@ fi
 
 fix_part_labels=1
 # Device setup
+retry=0
+fail=1
+while [ $retry -lt $MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE ] ; do
+	for i in ${FROMDEV//,/ }; do
+		if [ "${i#PUUID=}" != "$i" ] ; then
+			fdev=$(blkid -o device -l -t PARTUUID=${i#PUUID=})
+			if [ "$fdev" != "" ] ; then
+				fail=0
+				break
+			fi
+		elif [ "${i#UUID=}" != "$i" ] ; then
+			fdev=$(blkid --uuid ${i#UUID=})
+			if [ "$fdev" != "" ] ; then
+				fail=0
+				break
+			fi
+		elif [ "${i#LABEL=}" != "$i" ] ; then
+			fdev=$(blkid --label ${i#LABEL=})
+			if [ "$fdev" != "" ] ; then
+				fail=0
+				break
+			fi
+		elif [ -e $i ]; then
+			fdev=$(realpath $i)
+			if [ "$fdev" != "" ] ; then
+				fail=0
+				break
+			fi
+		fi
+	done
+	[ $fail = 0 ] && break
+	retry=$(($retry+1))
+	sleep 0.1
+done
+
 if [ "$INSTDEV" = "ask" ] ; then
 	INSTW=0
 	ask_dev
@@ -1078,6 +1116,7 @@ while [ $retry -lt $MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE ] ; do
 	retry=$(($retry+1))
 	sleep 0.1
 done
+
 if [ $fail = 1 ] ; then
 	INSTW=0
 	ask_dev
@@ -1144,8 +1183,7 @@ dev=${INSTDEV}
 
 # Special case check if install media is different than boot media
 if [ $INSTSF = 1 ] ; then
-	i=$(blkid --label instboot || blkid --label ${ISO_INSTLABEL})
-	if [ "$i" != "" -a "${fs_dev}${p1}" != "${i}" ] ; then
+	if [ "${fdev}" != "" -a "${fs_dev}${p1}" != "${fdev}" ] ; then
 		echo "Install disk is different than boot disk setting instsf=0"
 		INSTSF=0
 	fi
@@ -1320,8 +1358,8 @@ if [ $? = 0 ] ; then
 	mount -r $bdev /instboot
 # Special case check if instboot is not available and
 # install media is different than boot media
-elif [ -n "$idev" ] && [ -e "$idev" ] && [ "$idev" != "${fs_dev}${p1}"  ] ; then
-	mount -r $idev /instboot
+elif [ -n "$fdev" ] && [ -e "$fdev" ] && [ "$fdev" != "${fs_dev}${p1}"  ] ; then
+	mount -r $fdev /instboot
 fi
 
 mkdir -p ${PHYS_SYSROOT}/boot/efi
