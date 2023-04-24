@@ -285,7 +285,7 @@ class GenImage(GenXXX):
         return boot_params
 
     def _get_bootfs_params(self, data_ostree):
-        bootfs_params = "-s 0 "
+        bootfs_params = "-s 0 -d ask "
         # If install net mode and remote ostree url is set, enable install over network
         if data_ostree.get('install_net_mode') and data_ostree.get('ostree_remote_url'):
             bootfs_params += "-u {0} ".format(data_ostree['ostree_remote_url'])
