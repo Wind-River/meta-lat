@@ -523,16 +523,20 @@ fatal() {
     if [ -e /install.log -a -e /tmp/lat/report_error_log.sh ]; then
         /bin/bash /tmp/lat/report_error_log.sh
     elif [ -e /install.log ]; then
-        local _dev=$(blkid --label otaefi -o device || blkid --label boot -o device || blkid --label instboot -o device)
-        if [ "$_dev" != "" ] ; then
-            mkdir -p /t
-            mount -o rw,noatime $_dev /t
-            echo "Save install-fail.log to partition otaboot($_dev)"
-            sleep 2
-            cp /install.log /t/install-fail.log
-            chmod 644 /t/install-fail.log
-            umount /t
-        fi
+        datetime=$(date +%y%m%d-%H%M%S)
+        for label in otaefi device instboot; do
+            local _dev=$(blkid --label $label -o device)
+            if [ "$_dev" != "" ] ; then
+                mkdir -p /t
+                mount -o rw,noatime $_dev /t
+                faillog=install-fail-$datetime.log
+                echo "Save $faillog to partition otaboot($_dev)"
+                sleep 2
+                cp /install.log /t/$faillog
+                chmod 644 /t/$faillog
+                umount /t
+            fi
+        done
     fi
     if [ "$INSTPOST" = "shell" ] ; then shell_start ; fi
     if [ "$INSTPOST" = "exit" ] ; then exit 1 ; fi
@@ -1356,11 +1360,11 @@ mount "${OSTREE_BOOT_DEVICE}" "${PHYS_SYSROOT}/boot"  || fatal "Error mouting ${
 mkdir /instboot
 bdev=$(blkid --label instboot || blkid --label ${ISO_INSTLABEL})
 if [ $? = 0 ] ; then
-	mount -r $bdev /instboot
+	mount -w $bdev /instboot || mount -r $bdev /instboot
 # Special case check if instboot is not available and
 # install media is different than boot media
 elif [ -n "$fdev" ] && [ -e "$fdev" ] && [ "$fdev" != "${fs_dev}${p1}"  ] ; then
-	mount -r $fdev /instboot
+	mount -w $fdev /instboot
 fi
 
 mkdir -p ${PHYS_SYSROOT}/boot/efi
@@ -1620,10 +1624,12 @@ done
 
 # Save install.log to /var
 if [ -e /install.log ]; then
-    echo "Save install.log to installed /var"
+    datetime=$(date +%y%m%d-%H%M%S)
+    oklog="install-$datetime.log"
+    echo "Save $oklog to installed /var"
     sleep 2
-    cp /install.log /var1/
-	chmod 644 /var1/install.log
+    cp /install.log /var1/$oklog
+    chmod 644 /var1/$oklog
 fi
 
 umount /var1
