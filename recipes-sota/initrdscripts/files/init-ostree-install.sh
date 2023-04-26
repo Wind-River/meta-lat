@@ -188,31 +188,44 @@ ask_dev() {
 			echo "$i - ${choices[$i]}"
 		done
 		echo "B - Reboot"
-		echo "Press any other key to choose largest disk"
+		echo "R - Refresh"
+		echo ""
+		echo "Press any other key to install on: ${i}?"
 		out=0
-		IFS='' read -p "Select disk to format and install: " -r reply
+		IFS='' read -p "Or select disk to format and install: " -r reply
 		[ "$reply" = "B" ] && echo b > /proc/sysrq-trigger;
+		[ "$reply" = "R" ] && continue;
 		[ "$reply" -ge 0 -a "$reply" -lt ${#choices[@]} ] 2> /dev/null && out=1
 		if [ $out = 0 ] ; then
 			reply=$i
 			out=1
-			echo "Choose largest disk: $i"
+			des="${choices[$i]}"
+			echo "Choose to install on disk: $i (${des% })"
 		fi
 
 		if [ $out = 1 ] ; then
+			echo ""
 			i=$(echo ${choices[$reply]}|awk '{print $1}')
-			blkid -p /dev/${i}* | grep ' TYPE=' | grep -v 'LABEL="instboot"' | grep -v "LABEL=\"${ISO_INSTLABEL}\"" -q
+			blkid -p /dev/${i}* | grep ' TYPE=' | grep -v "LABEL=\"${ISO_INSTLABEL}\"" -q
 			if [ $? -eq 0 ]; then
 				IFS='' read -p "The disk /dev/$i is not empty, ERASE /dev/$i (y/n) " -r reply2
 				if [ "$reply2" != "y" ] ; then
 					continue
 				fi
-			fi
-			IFS='' read -p "ERASE /dev/$i (y/n) " -r reply2
-			if [ "$reply2" = "y" ] ; then
-				INSTDEV=/dev/$i
-				check_valid_dev $INSTDEV || fatal "Could not install to disk of installer ISO image"
-				break
+
+				IFS='' read -p "Are you sure to ERASE /dev/$i (y/n) " -r reply2
+				if [ "$reply2" = "y" ] ; then
+					INSTDEV=/dev/$i
+					check_valid_dev $INSTDEV || fatal "Could not install to disk of installer ISO image"
+					break
+				fi
+			else
+				IFS='' read -p "ERASE /dev/$i (y/n) " -r reply2
+				if [ "$reply2" = "y" ] ; then
+					INSTDEV=/dev/$i
+					check_valid_dev $INSTDEV || fatal "Could not install to disk of installer ISO image"
+					break
+				fi
 			fi
 		fi
 	done
@@ -1077,6 +1090,8 @@ done
 
 if [ "$INSTDEV" = "ask" ] ; then
 	INSTW=0
+	# Wait to avoid interference of kernel message
+	sleep 1
 	ask_dev
 fi
 
