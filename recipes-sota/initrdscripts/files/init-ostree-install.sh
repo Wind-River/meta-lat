@@ -87,6 +87,7 @@ OPTIONAL:
  kernelparams=a=b,c=d	- Set kernel params to installed OS, use `,' to split multiple params
 
  efibootfirst=1		- Set EFI boot from disk entry as first order
+ devmd=0			- Set to 0 to skip the call of 'mdadm --assemble --scan'
  BLM=#				- Blocks of boot magic area to skip
 				  ARM BSPs with SD cards usually need this
  FSZ=#				- MB size of fat partition
@@ -507,7 +508,7 @@ early_setup() {
 	$_UDEV_DAEMON --daemon
 	udevadm trigger --action=add
 
-	if [ -x /sbin/mdadm ]; then
+	if [ -x /sbin/mdadm -a "$DEVMD" = "1" ]; then
 		/sbin/mdadm -v --assemble --scan --auto=md
 	fi
 
@@ -567,6 +568,7 @@ RSZ=1400
 VSZ=0
 # end values from ostree-settings.inc
 LUKS=0
+DEVMD=1
 BIOSPLUSEFI=0
 DEFAULT_KERNEL=""
 EFIBOOT_FIRST=0
@@ -691,6 +693,8 @@ read_args() {
 				if [ "$LCURL" = "" ] ; then LCURL=$optarg; fi ;;
 			lcurlarg=*)
 				LCURLARG=$optarg ;;
+			devmd=*)
+				DEVMD=$optarg ;;
 			biosplusefi=*)
 				BIOSPLUSEFI=$optarg ;;
 			defaultkernel=*)

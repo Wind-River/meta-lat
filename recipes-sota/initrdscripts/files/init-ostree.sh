@@ -34,6 +34,7 @@ OSTREE_LABEL_FLUXDATA="fluxdata"
 VSZ=0
 SKIP_BOOT_DIFF=""
 ALLOW_RM_VAR=1
+DEVMD=1
 # The timeout (tenth of a second) for rootfs on low speed device
 MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE=60
 datapart=""
@@ -73,10 +74,6 @@ early_setup() {
 
 	$_UDEV_DAEMON --daemon
 	udevadm trigger --action=add
-
-	if [ -x /sbin/mdadm ]; then
-		/sbin/mdadm -v --assemble --scan --auto=md
-	fi
 }
 
 read_args() {
@@ -102,6 +99,8 @@ read_args() {
 				DEBUGFATAL=1 ;;
 			flux=*)
 				OSTREE_LABEL_FLUXDATA=$optarg ;;
+			devmd=*)
+				DEVMD=$optarg ;;
 		esac
 	done
 }
@@ -167,6 +166,10 @@ fatal() {
 early_setup
 
 read_args
+
+if [ -x /sbin/mdadm -a "$DEVMD" = "1" ]; then
+	/sbin/mdadm -v --assemble --scan --auto=md
+fi
 
 [ -z "$CONSOLE" ] && CONSOLE="/dev/console"
 [ -z "$INIT" ] && INIT="/sbin/init"
