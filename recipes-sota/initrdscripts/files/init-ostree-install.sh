@@ -115,7 +115,7 @@ conflict_label() {
 	local op=$1
 	local 'label' 'd' 'devs' 'conflict' 'i' 'fstype'
 	conflict=1
-	for label in otaefi otaboot otaboot_b otaroot otaroot_b fluxdata; do
+	for label in otaefi boot otaboot otaboot_b otaroot otaroot_b fluxdata; do
 		devs=$(blkid -t LABEL=$label -o device |grep -v $INSTDEV)
 		if [ "$devs" != "" ] ; then
 			i=0
@@ -537,16 +537,17 @@ fatal() {
         /bin/bash /tmp/lat/report_error_log.sh
     elif [ -e /install.log ]; then
         datetime=$(date +%y%m%d-%H%M%S)
-        for label in otaefi device instboot; do
+        for label in otaefi boot instboot; do
             local _dev=$(blkid --label $label -o device)
             if [ "$_dev" != "" ] ; then
                 mkdir -p /t
                 mount -o rw,noatime $_dev /t
                 faillog=install-fail-$datetime.log
-                echo "Save $faillog to partition otaboot($_dev)"
+                echo "Save $faillog to partition $_dev"
                 sleep 2
                 cp /install.log /t/$faillog
                 chmod 644 /t/$faillog
+                sync
                 umount /t
             fi
         done
