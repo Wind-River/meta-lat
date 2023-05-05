@@ -129,7 +129,7 @@ class GenImage(GenXXX):
         self.data['include-default-packages'] = "1"
         self.data['rootfs-pre-scripts'] = ['echo "run script before do_rootfs in $IMAGE_ROOTFS"']
         self.data['rootfs-post-scripts'] = ['echo "run script after do_rootfs in $IMAGE_ROOTFS"']
-        self.data['environments'] = ['NO_RECOMMENDATIONS="0"', 'KERNEL_PARAMS="key=value"']
+        self.data['environments'] = ['NO_RECOMMENDATIONS="0"', 'KERNEL_PARAMS=%s'%constant.DEFAULT_KERNEL_PARAMS]
         self.data['ustart-post-script'] = constant.DEFAULT_USTART_POST_SCRIPT
         self.data['wic-post-script'] = constant.DEFAULT_WIC_POST_SCRIPT
 

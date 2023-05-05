@@ -630,7 +630,13 @@ eval `grep ^OSTREE_CONSOLE= $ENVFILE | sed -e 's:\\\\::g' -e "s:\":':g"`
 eval `grep ^DISTRO_FEATURES= $ENVFILE`
 eval `grep ^BOOTFS_EXTRA_CMD= $ENVFILE`
 eval `grep ^OSTREE_FDISK_BLM= $ENVFILE`
+eval `grep ^OSTREE_KERNEL_ARGS= $ENVFILE`
 eval `grep 'export OSTREE_OSNAME=' $ENVFILE`
+
+if [ -n "${OSTREE_KERNEL_ARGS}" ]; then
+    EXTRA_KERNEL_ARGS="${OSTREE_KERNEL_ARGS} ${EXTRA_KERNEL_ARGS}"
+    EXTRA_INST_ARGS="${OSTREE_KERNEL_ARGS} ${EXTRA_INST_ARGS}"
+fi
 
 if [ -n "${OSTREE_FDISK_BLM}" ]; then
     EXTRA_INST_ARGS="BLM=${OSTREE_FDISK_BLM} ${EXTRA_INST_ARGS}"

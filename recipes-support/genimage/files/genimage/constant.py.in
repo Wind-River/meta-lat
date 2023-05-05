@@ -347,7 +347,7 @@ DEFAULT_OSTREE_DATA = {
   'ostree_skip_boot_diff': '${OSTREE_SKIP_BOOT_DIFF}',
   'ostree_remote_url': '',
   'ostree_install_device': '',
-  'ostree_extra_install_args':'',
+  'ostree_extra_install_args':'${OSTREE_KERNEL_ARGS}',
   'install_kickstart_url':'',
   'install_net_params':'',
   'install_net_mode':'',
@@ -360,6 +360,8 @@ DEFAULT_OSTREE_DATA = {
   'OSTREE_FDISK_FSZ': int('${OSTREE_FDISK_FSZ}'),
   'OSTREE_CONSOLE': '${OSTREE_CONSOLE}',
 }
+
+DEFAULT_KERNEL_PARAMS="${OSTREE_KERNEL_ARGS}"
 
 EXTRA_IMAGE_BOOT_FILES = {
     '${MACHINE}': '',

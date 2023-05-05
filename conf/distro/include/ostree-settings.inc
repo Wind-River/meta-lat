@@ -10,7 +10,7 @@ OSTREE_OSNAME ??= "lat_os"
 # This is set to the name of the loader to include into a disk image
 # Not all BSPs will need this, so it can be unset by the BSP
 OSTREE_BOOTLOADER_INCLUDE ??= "${OSTREE_BOOTLOADER}"
-OSTREE_KERNEL_ARGS ??= "ro rootwait"
+OSTREE_KERNEL_ARGS ??= "devmd=0"
 
 # The OSTREE_SKIP_BOOT_DIFF can be one of the following:
 #   0 = Perform a full fsck and boot diff
