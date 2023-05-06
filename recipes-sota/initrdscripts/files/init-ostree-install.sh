@@ -179,10 +179,12 @@ ask_dev() {
 	fix_part_labels=0
 	heading="    `lsblk -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL |head -n 1`"
 	while [ 1 ] ; do
+		# Filter out <=100MB (104857600 byte) disk
+		allow_disks=`lsblk -n  -o PATH,SIZE,TYPE -b -x SIZE |grep disk | awk '{ if ($2 > 104857600) { print $1} }'`
 		choices=()
 		while IFS="" read -r inp; do
 			choices+=("$inp")
-		done<<< $(lsblk -n -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL -x SIZE |grep disk|grep -v " ${ISO_INSTLABEL}$")
+		done<<< $(lsblk -n -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL -x SIZE $allow_disks |grep disk|grep -v " ${ISO_INSTLABEL}$")
 		echo "$heading"
 		for i in ${!choices[@]}; do
 			[ "${choices[$i]}" = "" ] && continue
