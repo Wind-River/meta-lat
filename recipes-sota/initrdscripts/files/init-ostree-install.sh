@@ -178,6 +178,7 @@ ask_dev() {
 	local 'heading' 'inp' 'i' 'reply' 'reply2' 'out' 'choices'
 	fix_part_labels=0
 	heading="    `lsblk -o NAME,VENDOR,SIZE,MODEL,TYPE,LABEL |head -n 1`"
+	arch=$(uname -m)
 	while [ 1 ] ; do
 		# Filter out <=100MB (104857600 byte) disk
 		allow_disks=`lsblk -n  -o PATH,SIZE,TYPE -b -x SIZE |grep disk | awk '{ if ($2 > 104857600) { print $1} }'`
@@ -189,21 +190,32 @@ ask_dev() {
 		for i in ${!choices[@]}; do
 			[ "${choices[$i]}" = "" ] && continue
 			echo "$i - ${choices[$i]}"
+			if [ "$arch" != "x86_64" -a -n "$fname" ]; then
+				echo "${choices[$i]}" | awk '{ print $1}' | grep "$fname" -q
+				if [ $? -eq 0 ]; then
+					prompt_index=$i
+				fi
+			fi
 		done
+
+		if [ "$arch" = "x86_64" -o -z "$fname" ]; then
+			prompt_index=$i
+		fi
+
 		echo "B - Reboot"
 		echo "R - Refresh"
 		echo ""
-		echo "Press any other key to install on: ${i}?"
+		echo "Press any other key to install on: ${prompt_index}?"
 		out=0
 		IFS='' read -p "Or select disk to format and install: " -r reply
 		[ "$reply" = "B" ] && echo b > /proc/sysrq-trigger;
 		[ "$reply" = "R" ] && continue;
 		[ "$reply" -ge 0 -a "$reply" -lt ${#choices[@]} ] 2> /dev/null && out=1
 		if [ $out = 0 ] ; then
-			reply=$i
+			reply=$prompt_index
 			out=1
-			des="${choices[$i]}"
-			echo "Choose to install on disk: $i (${des% })"
+			des="${choices[$prompt_index]}"
+			echo "Choose to install on disk: $prompt_index (${des% })"
 		fi
 
 		if [ $out = 1 ] ; then
@@ -1094,6 +1106,10 @@ while [ $retry -lt $MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE ] ; do
 	retry=$(($retry+1))
 	sleep 0.1
 done
+
+if [ -n "$fdev" ]; then
+	fname=$(lsblk $fdev -n -o pkname)
+fi
 
 if [ "$INSTDEV" = "ask" ] ; then
 	INSTW=0
