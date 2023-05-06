@@ -567,9 +567,12 @@ fatal() {
             fi
         done
     fi
-    if [ "$INSTPOST" = "shell" ] ; then shell_start ; fi
     if [ "$INSTPOST" = "exit" ] ; then exit 1 ; fi
-    sleep 10
+
+    echo "Install failed, starting boot shell.  System will reboot on exit"
+    echo "You can execute the install with verbose message:"
+    echo "     INSTSH=0 bash -v -x /install"
+    shell_start exec
     lreboot
 }
 
