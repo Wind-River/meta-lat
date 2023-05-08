@@ -775,6 +775,10 @@ grub_pt_update() {
 	first=$(($end+1))
 	p=$((p+1))
 	if [ $first -gt $last ] ; then
+		a=$(echo "$a" | sed "s/\(.*:EF00\) .*/\1/g")
+		sgdisk $a -p ${dev}
+		mkfs.vfat -n otaefi ${fs_dev}${p1}
+		sync
 		fatal "ERROR: Disk is not big enough for requested layout"
 	fi
 }
