@@ -221,6 +221,10 @@ ask_dev() {
 		if [ $out = 1 ] ; then
 			echo ""
 			i=$(echo ${choices[$reply]}|awk '{print $1}')
+			if [ "$arch" != "x86_64" -a "$reply" != "$prompt_index" ]; then
+				echo "WARNING: You choose to install on *$i* which is not the suggested disk *$(echo ${choices[$prompt_index]}|awk '{print $1}')*"
+				echo "WARNING: It may fail to install and re-install repeatedly, or failed to boot after installed."
+			fi
 			blkid -p /dev/${i}* | grep ' TYPE=' | grep -v "LABEL=\"${ISO_INSTLABEL}\"" -q
 			if [ $? -eq 0 ]; then
 				IFS='' read -p "The disk /dev/$i is not empty, ERASE /dev/$i (y/n) " -r reply2
