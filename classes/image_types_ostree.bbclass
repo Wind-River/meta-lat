@@ -89,14 +89,14 @@ selinux_set_labels (){
     if [ -f ${OSTREE_ROOTFS}/.autorelabel ]; then
         mv ${OSTREE_ROOTFS}/.autorelabel ${OSTREE_ROOTFS}/usr/${sysconfdir}
     fi
-    sed -i '\/bin\/rm/a \\t/usr/sbin/setfiles -F -q  /etc/selinux/wr-mls/contexts/files/file_contexts /etc' ${OSTREE_ROOTFS}/usr/bin/selinux-autorelabel.sh
-    sed -i "s/.autorelabel/etc\/.autorelabel/g" ${OSTREE_ROOTFS}/usr/bin/selinux-autorelabel.sh
 
     POL_TYPE=$(sed -n -e "s&^SELINUXTYPE[[:space:]]*=[[:space:]]*\([0-9A-Za-z_]\+\)&\1&p" ${OSTREE_ROOTFS}/usr/${sysconfdir}/selinux/config)
+    sed -i "\/bin\/rm/a \\\t/usr/sbin/setfiles -F -q /etc/selinux/${POL_TYPE}/contexts/files/file_contexts /etc" ${OSTREE_ROOTFS}/usr/bin/selinux-autorelabel.sh
+    sed -i "s/.autorelabel/etc\/.autorelabel/g" ${OSTREE_ROOTFS}/usr/bin/selinux-autorelabel.sh
+
     if ! setfiles -m -r ${OSTREE_ROOTFS} ${OSTREE_ROOTFS}/usr/${sysconfdir}/selinux/${POL_TYPE}/contexts/files/file_contexts ${OSTREE_ROOTFS}
     then
-        bb.fatal "selinux_set_labels error."
-        exit 0
+        bbfatal "selinux_set_labels error."
     fi
 }
 
