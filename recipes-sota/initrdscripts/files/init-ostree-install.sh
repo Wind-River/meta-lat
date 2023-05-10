@@ -907,34 +907,47 @@ ufdisk_partition() {
 	if [ "${INSTFLUX}" = 1 ] ; then
 		# Create Boot and Root A partition
 		echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+		[ $? -eq 0 ] || fatal "Create partition failed"
 		echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+		[ $? -eq 0 ] || fatal "Create partition failed"
 		if [ "$INSTAB" = "1" ] ; then
 			# Create Boot and Root B partition
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			[ $? -eq 0 ] || fatal "Create partition failed"
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			[ $? -eq 0 ] || fatal "Create partition failed"
 		fi
 
 		# flux data partition
 		if [ "$VSZ" = 0 ] ; then
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'), +" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			[ $? -eq 0 ] || fatal "Create partition failed"
 		else
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${VSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			[ $? -eq 0 ] || fatal "Create partition failed"
 		fi
 	else
 		if [ "$INSTAB" = "1" ] ; then
 			# Create Boot and Root A partition
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			[ $? -eq 0 ] || fatal "Create partition failed"
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			[ $? -eq 0 ] || fatal "Create partition failed"
 			# Create Boot and Root B partition
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			[ $? -eq 0 ] || fatal "Create partition failed"
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			[ $? -eq 0 ] || fatal "Create partition failed"
 		else
 			# Create Boot and Root A partition for whole disk
 			echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${BSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+			[ $? -eq 0 ] || fatal "Create partition failed"
 			if [ "$VSZ" = 0 ] ; then
 				echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'), +" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+				[ $? -eq 0 ] || fatal "Create partition failed"
 			else
 				echo "$(sfdisk -F ${dev} |tail -1 |awk '{print $1}'),${RSZ}M" | sfdisk --no-reread --no-tell-kernel -a -W never -w never ${dev}
+				[ $? -eq 0 ] || fatal "Create partition failed"
 			fi
 		fi
 	fi
