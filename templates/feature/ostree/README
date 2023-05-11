@@ -64,3 +64,19 @@ order to perform a network deployment.  The bootfs.sh tool can
 generate an image which contains the ostree_repo which will be
 deployed on the first boot, or it can use the network as the point to
 retrieve the data in the ostree_repo.
+
+NOTE:
+In some cases, for example, uboot image isn't integrated into WRLinux because
+of the license issue, or the uboot env is not saved in boot device, user need
+to make sure uboot env is correct to boot up the target, we use boot.scr as the
+boot script. Here are the examples for setting up the uboot env:
+
+1. For nxp-ls1028:
+    $ setenv boot_scripts boot.scr
+    $ saveenv
+2. For axxiaarm64:
+    $ setenv scriptaddr 0x2000000
+    $ setenv boot_a_script "usb start; usb reset; fatload usb 0:1 ${scriptaddr} boot.scr; source ${scriptaddr}"
+    $ setenv ostree_boot "run boot_a_script"
+    $ setenv bootcmd "run ostree_boot"
+    $ saveenv
