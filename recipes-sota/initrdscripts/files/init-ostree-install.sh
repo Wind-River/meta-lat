@@ -205,19 +205,28 @@ ask_dev() {
 		echo "B - Reboot"
 		echo "R - Refresh"
 		echo ""
-		echo "Press any other key to install on: ${prompt_index}?"
+		IFS='' read -p "Press Enter to to install on $(echo ${choices[$prompt_index]}|awk '{print $1}') or Esc to selelct a different device?" -r -s -n1 reply
+		echo ""
 		out=0
-		IFS='' read -p "Or select disk to format and install: " -r reply
+		re='^[0-9]+$'
 		[ "$reply" = "B" ] && echo b > /proc/sysrq-trigger;
 		[ "$reply" = "R" ] && continue;
-		[ "$reply" -ge 0 -a "$reply" -lt ${#choices[@]} ] 2> /dev/null && out=1
-		if [ $out = 0 ] ; then
+		if [ "$reply" = $'\e' ]; then
+			IFS='' read -p "Select disk to format and install: " -r reply
+			while ! [[ $reply =~ $re ]] || [ "$reply" -lt 0 ] || [ "$reply" -gt $i ]; do
+				index_scope="0"
+				if [ ${#choices[@]} -gt 1 ]; then
+					index_scope="$index_scope ~ $i"
+				fi
+				IFS='' read -p "The number $index_scope is required: "  -r reply
+			done
+			out=1
+		elif [ "$reply" = "" ] ; then
 			reply=$prompt_index
 			out=1
 			des="${choices[$prompt_index]}"
 			echo "Choose to install on disk: $prompt_index (${des% })"
 		fi
-
 		if [ $out = 1 ] ; then
 			echo ""
 			i=$(echo ${choices[$reply]}|awk '{print $1}')
