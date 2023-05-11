@@ -1671,6 +1671,18 @@ if [ "${LCURL}" != "" -a "${LCURL}" != "none" ] ; then
 	/lcurl ${LCURLARG}
 fi
 
+if [ -f ${PHYS_SYSROOT}/ostree/?/etc/selinux/config ]; then
+	if [ ! -f ${PHYS_SYSROOT}/ostree/?/etc/.autorelabel ]; then
+		relabeldira=$(ls ${PHYS_SYSROOT}/ostree/? -d | sed -n '1,1p')
+		echo "# first boot relabelling" > ${relabeldira}/etc/.autorelabel
+
+		if [ "$INSTAB" = 1 ] ; then
+			relabeldirb=$(ls ${PHYS_SYSROOT}_b/ostree/? -d | sed -n '1,1p')
+			echo "# first boot relabelling" > ${relabeldirb}/etc/.autorelabel
+		fi
+	fi
+fi
+
 # Modify fstab if not using fluxdata
 # Caution... If someone resets the /etc/fstab with OSTree this change is lost...
 mkdir /var1
