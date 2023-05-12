@@ -205,7 +205,7 @@ ask_dev() {
 		echo "B - Reboot"
 		echo "R - Refresh"
 		echo ""
-		IFS='' read -p "Press Enter to to install on $(echo ${choices[$prompt_index]}|awk '{print $1}') or Esc to selelct a different device?" -r -s -n1 reply
+		IFS='' read -p "Press Enter to install on $(echo ${choices[$prompt_index]}|awk '{print $1}') or Esc to select a different device?" -r -s -n1 reply
 		echo ""
 		out=0
 		re='^[0-9]+$'
