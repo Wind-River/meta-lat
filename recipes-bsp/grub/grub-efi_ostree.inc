@@ -7,7 +7,6 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/grub-efi:"
 SRC_URI += " \
     file://0001-Make-UEFI-watchdog-behaviour-configurable.patch \
     file://0001-correct-grub_errno-if-allocate-memory-at-preferred-a.patch \
-    file://0001-grub-verify-Add-skip_check_cfg-variable.patch \
     file://grub-runtime.cfg \
 "
 
@@ -19,16 +18,6 @@ GRUB_BUILDIN += "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'cha
 do_compile:append:class-native() {
         make grub-editenv
 }
-
-skip_check_grub_cfg() {
-    if [ "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', '1', '0', d)}" = "1" -a \
-         "${@bb.utils.contains('DISTRO_FEATURES', 'lat', '1', '0', d)}" = "1" ]; then
-        cat<<EOF>>${WORKDIR}/cfg
-set skip_check_cfg=1
-EOF
-    fi
-}
-do_compile[postfuncs] += "skip_check_grub_cfg"
 
 do_install:append:class-native() {
     install -m 0755 grub-editenv "${D}${bindir}"
