@@ -49,7 +49,8 @@ OPTIONAL:
     ip=10.0.2.15::10.0.2.1:255.255.255.0:tgt:eth0:off:10.0.2.3:8.8.8.8
  LUKS=0				- Do not create encrypted volumes
  LUKS=1				- Encrypt var volume (requires TPM)
- LUKS=2				- Encrypt var and and root volumes (requires TPM)
+ LUKS=2				- Encrypt var and root volumes (requires TPM)
+ LUKS=3				- Encrypt var, boot and root volumes (requires TPM)
  instflux=0			- Do not create/use the fluxdata partition for /var
  instl=DIR			- Local override ostree repo to install from
  instsh=1			- Start a debug shell
@@ -1299,8 +1300,16 @@ if [ "$BL" = "grub" -a "$INSTFMT" != "0" ] ; then
 	fi
 
 	pi=$((p1+1))
-	mkfs.ext4 -F -L otaboot ${fs_dev}${pi}
 	dashe="-e"
+	if [ $LUKS -eq 3 ] ; then
+		dd if=/dev/urandom of=/boot.key bs=1 count=32
+		echo Y | luks-setup.sh -f $dashe -d ${fs_dev}${pi} -n luksotaboot -k /boot.key || \
+			fatal "Cannot create LUKS volume luksotaboot"
+		dashe=""
+		mkfs.ext4 -F -L otaboot /dev/mapper/luksotaboot
+	else
+		mkfs.ext4 -F -L otaboot ${fs_dev}${pi}
+	fi
 
 	pi=$((pi+1))
 	if [ $LUKS -gt 1 ] ; then
@@ -1314,7 +1323,14 @@ if [ "$BL" = "grub" -a "$INSTFMT" != "0" ] ; then
 
 	if [ "$INSTAB" = "1" ] ; then
 		pi=$((pi+1))
-		mkfs.ext4 -F -L otaboot_b ${fs_dev}${pi}
+		if [ $LUKS -eq 3 ] ; then
+			echo Y | luks-setup.sh -f $dashe -d ${fs_dev}${pi} -n luksotaboot_b -k /boot.key || \
+				fatal "Cannot create LUKS volume luksotaboot_b"
+			dashe=""
+			mkfs.ext4 -F -L otaboot_b /dev/mapper/luksotaboot_b
+		else
+			mkfs.ext4 -F -L otaboot_b ${fs_dev}${pi}
+		fi
 
 		pi=$((pi+1))
 		if [ $LUKS -gt 1 ] ; then
