@@ -1703,12 +1703,6 @@ if [ "$INSTAB" = 1 ] ; then
 fi
 umount ${PHYS_SYSROOT}/boot/efi ${PHYS_SYSROOT}/boot ${PHYS_SYSROOT}
 
-for e in otaboot otaboot_b otaroot otaroot_b fluxdata; do
-	if [ -e /dev/mapper/luks${e} ] ; then
-		cryptsetup luksClose luks${e}
-	fi
-done
-
 # Save install.log to /var
 if [ -e /install.log ]; then
     datetime=$(date +%y%m%d-%H%M%S)
@@ -1720,6 +1714,12 @@ if [ -e /install.log ]; then
 fi
 
 umount /var1
+
+for e in otaboot otaboot_b otaroot otaroot_b fluxdata; do
+	if [ -e /dev/mapper/luks${e} ] ; then
+		cryptsetup luksClose luks${e}
+	fi
+done
 
 udevadm control -e
 
