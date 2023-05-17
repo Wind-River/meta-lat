@@ -390,6 +390,18 @@ fi
 
 rm_var_check
 
+timeout=$(($MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE * 10))
+do_echo=1
+while [ 1 ] ; do
+	mount "LABEL=${OSTREE_LABEL_FLUXDATA}" "${ROOT_MOUNT}/var" && break
+	[ $do_echo = 1 ] && echo "Waiting for fluxdata device to be ready..." && do_echo=0
+	sleep 0.1
+	timeout=$(($timeout - 1))
+	if [ $timeout = 0 ] ; then
+		fatal "Failed to mount fluxdata device"
+	fi
+done
+
 udevadm control -e
 
 cd $ROOT_MOUNT
