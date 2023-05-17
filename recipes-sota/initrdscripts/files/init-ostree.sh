@@ -30,6 +30,7 @@ UMOUNT="/bin/umount"
 ROOT_DELAY="0"
 OSTREE_SYSROOT=""
 OSTREE_BOOT_DEVICE="LABEL=otaboot"
+OSTREE_EFI_DEVICE=""
 OSTREE_LABEL_FLUXDATA="fluxdata"
 VSZ=0
 SKIP_BOOT_DIFF=""
@@ -95,6 +96,8 @@ read_args() {
 				INIT=$optarg ;;
 			ostree_boot=*)
 				OSTREE_BOOT_DEVICE=$optarg ;;
+			ostree_efi=*)
+				OSTREE_EFI_DEVICE=$optarg ;;
 			debugfatal)
 				DEBUGFATAL=1 ;;
 			flux=*)
@@ -256,9 +259,13 @@ try_to_mount_rootfs() {
 }
 
 # For slow disks we must wait for the labels to become ready
-chkcmd="blkid |grep -q $OSTREE_BOOT_DEVICE"
-if [ "${OSTREE_BOOT_DEVICE}" != "${OSTREE_BOOT_DEVICE#LABEL=}" ] ; then
-	chkcmd="blkid --label ${OSTREE_BOOT_DEVICE#LABEL=}"
+_device="$OSTREE_BOOT_DEVICE"
+if [ -n "${OSTREE_EFI_DEVICE}" ]; then
+	_device="$OSTREE_EFI_DEVICE"
+fi
+chkcmd="blkid |grep -q $_device"
+if [ "${_device}" != "${_device#LABEL=}" ] ; then
+	chkcmd="blkid --label ${_device#LABEL=}"
 fi
 timeout=$(($MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE * 10))
 do_echo=1
