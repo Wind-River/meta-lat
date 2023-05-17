@@ -23,7 +23,11 @@ PkgsCoreUtils = "coreutils \
     iproute2 \
 "
 INITRAMFS_PKGS = "${@bb.utils.contains('INITRAMFS_FEATURES', 'busybox', "${PkgsBusyBox}", "${PkgsCoreUtils}", d)}"
-INITRAMFS_PKGS:append:x86-64 = " grub efibootmgr"
+INITRAMFS_PKGS:append:x86-64 = " \
+    grub \
+    efibootmgr \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'luks', 'grub-efi', '', d)} \
+"
 
 RDEPENDS:${PN} = " \
     ${PN}-installer \

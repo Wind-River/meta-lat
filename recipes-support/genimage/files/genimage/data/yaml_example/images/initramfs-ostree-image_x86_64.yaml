@@ -44,6 +44,7 @@ packages:
 - util-linux-mount
 - util-linux-setsid
 - grub
+- grub-efi
 - efibootmgr
 include-default-packages: '0'
 environments:
