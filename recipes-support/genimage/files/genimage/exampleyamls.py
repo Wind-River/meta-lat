@@ -128,12 +128,13 @@ def _main_run_internal(args):
         for image_yaml in image_yamls:
             if image_yaml.endswith('container-base.yaml'):
                 cmd = "genyaml -d -o {0} --type container --pkg-type rpm {1}".format(outdir, image_yaml)
-            elif image_yaml.endswith('initramfs-ostree-image.yaml'):
-                cmd = "genyaml -d -o {0} --type initramfs --pkg-type rpm {1}".format(outdir, image_yaml)
             else:
                 cmd = "genyaml -d -o {0} --pkg-type rpm {1} {2}".format(outdir, machine_yaml, image_yaml)
                 for pkg in  set(constant.DEFAULT_PACKAGES[DEFAULT_MACHINE]) - set(constant.DEFAULT_PACKAGES_COMMON):
                     cmd += " --pkg %s" % pkg
+            utils.run_cmd_oneshot(cmd)
+
+            cmd = "genyaml -d -o {0} --type initramfs --pkg-type {1}".format(outdir, args.pkg_type)
             utils.run_cmd_oneshot(cmd)
 
             cmd = "genyaml -d -o {0} --pkg-type rpm".format(outdir)

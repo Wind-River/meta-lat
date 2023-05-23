@@ -53,8 +53,6 @@ SRC_URI = "\
            file://genimage/data/yaml_example/images/core-image-minimal.yaml \
            file://genimage/data/yaml_example/images/core-image-sato.yaml \
            file://genimage/data/yaml_example/images/container-base.yaml \
-           file://genimage/data/yaml_example/images/initramfs-ostree-image.yaml \
-           file://genimage/data/yaml_example/images/initramfs-ostree-image_x86_64.yaml \
            file://genimage/data/yaml_example/machine/intel-x86-64.yaml \
            file://genimage/data/yaml_example/machine/bcm-2xxx-rpi4.yaml \
            file://genimage/data/yaml_example/sysdef/add-user-home.yaml \
@@ -282,13 +280,6 @@ do_install:append() {
 	if [ -n "${LAT_XFCE_THEMES}" ]; then
 		sed -i "/packages:/a - ${LAT_XFCE_THEMES}" \
 		    ${D}${datadir}/genimage/data/yaml_example/feature/xfce_desktop.yaml
-	fi
-
-	if [ "${MACHINE}" = "intel-x86-64" ] || [ "${MACHINE}" = "amd-snowyowl-64" ]; then
-		mv ${D}${datadir}/genimage/data/yaml_example/images/initramfs-ostree-image_x86_64.yaml \
-			${D}${datadir}/genimage/data/yaml_example/images/initramfs-ostree-image.yaml
-	else
-		rm ${D}${datadir}/genimage/data/yaml_example/images/initramfs-ostree-image_x86_64.yaml
 	fi
 }
 

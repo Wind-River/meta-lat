@@ -252,6 +252,8 @@ OSTREE_WIFI_PACKAGES = "${OSTREE_WIFI_PACKAGES}".split() if "${OSTREE_WIFI_PACKA
 
 OSTREE_INITRD_PACKAGES_x86_64 = '''
     grub efibootmgr
+    ${@bb.utils.contains('DISTRO_FEATURES', 'luks', 'grub-efi', '', d)}
+    ${@bb.utils.contains('DISTRO_FEATURES', 'luks', 'packagegroup-luks-initramfs', '', d)}
 '''.split()
 
 OSTREE_INITRD_PACKAGES_COMMON = '''
