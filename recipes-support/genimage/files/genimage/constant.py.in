@@ -347,7 +347,7 @@ DEFAULT_OSTREE_DATA = {
   'ostree_skip_boot_diff': '${OSTREE_SKIP_BOOT_DIFF}',
   'ostree_remote_url': '',
   'ostree_install_device': '',
-  'ostree_extra_install_args':'${OSTREE_KERNEL_ARGS}',
+  'ostree_extra_install_args':'${OSTREE_INST_ARGS}',
   'install_kickstart_url':'',
   'install_net_params':'',
   'install_net_mode':'',
