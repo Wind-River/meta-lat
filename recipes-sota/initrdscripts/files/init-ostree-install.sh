@@ -590,6 +590,49 @@ fatal() {
     lreboot
 }
 
+detect_tpm_chip() {
+    [ ! -e /sys/class/tpm ] && echo "TPM subsystem is not enabled." && return 1
+
+    local tpm_devices=$(ls /sys/class/tpm)
+    [ -z "$tpm_devices" ] && echo "No TPM chip detected." && return 1
+
+    local tpm_absent=1
+    local name=""
+    for name in $tpm_devices; do
+        grep -q "TCG version: 1.2" "/sys/class/tpm/$name/device/caps" 2>/dev/null &&
+            echo "TPM 1.2 device $name is not supported." && break
+
+        grep -q "TPM 2.0 Device" "/sys/class/tpm/$name/device/description" 2>/dev/null &&
+            tpm_absent=0 && break
+
+    grep -q "TPM 2.0 Device" "/sys/class/tpm/$name/device/firmware_node/description" 2>/dev/null &&
+            tpm_absent=0 && break
+    ls "/sys/class/tpm/$name/device/driver" | grep -q MSFT0101 && tpm_absent=0 && break
+    done
+
+    [ $tpm_absent -eq 1 ] && echo "No supported TPM device found." && return 1
+
+    local name_in_dev="$name"
+    # /dev/tpm is the alias of /dev/tpm0.
+    [ "$name_in_dev" = "tpm0" ] && name_in_dev+=" tpm"
+
+    local _name=""
+    for _name in $name_in_dev; do
+        [ -c "/dev/$_name" ] && break
+
+        local major=$(cat "/sys/class/tpm/$name/dev" | cut -d ":" -f 1)
+        local minor=$(cat "/sys/class/tpm/$name/dev" | cut -d ":" -f 2)
+        ! mknod "/dev/$_name" c $major $minor &&
+            echo "Unable to create tpm device node $_name." && return 1
+
+        break
+    done
+
+    echo "TPM device /dev/$_name detected."
+
+    return 0
+}
+
 # Global Variable setup
 # default values must match ostree-settings.inc
 BLM=2506
@@ -1290,6 +1333,14 @@ sync
 
 if [ "$INSTPT" != "0" ] ; then
 	INSTFMT=1
+fi
+
+# Do not create encrypted volumes if TPM is not detected
+if [ $LUKS -gt 0 ] ; then
+	detect_tpm_chip
+	if [ $? -ne 0 ]; then
+		LUKS=0
+	fi
 fi
 
 if [ "$BL" = "grub" -a "$INSTFMT" != "0" ] ; then
