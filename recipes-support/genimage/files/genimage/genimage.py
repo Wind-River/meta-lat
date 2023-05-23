@@ -922,7 +922,7 @@ class GenExtDebImage(GenImage):
         utils.run_cmd_oneshot("cp -r -f %s/* %s" % (rootfs_efi, self.deploydir))
 
         # Create symlink bzIamge to kernel
-        for kernel in glob.glob(os.path.join(self.deploydir, 'vmlinuz-*-amd64')):
+        for kernel in glob.glob(os.path.join(self.deploydir, 'vmlinuz-*[0-9]-amd64')):
             utils.run_cmd_oneshot("ln -snf -r %s bzImage" % kernel, cwd=self.deploydir)
             if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
                 utils.run_cmd_oneshot("ln -snf -r %s.sig bzImage.sig" % kernel, cwd=self.deploydir)
