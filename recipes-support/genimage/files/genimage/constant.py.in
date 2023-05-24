@@ -93,6 +93,8 @@ DEFAULT_PACKAGES_bcm_2xxx_rpi4 = '''
 DEFAULT_PACKAGES_intel_x86_64 = '''
     lmsensors
     grub-efi
+    ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'shim', '', d)}
+    ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'efitools', '', d)}
 '''.split()
 
 DEFAULT_PACKAGES_xilinx_zynqmp = '''

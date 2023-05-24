@@ -727,6 +727,8 @@ class GenYoctoImage(GenImage):
     def do_prepare(self):
         super(GenYoctoImage, self).do_prepare()
         os.environ['DEFAULT_INITRD_NAME'] = DEFAULT_INITRD_NAME
+        os.environ['DEPLOY_DIR'] = self.deploydir
+        os.environ['EFI_SECURE_BOOT'] = self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable')
 
     @show_task_info("Create Initramfs")
     def do_ostree_initramfs(self):
@@ -738,6 +740,12 @@ class GenYoctoImage(GenImage):
         image = os.path.join(self.deploydir, image_name)
         if os.path.exists(os.path.realpath(image)):
             logger.info("Reuse existed Initramfs")
+            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
+                utils.run_cmd_oneshot("chmod 777 %s" % self.deploydir)
+                gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
+                gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
+                gpgpath = self.data['gpg']['gpg_path']
+                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, image)
             return
 
         image_back = os.path.join(self.native_sysroot, "usr/share/genimage/data/initramfs", image_name)
@@ -749,6 +757,13 @@ class GenYoctoImage(GenImage):
         cmd = "cp -f {0} {1}".format(image_back, self.deploydir)
         utils.run_cmd_oneshot(cmd)
 
+        if os.path.exists(os.path.realpath(image)):
+            if self.data['gpg']['grub'].get('EFI_SECURE_BOOT', 'disable') == 'enable':
+                utils.run_cmd_oneshot("chmod 777 %s" % self.deploydir)
+                gpgid = self.data['gpg']['grub']['BOOT_GPG_NAME']
+                gpgpassword = self.data['gpg']['grub']['BOOT_GPG_PASSPHRASE']
+                gpgpath = self.data['gpg']['gpg_path']
+                utils.boot_sign_cmd(gpgid, gpgpassword, gpgpath, image)
 
 class GenExtDebImage(GenImage):
     def __init__(self, args):
