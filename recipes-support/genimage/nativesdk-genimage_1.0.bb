@@ -88,7 +88,8 @@ python __anonymous () {
     elif machine == 'intel-x86-64' or machine == 'amd-snowyowl-64':
         d.appendVar('OVERRIDES', ':x86-64:{0}'.format(machine))
 
-        if bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', True, False, d):
+        if bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', True, False, d) and \
+           d.getVar('DEBIAN_CUSTOMIZE_FEED_URI') != 'not_set':
             d.setVar('BOOT_SINGED_SHIM', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/bootx64.efi')
             d.setVar('BOOT_SINGED_SHIMTOOL', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/mmx64.efi')
             d.setVar('BOOT_SINGED_GRUB', '$OECORE_TARGET_SYSROOT/boot/efi/EFI/BOOT/grubx64.efi')

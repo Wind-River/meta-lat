@@ -213,7 +213,8 @@ python __anonymous () {
         d.appendVar('OVERRIDES', ':x86-64:{0}'.format(machine))
         d.appendVarFlag('do_install', 'depends', ' ovmf:do_deploy')
 
-        if bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', True, False, d):
+        if bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', True, False, d) and \
+           d.getVar('DEBIAN_CUSTOMIZE_FEED_URI') != 'not_set':
             d.setVar('BOOT_SINGED_SHIM', d.expand('${DEPLOY_DIR_IMAGE}/bootx64.efi'))
             d.setVar('BOOT_SINGED_SHIMTOOL', d.expand('${DEPLOY_DIR_IMAGE}/mmx64.efi'))
             d.setVar('BOOT_SINGED_GRUB', d.expand('${DEPLOY_DIR_IMAGE}/grubx64.efi'))
