@@ -43,7 +43,6 @@ do_install:append:class-target() {
     fi
 
     cat<<EOF>${WORKDIR}/cfg_nosecure
-search.file (\$cmdpath)/EFI/BOOT/grub.cfg root
 set prefix=(\$root)/EFI/BOOT
 EOF
 
