@@ -1353,8 +1353,7 @@ if [ "$BL" = "grub" -a "$INSTFMT" != "0" ] ; then
 	pi=$((p1+1))
 	dashe="-e"
 	if [ $LUKS -eq 3 ] ; then
-		dd if=/dev/urandom of=/boot.key bs=1 count=32
-		echo Y | luks-setup.sh -f $dashe -d ${fs_dev}${pi} -n luksotaboot -k /boot.key || \
+		echo Y | luks-setup.sh -f $dashe -d ${fs_dev}${pi} -n luksotaboot -k /usr/share/grub/boot.key || \
 			fatal "Cannot create LUKS volume luksotaboot"
 		dashe=""
 		mkfs.ext4 -F -L otaboot /dev/mapper/luksotaboot
@@ -1375,7 +1374,7 @@ if [ "$BL" = "grub" -a "$INSTFMT" != "0" ] ; then
 	if [ "$INSTAB" = "1" ] ; then
 		pi=$((pi+1))
 		if [ $LUKS -eq 3 ] ; then
-			echo Y | luks-setup.sh -f $dashe -d ${fs_dev}${pi} -n luksotaboot_b -k /boot.key || \
+			echo Y | luks-setup.sh -f $dashe -d ${fs_dev}${pi} -n luksotaboot_b -k /usr/share/grub/boot.key || \
 				fatal "Cannot create LUKS volume luksotaboot_b"
 			dashe=""
 			mkfs.ext4 -F -L otaboot_b /dev/mapper/luksotaboot_b
@@ -1610,7 +1609,7 @@ if [ -e ${PHYS_SYSROOT}/boot/1/efi/EFI ] ; then
 	if [ $LUKS -eq 3 ] ; then
 		blkid ${fs_dev}* | grep 'TYPE="crypto_LUKS"' | grep 'PARTLABEL="otaboot"' | awk '{print $2}' | sed -e 's/UUID=/crypt_boot_uuid=/' -e 's/-//g' >>  ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
 		blkid ${fs_dev}* | grep 'TYPE="crypto_LUKS"' | grep 'PARTLABEL="otaboot_b"' | awk '{print $2}' | sed -e 's/UUID=/crypt_boot_b_uuid=/' -e 's/-//g' >>  ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env
-		cp -f /boot.key ${PHYS_SYSROOT}/boot/efi/
+		cp -f /usr/share/grub/boot.key* ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/
 	fi
 
 	echo -n "###############################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################" >> ${PHYS_SYSROOT}/boot/efi/EFI/BOOT/boot.env

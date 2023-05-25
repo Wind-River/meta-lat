@@ -52,6 +52,9 @@ EOF
         ${GRUB_BUILDIN}
 
     install -m 0644 "${B}/bootx64-nosig.efi" "${D}${EFI_BOOT_PATH}/bootx64-nosig.efi"
+
+    install -d ${D}${datadir}/grub
+    dd if=/dev/urandom of=${D}${datadir}/grub/boot.key bs=1 count=32
 }
 
 do_deploy:append:class-target() {
@@ -69,7 +72,10 @@ do_deploy:append:class-target() {
     install -m 0644 "${D}${EFI_BOOT_PATH}/bootx64-nosig.efi" "${DEPLOYDIR}"
 }
 
+PACKAGES =+ "${PN}-boot-key"
+RDEPENDS:${PN} += "${PN}-boot-key"
 FILES:${PN} += "${EFI_BOOT_PATH}"
+FILES:${PN}-boot-key += "${datadir}/grub/boot.key*"
 
 addtask  deploy after do_install before do_package
 
