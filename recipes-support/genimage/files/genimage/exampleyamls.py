@@ -37,6 +37,10 @@ import genimage.debian_constant as deb_constant
 import genimage.constant as constant
 import genimage.fit_constant as fit_constant
 
+from genimage.fit_constant import UBOOT_ENTRYPOINT
+from genimage.fit_constant import UBOOT_LOADADDRESS
+from genimage.fit_constant import UBOOT_DTB_LOADADDRESS
+
 logger = logging.getLogger('appsdk')
 
 def set_parser_exampleyamls(parser=None):

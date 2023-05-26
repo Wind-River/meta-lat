@@ -14,8 +14,8 @@ fit-config: |
                 arch = "arm64";
                 os = "linux";
                 compression = "none";
-                load = <0x80000000>;
-                entry = <0x80000000>;
+                load = <@UBOOT_ENTRYPOINT@>;
+                entry = <@UBOOT_LOADADDRESS@>;
                 hash-1 {
                     algo = "sha256";
                 };
@@ -30,7 +30,7 @@ fit-config: |
                 type = "flat_dt";
                 arch = "arm64";
                 compression = "none";
-                load =<0x83000000>;
+                load =<@UBOOT_DTB_LOADADDRESS@>;
                 hash-1 {
                     algo = "sha256";
                 };
