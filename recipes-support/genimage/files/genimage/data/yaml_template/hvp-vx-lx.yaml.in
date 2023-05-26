@@ -1,5 +1,5 @@
 name: hvp-vx-lx
-machine: aptiv_cvc_sousa
+machine: @MACHINE@
 image_type:
 - fit
 fit-config: |
@@ -86,7 +86,7 @@ fit-config: |
         };
     };
 fit-input-files:
-  lx-kernel: @DEFAULT_DEPLOY@/Image-initramfs-aptiv_cvc_sousa.bin
+  lx-kernel: @DEFAULT_DEPLOY@/Image-initramfs-@MACHINE@.bin
   vx-kernel: $VXWORKS_URL/vxWorks.bin
   hvp: $HVP_URL/hypervisor-main.bin
   hvp-b: $HVP_URL/hypervisor-rollback.bin

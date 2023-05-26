@@ -154,6 +154,7 @@ OSTREE_SUPPORTED_ARM64_MACHINES ??= " \
     intel-socfpga-64 \
     ti-j72xx \
     aptiv_cvc_sousa \
+    aptiv-cvc-fl \
     axxiaarm64 \
     nxp-ls1043 \
     nxp-lx2xxx \

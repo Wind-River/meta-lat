@@ -12,6 +12,7 @@ The images are built from Wind River Linux Assembly Tool Application SDK
         marvell-cn96xx
         nxp-s32g
         aptiv_cvc_sousa
+        aptiv-cvc-fl
         intel-socfpga-64
         ti-j72xx
         nxp-ls1028

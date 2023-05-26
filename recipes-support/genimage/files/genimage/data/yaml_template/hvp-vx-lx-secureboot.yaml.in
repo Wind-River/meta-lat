@@ -1,5 +1,5 @@
 name: hvp-vx-lx-secure-boot
-machine: aptiv_cvc_sousa
+machine: @MACHINE@
 image_type:
 - fit
 fit-config: |
@@ -114,15 +114,13 @@ fit-config: |
         };
     };
 fit-input-files:
-  lx-kernel: @DEFAULT_DEPLOY@/Image-initramfs-aptiv_cvc_sousa.bin
+  lx-kernel: @DEFAULT_DEPLOY@/Image-initramfs-@MACHINE@.bin
   vx-kernel: $VXWORKS_URL/vxWorks.bin
   hvp: $HVP_URL/hypervisor-main.bin
   hvp-b: $HVP_URL/hypervisor-rollback.bin
 secure-boot-map:
-  dd_offset: @DEFAULT_DEPLOY@/aptiv_cvc_sousa_dd_offset
-  boot-atf-sig: @DEFAULT_DEPLOY@/atf-aptiv_cvc_sousa.s32.signature
-  uboot-sign-key: @DEFAULT_DEPLOY@/${UBOOT_SIGN_KEYNAME}.key
-  uboot-sign-img-key: @DEFAULT_DEPLOY@/${UBOOT_SIGN_IMG_KEYNAME}.key
+  dd_offset: @DEFAULT_DEPLOY@/@PLATFORM@_dd_offset
+  boot-atf-sig: @DEFAULT_DEPLOY@/atf-@PLATFORM@.s32.signature
   hse-sign-pub-key: @DEFAULT_DEPLOY@/${HSE_SEC_PUB_KEY}
 fit-kernel-post-script: |
   set -x
@@ -135,9 +133,9 @@ wic-post-script: |
   #!/usr/bin/env bash
   set -x
   set -e
-  atf_s32="$DEPLOY_DIR_IMAGE/downloads/atf-aptiv_cvc_sousa.s32"
-  wicimage="$DEPLOY_DIR_IMAGE/$IMAGE_NAME-aptiv_cvc_sousa-$DATETIME.rootfs.wic"
-  dd_offset=`cat $DEPLOY_DIR_IMAGE/downloads/aptiv_cvc_sousa_dd_offset`
+  atf_s32="$DEPLOY_DIR_IMAGE/downloads/atf-@PLATFORM@.s32"
+  wicimage="$DEPLOY_DIR_IMAGE/$IMAGE_NAME-@MACHINE@-$DATETIME.rootfs.wic"
+  dd_offset=`cat $DEPLOY_DIR_IMAGE/downloads/@PLATFORM@_dd_offset`
   dd if=$atf_s32 of=$wicimage seek=1 skip=1 conv=notrunc,fsync
   dd if=$atf_s32.signature of=$wicimage seek=`printf "%d" ${dd_offset}` oflag=seek_bytes conv=notrunc,fsync
 environments:

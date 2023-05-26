@@ -41,6 +41,8 @@ SRC_URI = "\
            file://genimage/data/post_wic/nxp_s32g.sh \
            file://genimage/data/post_ustart/aptiv_cvc_sousa.sh \
            file://genimage/data/post_wic/aptiv_cvc_sousa.sh \
+           file://genimage/data/post_ustart/aptiv_cvc_fl.sh \
+           file://genimage/data/post_wic/aptiv_cvc_fl.sh \
            file://genimage/data/post_wic/intel_socfpga_64.sh \
            file://genimage/data/post_ustart/intel_socfpga_64.sh \
            file://genimage/data/yaml_example/feature/vboxguestdrivers.yaml \
@@ -111,6 +113,7 @@ SRC_URI = "\
            file://genimage/doc/target_marvell-cn96xx.README.md.in \
            file://genimage/doc/target_nxp-s32g.README.md.in \
            file://genimage/doc/target_aptiv_cvc_sousa.README.md.in \
+           file://genimage/doc/target_aptiv-cvc-fl.README.md.in \
            file://genimage/doc/target_intel-socfpga-64.README.md.in \
            file://genimage/doc/target_ti-j72xx.README.md.in \
            file://genimage/doc/target_nxp-ls1028.README.md.in \
@@ -286,10 +289,12 @@ do_install:append() {
 USTART_POST_SCRIPT ??= ""
 USTART_POST_SCRIPT:nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/nxp_s32g.sh"
 USTART_POST_SCRIPT:aptiv_cvc_sousa = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/aptiv_cvc_sousa.sh"
+USTART_POST_SCRIPT:aptiv-cvc-fl = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/aptiv_cvc_fl.sh"
 USTART_POST_SCRIPT:intel-socfpga-64 = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_ustart/intel_socfpga_64.sh"
 WIC_POST_SCRIPT ??= ""
 WIC_POST_SCRIPT:nxp-s32g = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/nxp_s32g.sh"
 WIC_POST_SCRIPT:aptiv_cvc_sousa = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/aptiv_cvc_sousa.sh"
+WIC_POST_SCRIPT:aptiv-cvc-fl = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/aptiv_cvc_fl.sh"
 WIC_POST_SCRIPT:intel-socfpga-64 = "$OECORE_NATIVE_SYSROOT/usr/share/genimage/data/post_wic/intel_socfpga_64.sh"
 
 DEFAULT_DEBIAN_MIRROR ??= "http://ftp.us.debian.org/debian"
@@ -320,8 +325,15 @@ DEPLOY_URIS:class-native ?= "${DEPLOY_DIR}"
 DEPLOY_BASE_PATHS ??= ""
 DEPLOY_BASE_PATHS:class-native ?= "/images/${MACHINE}"
 
+PLATFORM ??= ""
+PLATFORM:aptiv_cvc_sousa = "aptiv_cvc_sousa"
+PLATFORM:aptiv-cvc-fl = "aptiv_cvc_fl"
+
+IMAGE_BOOT_FILES_LATFIT = "boot.scr ${@bb.utils.contains('IMAGE_INSTALL', 'pfe', 's32g_pfe_class.fw s32g_pfe_util.fw', '', d)}"
+
 FIT_LX_FDT ?= ""
 FIT_LX_FDT:aptiv_cvc_sousa = "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', False))}"
+FIT_LX_FDT:aptiv-cvc-fl = "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', False).split()[0])}"
 
 python __anonymous () {
     machine = d.getVar('MACHINE')

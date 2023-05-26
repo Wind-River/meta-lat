@@ -37,6 +37,7 @@ import genimage.debian_constant as deb_constant
 import genimage.constant as constant
 import genimage.fit_constant as fit_constant
 
+from genimage.fit_constant import DEFAULT_PLATFORM
 from genimage.fit_constant import UBOOT_ENTRYPOINT
 from genimage.fit_constant import UBOOT_LOADADDRESS
 from genimage.fit_constant import UBOOT_DTB_LOADADDRESS
@@ -199,7 +200,12 @@ def _main_run_internal(args):
         for yaml in ['hvp-vx-lx.yaml', 'hvp-vx-lx-secureboot.yaml', 'wrlinux-image-small-fit-secureboot.yaml']:
             hvp_yaml_in = os.path.join(yamltemplate_dir, yaml + '.in')
             hvp_yaml = os.path.join(yamltemplate_dir, yaml)
-            if utils.replace_str_in_file("@DEFAULT_DEPLOY@", fit_constant.DEFAULT_DEPLOY_URL, hvp_yaml_in, hvp_yaml):
+            if utils.replace_str_in_file("@DEFAULT_DEPLOY@", fit_constant.DEFAULT_DEPLOY_URL, hvp_yaml_in, hvp_yaml) and \
+               utils.replace_str_in_file("@MACHINE@", DEFAULT_MACHINE, hvp_yaml) and \
+               utils.replace_str_in_file("@UBOOT_ENTRYPOINT@", UBOOT_ENTRYPOINT, hvp_yaml) and \
+               utils.replace_str_in_file("@UBOOT_LOADADDRESS@", UBOOT_LOADADDRESS, hvp_yaml) and \
+               utils.replace_str_in_file("@UBOOT_DTB_LOADADDRESS@", UBOOT_DTB_LOADADDRESS, hvp_yaml) and \
+               utils.replace_str_in_file("@PLATFORM@", DEFAULT_PLATFORM, hvp_yaml):
                 cmd = "genyaml -d -o {0} {1}".format(outdir, hvp_yaml)
                 utils.run_cmd_oneshot(cmd)
 
