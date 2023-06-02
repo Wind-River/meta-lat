@@ -329,6 +329,10 @@ PLATFORM ??= ""
 PLATFORM:aptiv_cvc_sousa = "aptiv_cvc_sousa"
 PLATFORM:aptiv-cvc-fl = "aptiv_cvc_fl"
 
+UBOOT_ENTRYPOINT ??= "0xa4000000"
+UBOOT_LOADADDRESS ??= "0xa4000000"
+UBOOT_DTB_LOADADDRESS ??= "0xb4000000"
+
 IMAGE_BOOT_FILES_LATFIT = "boot.scr ${@bb.utils.contains('IMAGE_INSTALL', 'pfe', 's32g_pfe_class.fw s32g_pfe_util.fw', '', d)}"
 
 FIT_LX_FDT ?= ""
