@@ -15,8 +15,8 @@ fit-config: |
                 arch = "arm64";
                 os = "linux";
                 compression = "none";
-                load = <0x85300000>;
-                entry = <0x85300000>;
+                load = <0x84500000>;
+                entry = <0x84500000>;
                 hash {
                     algo = "sha1";
                 };
@@ -29,8 +29,8 @@ fit-config: |
                 arch = "arm64";
                 os = "linux";
                 compression = "none";
-                load = <0x85300000>;
-                entry = <0x85300000>;
+                load = <0x84500000>;
+                entry = <0x84500000>;
                 hash {
                     algo = "sha1";
                 };
@@ -43,8 +43,8 @@ fit-config: |
                 arch = "arm64";
                 os = "linux";
                 compression = "none";
-                load = <0xa5700000>;
-                entry = <0xa5700000>;
+                load = <0xa4501000>;
+                entry = <0xa4501000>;
                 hash {
                     algo = "sha1";
                 };
@@ -57,8 +57,8 @@ fit-config: |
                 arch = "arm64";
                 os = "linux";
                 compression = "none";
-                load = <0xcf880000>;
-                entry = <0xcf880000>;
+                load = <0xb8091000>;
+                entry = <0xb8091000>;
                 hash-1 {
                     algo = "sha1";
                 };
