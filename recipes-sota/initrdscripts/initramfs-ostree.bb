@@ -46,7 +46,6 @@ RDEPENDS:${PN}-installer = " \
     kbd \
     util-linux-blkid \
     util-linux-lsblk \
-    util-linux-fdisk \
     util-linux-fsck \
     util-linux-blockdev \
     dosfstools \
@@ -62,7 +61,6 @@ RDEPENDS:${PN}-installer = " \
     mttyexec \
     gzip \
     findutils \
-    tar \
     grep \
     sed \
     gawk \
@@ -78,7 +76,9 @@ RDEPENDS:${PN}-installer = " \
 RDEPENDS:${PN}-init = " \
     udev \
     busybox \
+    tar \
     util-linux-blkid \
+    util-linux-fdisk \
     util-linux-lsblk \
     util-linux-sfdisk \
     util-linux-blockdev \
