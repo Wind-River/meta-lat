@@ -453,6 +453,18 @@ do_dhcp() {
 	if [ "${ECURL}" = "" -o "${ECURL}" = "none" ] && [ "${LCURL}" = "" -o "${LCURL}" = "none" ] && [ "$INSTL" != "" ] && [ "${KS}" = "" -o "${KS::7}" = "file://" ] ; then
 		return
 	fi
+
+        max_retries=10
+        retries=0
+        while [ "$(ls /sys/class/net |grep -v ^lo\$ |grep -v ^sit0 | grep -v can)" == "" ];
+        do
+             if [ $retries -ge $max_retries ]; then
+                 fatal "Retried $max_retries times,  but no valid interaface"
+             fi
+             retries=$((retries+1))
+             sleep 1
+        done
+
 	if [ "${DHCPARGS}" = "ask" ] ; then
 		while [ 1 ] ; do
 			echo "Select an interface to use"
