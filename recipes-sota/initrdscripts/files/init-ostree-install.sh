@@ -583,15 +583,22 @@ fatal() {
         for label in otaefi boot instboot; do
             local _dev=$(blkid --label $label -o device)
             if [ "$_dev" != "" ] ; then
-                mkdir -p /t
-                mount -o rw,noatime $_dev /t
                 faillog=install-fail-$datetime.log
                 echo "Save $faillog to partition $_dev"
-                sleep 2
-                cp /install.log /t/$faillog
-                chmod 644 /t/$faillog
-                sync
-                umount /t
+                if [ -e /proc/mounts ] && grep -q -e "^$_dev" /proc/mounts; then
+                    dev_dir=$(cat /proc/mounts  |  grep "^$_dev" | awk '{print $2}')
+                    cp /install.log $dev_dir/$faillog
+                    chmod 644 $dev_dir/$faillog
+                    sync
+                else
+                    mkdir -p /t
+                    mount -o rw,noatime $_dev /t
+                    sleep 2
+                    cp /install.log /t/$faillog
+                    chmod 644 /t/$faillog
+                    sync
+                    umount /t
+                fi
             fi
         done
     fi
