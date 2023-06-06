@@ -129,6 +129,7 @@ wic-pre-script: |
   #!/usr/bin/env bash
   set -x
   cp -af $DEPLOY_DIR_IMAGE/downloads/${HSE_SEC_PUB_KEY} $WORKDIR/rootfs_ota_uboot/
+  echo "FORMAT" > $WORKDIR/rootfs_ota/ostree/repo/RESETVAR
 wic-post-script: |
   #!/usr/bin/env bash
   set -x

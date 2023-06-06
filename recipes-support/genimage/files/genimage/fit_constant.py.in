@@ -145,6 +145,13 @@ if [ "@ota-manager@" = "fmu" ]; then
 fi
 '''
 DEFAULT_VX_APP_SCRIPT = 'echo "run vx do_rootfs script in $IMAGE_ROOTFS"'
+
+DEFAULT_WIC_PRE_SCRIPT = '''\
+#!/usr/bin/env bash
+set -x
+echo "FORMAT" > $WORKDIR/rootfs_ota/ostree/repo/RESETVAR
+'''
+
 DEFAULT_WIC_POST_SCRIPT = '''\
 #!/usr/bin/env bash
 set -x

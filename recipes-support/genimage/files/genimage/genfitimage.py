@@ -60,6 +60,7 @@ from genimage.fit_constant import DEFAULT_ENNVIRONMENTS
 from genimage.fit_constant import DEFAULT_LX_ROOTFS_SCRIPT
 from genimage.fit_constant import DEFAULT_VX_APP_SCRIPT
 from genimage.fit_constant import DEFAULT_WIC_POST_SCRIPT
+from genimage.fit_constant import DEFAULT_WIC_PRE_SCRIPT
 
 
 logger = logging.getLogger('appsdk')
@@ -183,7 +184,7 @@ class GenFitImage(GenXXX):
         self.data['lx-rootfs-script'] = DEFAULT_LX_ROOTFS_SCRIPT
         self.data['fit-kernel-post-script'] = None
         self.data['vx-app-script'] = DEFAULT_VX_APP_SCRIPT
-        self.data['wic-pre-script'] = None
+        self.data['wic-pre-script'] = DEFAULT_WIC_PRE_SCRIPT
         self.data['wic-post-script'] = DEFAULT_WIC_POST_SCRIPT
         self.data['environments'] = DEFAULT_ENNVIRONMENTS
 
