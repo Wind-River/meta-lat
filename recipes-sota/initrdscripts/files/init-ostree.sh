@@ -226,7 +226,7 @@ rm_var_check() {
 			fi
 			(shopt -s dotglob ; rm -rf /var/*)
 			tar -C /sysroot/var/ --xattrs --xattrs-include='*' -cf - . | \
-			tar --xattrs --xattrs-include='*' -xf - -C /var
+			tar --warning=no-timestamp --xattrs --xattrs-include='*' -xf - -C /var
 			umount /var
 		elif [ "$e" = "FORMAT" ] ; then
 			t=`lsblk -o FSTYPE -n $datapart`
@@ -241,7 +241,7 @@ rm_var_check() {
 				return
 			fi
 			tar -C /sysroot/var/ --xattrs --xattrs-include='*' -cf - . | \
-			tar --xattrs --xattrs-include='*' -xf - -C /var
+			tar --warning=no-timestamp --xattrs --xattrs-include='*' -xf - -C /var
 			umount /var
 		fi
 		if [ $reboot_flag = 1 ];then
