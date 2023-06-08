@@ -31,6 +31,10 @@ Signed-off-by: Jiang Lu <lu.jiang@windriver.com>
 
 Upstream-Status: Pending
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+
+Rebased on 20230607 for ostree 2023.3.
+
+Signed-off-by: Kai Kang <kai.kang@windriver.com>
 ---
  src/libostree/ostree-bootloader-uboot.c | 4 ++++
  1 file changed, 4 insertions(+)
@@ -39,15 +43,15 @@ diff --git a/src/libostree/ostree-bootloader-uboot.c b/src/libostree/ostree-boot
 index 7e23001e..4cf86246 100644
 --- a/src/libostree/ostree-bootloader-uboot.c
 +++ b/src/libostree/ostree-bootloader-uboot.c
-@@ -113,6 +113,7 @@ create_config_from_boot_loader_entries (OstreeBootloaderUboot     *self,
-   g_autoptr(GPtrArray) boot_loader_configs = NULL;
+@@ -106,6 +106,7 @@ create_config_from_boot_loader_entries (OstreeBootloaderUboot *self, int bootver
+   g_autoptr (GPtrArray) boot_loader_configs = NULL;
    OstreeBootconfigParser *config;
    const char *val;
 +  g_autofree char *bootdir = NULL;
  
    if (!_ostree_sysroot_read_boot_loader_configs (self->sysroot, bootversion, &boot_loader_configs,
                                                   cancellable, error))
-@@ -136,6 +137,9 @@ create_config_from_boot_loader_entries (OstreeBootloaderUboot     *self,
+@@ -129,6 +130,9 @@ create_config_from_boot_loader_entries (OstreeBootloaderUboot *self, int bootver
          }
        g_ptr_array_add (new_lines, g_strdup_printf ("kernel_image%s=/boot%s", index_suffix, val));
  

@@ -12,6 +12,10 @@ So tweak regex of ostree-system-generator.
 Upstream-Status: Inappropriate [LAT specific]
 
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+
+Rebased on 20230607 for ostree 2023.3.
+
+Signed-off-by: Kai Kang <kai.kang@windriver.com>
 ---
  src/libostree/ostree-impl-system-generator.c | 11 ++++++++---
  1 file changed, 8 insertions(+), 3 deletions(-)
@@ -20,7 +24,7 @@ diff --git a/src/libostree/ostree-impl-system-generator.c b/src/libostree/ostree
 index b5a7cde2..6fc22db3 100644
 --- a/src/libostree/ostree-impl-system-generator.c
 +++ b/src/libostree/ostree-impl-system-generator.c
-@@ -98,16 +98,21 @@ stateroot_from_ostree_cmdline (const char *ostree_cmdline,
+@@ -95,16 +95,21 @@ stateroot_from_ostree_cmdline (const char *ostree_cmdline, GError **error)
  {
    static GRegex *regex;
    static gsize regex_initialized;
@@ -37,7 +41,7 @@ index b5a7cde2..6fc22db3 100644
        g_once_init_leave (&regex_initialized, 1);
      }
  
-   g_autoptr(GMatchInfo) match = NULL;
+   g_autoptr (GMatchInfo) match = NULL;
 -  if (!g_regex_match (regex, ostree_cmdline, 0, &match))
 -    return glnx_null_throw (error, "Failed to parse %s", ostree_cmdline);
 +  if (!g_regex_match (regex, ostree_cmdline_new, 0, &match))

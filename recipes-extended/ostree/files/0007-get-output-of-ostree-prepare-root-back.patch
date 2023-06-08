@@ -12,6 +12,10 @@ Get it back
 Upstream-Status: Inappropriate [LAT specific]
 
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+
+Rebased on 20230607 for ostree 2023.3.
+
+Signed-off-by: Kai Kang <kai.kang@windriver.com>
 ---
  src/switchroot/ostree-prepare-root.c | 3 +++
  1 file changed, 3 insertions(+)
@@ -20,9 +24,9 @@ diff --git a/src/switchroot/ostree-prepare-root.c b/src/switchroot/ostree-prepar
 index f48fc528..22306554 100644
 --- a/src/switchroot/ostree-prepare-root.c
 +++ b/src/switchroot/ostree-prepare-root.c
-@@ -154,6 +154,9 @@ resolve_deploy_path (const char * root_mountpoint)
-                    "DEPLOYMENT_INODE=%" PRIu64, (uint64_t) stbuf.st_ino,
-                    NULL);
+@@ -151,6 +151,9 @@ resolve_deploy_path (const char *root_mountpoint)
+                    resolved_path, "DEPLOYMENT_DEVICE=%" PRIu64, (uint64_t)stbuf.st_dev,
+                    "DEPLOYMENT_INODE=%" PRIu64, (uint64_t)stbuf.st_ino, NULL);
  #endif
 +
 +  printf ("Resolved OSTree target to: %s\n", deploy_path);

@@ -11,6 +11,10 @@ Revert the commit for no warn
 Upstream-Status: Inappropriate [LAT specific]
 
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+
+Rebased on 20230607 for ostree 2023.3.
+
+Signed-off-by: Kai Kang <kai.kang@windriver.com>
 ---
  src/libostree/ostree-sysroot-deploy.c | 3 ---
  1 file changed, 3 deletions(-)
@@ -19,8 +23,8 @@ diff --git a/src/libostree/ostree-sysroot-deploy.c b/src/libostree/ostree-sysroo
 index 039f5f50..fe439f56 100644
 --- a/src/libostree/ostree-sysroot-deploy.c
 +++ b/src/libostree/ostree-sysroot-deploy.c
-@@ -2784,9 +2784,6 @@ sysroot_initialize_deployment (OstreeSysroot     *self,
-                                cancellable, error))
+@@ -3047,9 +3047,6 @@ sysroot_initialize_deployment (OstreeSysroot *self, const char *osname, const ch
+   if (!prepare_deployment_etc (self, repo, new_deployment, deployment_dfd, cancellable, error))
      return FALSE;
  
 -  if (!lint_deployment_fs (self, new_deployment, deployment_dfd, cancellable, error))

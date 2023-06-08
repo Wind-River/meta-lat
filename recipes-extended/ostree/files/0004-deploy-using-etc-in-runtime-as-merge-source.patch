@@ -16,6 +16,10 @@ Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
 
 Upstream-Status: Inappropriate [LAT specific]
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+
+Rebased on 20230607 for ostree 2023.3.
+
+Signed-off-by: Kai Kang <kai.kang@windriver.com>
 ---
  src/libostree/ostree-sysroot-deploy.c | 22 +++++++++++++++++++---
  1 file changed, 19 insertions(+), 3 deletions(-)
@@ -24,11 +28,11 @@ diff --git a/src/libostree/ostree-sysroot-deploy.c b/src/libostree/ostree-sysroo
 index a8bf9f44..777decc8 100644
 --- a/src/libostree/ostree-sysroot-deploy.c
 +++ b/src/libostree/ostree-sysroot-deploy.c
-@@ -533,7 +533,16 @@ merge_configuration_from (OstreeSysroot    *sysroot,
+@@ -506,7 +506,16 @@ merge_configuration_from (OstreeSysroot *sysroot, OstreeDeployment *merge_deploy
  
    /* TODO: get rid of GFile usage here */
-   g_autoptr(GFile) orig_etc = ot_fdrel_to_gfile (merge_deployment_dfd, "usr/etc");
--  g_autoptr(GFile) modified_etc = ot_fdrel_to_gfile (merge_deployment_dfd, "etc");
+   g_autoptr (GFile) orig_etc = ot_fdrel_to_gfile (merge_deployment_dfd, "usr/etc");
+-  g_autoptr (GFile) modified_etc = ot_fdrel_to_gfile (merge_deployment_dfd, "etc");
 +  char *etc_merge_dir = getenv("OSTREE_ETC_MERGE_DIR");
 +  g_autoptr(GFile) modified_etc;
 +  if (etc_merge_dir) {
@@ -40,9 +44,9 @@ index a8bf9f44..777decc8 100644
 +    modified_etc = ot_fdrel_to_gfile (merge_deployment_dfd, "etc");
 +  }
    /* Return values for below */
-   g_autoptr(GPtrArray) modified = g_ptr_array_new_with_free_func ((GDestroyNotify) ostree_diff_item_unref);
-   g_autoptr(GPtrArray) removed = g_ptr_array_new_with_free_func ((GDestroyNotify) g_object_unref);
-@@ -567,8 +576,15 @@ merge_configuration_from (OstreeSysroot    *sysroot,
+   g_autoptr (GPtrArray) modified
+       = g_ptr_array_new_with_free_func ((GDestroyNotify)ostree_diff_item_unref);
+@@ -538,8 +547,15 @@ merge_configuration_from (OstreeSysroot *sysroot, OstreeDeployment *merge_deploy
    if (!glnx_opendirat (merge_deployment_dfd, "usr/etc", TRUE, &orig_etc_fd, error))
      return FALSE;
    glnx_autofd int modified_etc_fd = -1;

@@ -11,6 +11,10 @@ in /usr/lib/ostree-boot.
 Upstream-Status: Inappropriate [LAT specific]
 
 Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+
+Rebased on 20230607 for ostree 2023.3.
+
+Signed-off-by: Kai Kang <kai.kang@windriver.com>
 ---
  src/libostree/ostree-sysroot-deploy.c | 57 +++++++++++++++++++++++++++
  1 file changed, 57 insertions(+)
@@ -19,7 +23,7 @@ diff --git a/src/libostree/ostree-sysroot-deploy.c b/src/libostree/ostree-sysroo
 index de6d6b41..039f5f50 100644
 --- a/src/libostree/ostree-sysroot-deploy.c
 +++ b/src/libostree/ostree-sysroot-deploy.c
-@@ -1911,6 +1911,63 @@ install_deployment_kernel (OstreeSysroot   *sysroot,
+@@ -1929,6 +1929,63 @@ install_deployment_kernel (OstreeSysroot *sysroot, int new_bootversion,
        g_ptr_array_add (overlay_initrds, g_steal_pointer (&destpath));
      }
  
