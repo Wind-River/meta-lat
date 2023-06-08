@@ -13,13 +13,8 @@ SRC_URI =  " \
 
 RDEPENDS:${PN} = " \
     bash \
-    docker \
     start-container \
 "
-RDEPENDS:start-container = " \
-    docker \
-"
-
 inherit allarch systemd
 
 SYSTEMD_PACKAGES = "${PN}"
