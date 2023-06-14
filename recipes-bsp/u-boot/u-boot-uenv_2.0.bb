@@ -172,11 +172,16 @@ if test \${filesize} = 1;then setenv ex;setenv B \$A;fi
 setenv mmcpart \$A
 setenv rootpart ostree_root=LABEL=otaroot\${labelpre}
 setenv bootpart ostree_boot=LABEL=otaboot\${labelpre}
-setenv fitconfig wrhv
+if test -n "\${lat_fit}"; then
+ setenv fitconfig wrhv
+ setenv fitconfig_r wrhv\${ex}
+else
+ setenv fitconfig \${fit_config_header}\${fdt_file}
+ setenv fitconfig_r \${fit_config_header}\${fdt_file}
+fi
 setenv mmcpart_r \$B
 setenv rootpart_r ostree_root=LABEL=otaroot\${ex}\${labelpre}
 setenv bootpart_r ostree_boot=LABEL=otaboot\${ex}\${labelpre}
-setenv fitconfig_r wrhv\${ex}
 setenv bpart A
 
 if fatload \${devtype} \${devnum}:1 \${loadaddr} boot_ab_flag;then setenv bpartv \${loadaddr}; if itest.l 42333231 == *\${loadaddr};then setenv bpart B; fi; fi
@@ -237,7 +242,11 @@ fi
 if test -n \${ninstargs}; then
  setenv netinst "\${ninstargs} \${instargs_ext}"
 else
- setenv netinst "\${netinstpre}fatload \${devtype} \${devnum}:1 \${loadaddr} ${OSTREE_KERNEL};fatload \${devtype} \${devnum}:1 \${initrd_addr} initramfs; setenv bootargs \\"\${fdtargs} \${instdef} ${OSTREE_BSP_ARGS} \${instargs_ext}  \${exinargs}\\";${OSTREE_UBOOT_CMD} \${loadaddr} \${initrd_addr} \${fdt_addr}"
+ if test -n "\${load_fitimage_addr}"; then
+  setenv netinst "\${netinstpre}fatload \${devtype} \${devnum}:1 \${load_fitimage_addr} ${OSTREE_KERNEL}; setenv bootargs \\"\${fdtargs} \${instdef} ${OSTREE_BSP_ARGS} \${instargs_ext}  \${exinargs}\\"; bootm \${load_fitimage_addr}#\${fitconfig}"
+ else
+  setenv netinst "\${netinstpre}fatload \${devtype} \${devnum}:1 \${loadaddr} ${OSTREE_KERNEL};fatload \${devtype} \${devnum}:1 \${initrd_addr} initramfs; setenv bootargs \\"\${fdtargs} \${instdef} ${OSTREE_BSP_ARGS} \${instargs_ext}  \${exinargs}\\";${OSTREE_UBOOT_CMD} \${loadaddr} \${initrd_addr} \${fdt_addr}"
+ fi
 fi
 setenv autoinst echo "!!!Autostarting network install, you have 5 seconds to reset the board!!!"\;sleep 5\;run netinst
 if test "\${no_autonetinst}" != 1 && test -n \${URL} ; then
@@ -335,11 +344,11 @@ if test \${bpart} = B; then
  setenv mmcpart \$B;
  setenv rootpart ostree_root=LABEL=otaroot\${ex}\${labelpre};
  setenv bootpart ostree_boot=LABEL=otaboot\${ex}\${labelpre};
- setenv fitconfig wrhv\${ex};
+ if test -n "\${lat_fit}"; then setenv fitconfig wrhv\${ex}; fi
  setenv mmcpart_r \$A;
  setenv rootpart_r ostree_root=LABEL=otaroot\${labelpre};
  setenv bootpart_r ostree_boot=LABEL=otaboot\${labelpre};
- setenv fitconfig_r wrhv;
+ if test -n "\${lat_fit}"; then setenv fitconfig_r wrhv; fi
 fi
 if test -n \${rollback_f} && test \${rollback_f} = yes;then setenv bdef 31;setenv mmcpart \${mmcpart_r};setenv rootpart \${rootpart_r};setenv bootpart \${bootpart_r};setenv fitconfig \${fitconfig_r};echo "FORCED ROLLBACK";fi
 if test \${bdef} = 31 && test "\${ex}" != "_b"; then

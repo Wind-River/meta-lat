@@ -88,7 +88,7 @@ part / --source rootfs --rootfs-dir=${LAT_WORKDIR}/rootfs_ota_var --ondisk mmcbl
 DEFAULT_DEPLOY_URL = "${DEPLOY_URIS}${DEPLOY_BASE_PATHS}"
 DEFAULT_BOOT_ATF = "${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/atf-@PLATFORM@.s32".replace("@PLATFORM@", DEFAULT_PLATFORM)
 DEFAULT_BOOT_SCR = '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/boot.scr'
-DEFAULT_BOOT_SCR_PRE = 'setenv load_fitimage_addr 0x97000000; '
+DEFAULT_BOOT_SCR_PRE = 'setenv load_fitimage_addr 0x97000000; setenv lat_fit 1;'
 DEFAULT_FIT_INPUTS = {
   'lx-kernel': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/Image-initramfs-${MACHINE}.bin',
   'lx-fdtb': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/${FIT_LX_FDT}',
