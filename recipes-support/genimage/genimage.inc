@@ -336,8 +336,8 @@ UBOOT_DTB_LOADADDRESS ??= "0xb4000000"
 IMAGE_BOOT_FILES_LATFIT = "boot.scr ${@bb.utils.contains('IMAGE_INSTALL', 'pfe', 's32g_pfe_class.fw s32g_pfe_util.fw', '', d)}"
 
 FIT_LX_FDT ?= ""
-FIT_LX_FDT:aptiv_cvc_sousa = "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', False))}"
-FIT_LX_FDT:aptiv-cvc-fl = "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', False).split()[0])}"
+FIT_LX_FDT:aptiv_cvc_sousa = "${@os.path.basename(d.getVar('DTB_FILES', False))}"
+FIT_LX_FDT:aptiv-cvc-fl = "${@os.path.basename(d.getVar('DTB_FILES', False).split()[0])}"
 
 python __anonymous () {
     machine = d.getVar('MACHINE')
