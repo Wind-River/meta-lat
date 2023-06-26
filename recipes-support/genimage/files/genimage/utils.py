@@ -417,7 +417,7 @@ def check_gpg_keys(gpg_data):
 
 def boot_sign_cmd(gpgid, gpgpassword, gpgpath, unsign_file):
     if not os.path.exists(os.path.realpath(unsign_file)):
-        logger.debug("Sing file %s not exist", unsign_file)
+        logger.debug("Sign file %s not exist", unsign_file)
         return 1
 
     real_file = unsign_file
