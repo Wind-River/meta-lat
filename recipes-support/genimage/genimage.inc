@@ -309,11 +309,13 @@ SUPPORTED_PKGTYPES ?= " \
 "
 
 PACKAGE_FEED_URIS ??= ""
+RPM_PACKAGE_FEED_URIS ??= "${PACKAGE_FEED_URIS}"
+DEB_PACKAGE_FEED_URIS ??= "${PACKAGE_FEED_URIS}"
+
 PACKAGE_FEED_BASE_PATHS ??= ""
-RPM_PACKAGE_FEED_URIS ??= ""
-DEB_PACKAGE_FEED_URIS ??= ""
-RPM_PACKAGE_FEED_BASE_PATHS ??= ""
-DEB_PACKAGE_FEED_BASE_PATHS ??= ""
+RPM_PACKAGE_FEED_BASE_PATHS ??= "${PACKAGE_FEED_BASE_PATHS}"
+DEB_PACKAGE_FEED_BASE_PATHS ??= "${PACKAGE_FEED_BASE_PATHS}"
+
 RPM_PACKAGE_FEED_ARCHS ??= ""
 DEB_PACKAGE_FEED_ARCHS ??= ""
 DEFAULT_RPM_PACKAGE_FEED ??= ""
@@ -346,23 +348,13 @@ python __anonymous () {
             d.appendVar("SUPPORTED_PKGTYPES", " external-debian")
             d.appendVar("DEFAULT_EXTERNAL_DEB_PACKAGE_FEED", d.expand("deb [trusted=yes] ${DEBIAN_CUSTOMIZE_FEED_URI} ./"))
 
-    # If PACKAGE_FEED_URIS is available, use it as default rpm and deb feed uris
-    if d.getVar('PACKAGE_FEED_URIS'):
-        if not d.getVar('DEB_PACKAGE_FEED_URIS'):
-            d.setVar('DEB_PACKAGE_FEED_URIS', d.getVar('PACKAGE_FEED_URIS'))
+    if not (d.getVar('RPM_PACKAGE_FEED_URIS') or d.getVar('DEB_PACKAGE_FEED_URIS')):
+        bb.warn('Both RPM_PACKAGE_FEED_URIS and DEB_PACKAGE_FEED_URIS are NULL, please set valid URIs for them via PACKAGE_FEED_URIS.')
 
-        if not d.getVar('RPM_PACKAGE_FEED_URIS'):
-            d.setVar('RPM_PACKAGE_FEED_URIS', d.getVar('PACKAGE_FEED_URIS'))
-
-    # If PACKAGE_FEED_BASE_PATHS is available, use it for rpm only
-    if d.getVar('PACKAGE_FEED_BASE_PATHS'):
-        if not d.getVar('RPM_PACKAGE_FEED_BASE_PATHS'):
-            d.setVar('RPM_PACKAGE_FEED_BASE_PATHS', d.getVar('PACKAGE_FEED_BASE_PATHS'))
-    else:
-        if not d.getVar('DEB_PACKAGE_FEED_BASE_PATHS'):
-            d.setVar('DEB_PACKAGE_FEED_BASE_PATHS', 'deb')
-        if not d.getVar('RPM_PACKAGE_FEED_BASE_PATHS'):
-            d.setVar('RPM_PACKAGE_FEED_BASE_PATHS', 'rpm')
+    if not d.getVar('DEB_PACKAGE_FEED_BASE_PATHS'):
+        d.setVar('DEB_PACKAGE_FEED_BASE_PATHS', 'deb')
+    if not d.getVar('RPM_PACKAGE_FEED_BASE_PATHS'):
+        d.setVar('RPM_PACKAGE_FEED_BASE_PATHS', 'rpm')
 
     rpm_uris = d.getVar('RPM_PACKAGE_FEED_URIS') or ""
     rpm_base_paths = d.getVar('RPM_PACKAGE_FEED_BASE_PATHS') or ""
