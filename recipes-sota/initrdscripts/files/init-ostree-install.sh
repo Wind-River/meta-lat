@@ -1768,14 +1768,14 @@ fi
 if [ -d /sys/firmware/efi/efivars ] ;then
     if which efibootmgr >/dev/null 2>&1; then
         mount -t efivarfs efivarfs /sys/firmware/efi/efivars
-        for oldboonum in `efibootmgr | grep "^Boot.*\* ${INSTBR}$" |sed "s/Boot\(.*\)\* ${INSTBR}/\1/g"`; do
+        for oldboonum in `efibootmgr | grep "^Boot.*\* ${INSTBR}" |sed "s/Boot\(.*\)\* ${INSTBR}.*/\1/g"`; do
             efibootmgr -b ${oldboonum} -B
-        if [ "$EFIBOOT_FIRST" = "1" ]; then
-            efibootmgr -b 0 -B >/dev/null 2>&1 || true
-            efibootmgr -o 0 -b 0 -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
-        else
-            efibootmgr -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
-        fi
+            if [ "$EFIBOOT_FIRST" = "1" ]; then
+                efibootmgr -b 0 -B >/dev/null 2>&1 || true
+                efibootmgr -o 0 -b 0 -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
+            else
+                efibootmgr -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
+            fi
         done
         efibootmgr -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
         umount /sys/firmware/efi/efivars
