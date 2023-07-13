@@ -341,15 +341,19 @@ FIT_LX_FDT ?= ""
 FIT_LX_FDT:aptiv_cvc_sousa = "${@os.path.basename(d.getVar('DTB_FILES', False))}"
 FIT_LX_FDT:aptiv-cvc-fl = "${@os.path.basename(d.getVar('DTB_FILES', False).split()[0])}"
 
+do_configure[prefuncs] += "check_package_feed_uris"
+
+python check_package_feed_uris() {
+    if not (d.getVar('RPM_PACKAGE_FEED_URIS') or d.getVar('DEB_PACKAGE_FEED_URIS')):
+        bb.warn('Both RPM_PACKAGE_FEED_URIS and DEB_PACKAGE_FEED_URIS are NULL, please set valid URIs for them via PACKAGE_FEED_URIS.')
+}
+
 python __anonymous () {
     machine = d.getVar('MACHINE')
     if machine == 'intel-x86-64':
         if d.getVar('DEBIAN_CUSTOMIZE_FEED_URI') != 'not_set':
             d.appendVar("SUPPORTED_PKGTYPES", " external-debian")
             d.appendVar("DEFAULT_EXTERNAL_DEB_PACKAGE_FEED", d.expand("deb [trusted=yes] ${DEBIAN_CUSTOMIZE_FEED_URI} ./"))
-
-    if not (d.getVar('RPM_PACKAGE_FEED_URIS') or d.getVar('DEB_PACKAGE_FEED_URIS')):
-        bb.warn('Both RPM_PACKAGE_FEED_URIS and DEB_PACKAGE_FEED_URIS are NULL, please set valid URIs for them via PACKAGE_FEED_URIS.')
 
     if not d.getVar('DEB_PACKAGE_FEED_BASE_PATHS'):
         d.setVar('DEB_PACKAGE_FEED_BASE_PATHS', 'deb')
