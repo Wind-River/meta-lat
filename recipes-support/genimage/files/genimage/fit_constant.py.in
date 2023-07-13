@@ -56,8 +56,8 @@ DEFAULT_FIT_CONFIG = '''\
               arch = "arm64";
               os = "linux";
               compression = "none";
-              load = <0xb8000000>;
-              entry = <0xb8000000>;
+              load = <${UBOOT_RAMDISK_LOADADDRESS}>;
+              entry = <${UBOOT_RAMDISK_LOADADDRESS}>;
               hash {
                   algo = "sha1";
               };
@@ -182,3 +182,4 @@ IMAGE_BOOT_FILES = "${IMAGE_BOOT_FILES_LATFIT}"
 UBOOT_ENTRYPOINT = "${UBOOT_ENTRYPOINT}"
 UBOOT_LOADADDRESS = "${UBOOT_LOADADDRESS}"
 UBOOT_DTB_LOADADDRESS = "${UBOOT_DTB_LOADADDRESS}"
+UBOOT_RAMDISK_LOADADDRESS = "${UBOOT_RAMDISK_LOADADDRESS}"
