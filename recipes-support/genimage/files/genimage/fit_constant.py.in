@@ -49,6 +49,19 @@ DEFAULT_FIT_CONFIG = '''\
                  algo = "sha1";
               };
           };
+          lx-initrd {
+              description = "Ostree initrd";
+              data = /incbin/("@lx-initrd@");
+              type = "ramdisk";
+              arch = "arm64";
+              os = "linux";
+              compression = "none";
+              load = <0xb8000000>;
+              entry = <0xb8000000>;
+              hash {
+                  algo = "sha1";
+              };
+          };
       };
 
       configurations {
@@ -57,6 +70,7 @@ DEFAULT_FIT_CONFIG = '''\
               description = "Linux";
               kernel = "lx-kernel";
               fdt = "lx-fdtb";
+              ramdisk = "lx-initrd";
               hash-1 {
                   algo = "sha1";
               };
@@ -65,6 +79,7 @@ DEFAULT_FIT_CONFIG = '''\
               description = "Linux";
               kernel = "lx-kernel";
               fdt = "lx-fdtb";
+              ramdisk = "lx-initrd";
               hash-1 {
                   algo = "sha1";
               };
@@ -90,7 +105,8 @@ DEFAULT_BOOT_ATF = "${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/atf-@PLATFORM@.s32".repla
 DEFAULT_BOOT_SCR = '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/boot.scr'
 DEFAULT_BOOT_SCR_PRE = 'setenv load_fitimage_addr 0xE0000000; setenv lat_fit 1;'
 DEFAULT_FIT_INPUTS = {
-  'lx-kernel': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/Image-initramfs-${MACHINE}.bin',
+  'lx-kernel': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/Image-${MACHINE}.bin',
+  'lx-initrd': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/${OSTREE_INITRAMFS_IMAGE}-${MACHINE}.cpio.gz',
   'lx-fdtb': '${DEPLOY_URIS}${DEPLOY_BASE_PATHS}/${FIT_LX_FDT}',
   'vx-kernel': None,
   'hvp': None,

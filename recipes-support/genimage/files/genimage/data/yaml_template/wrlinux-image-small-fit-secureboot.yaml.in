@@ -39,6 +39,25 @@ fit-config: |
                     key-name-hint = "${UBOOT_SIGN_IMG_KEYNAME}";
                 };
             };
+            lx-initrd {
+                description = "Ostree initrd";
+                data = /incbin/("@lx-initrd@");
+                type = "ramdisk";
+                arch = "arm64";
+                os = "linux";
+                compression = "none";
+                load = <0xb8000000>;
+                entry = <0xb8000000>;
+                hash-1 {
+                    algo = "sha256";
+                };
+                signature-1 {
+                    algo = "sha256,rsa2048";
+                    key-name-hint = "${VAULT_KEYNAME}";
+                    vault-transit-engine = "${VAULT_ENGINE}";
+                };
+
+            };
         };
 
         configurations {
@@ -47,6 +66,7 @@ fit-config: |
                 description = "Linux";
                 kernel = "lx-kernel";
                 fdt = "lx-fdtb";
+                ramdisk = "lx-initrd";
                 hash-1 {
                     algo = "sha256";
                 };
@@ -62,6 +82,7 @@ fit-config: |
                 description = "Linux";
                 kernel = "lx-kernel";
                 fdt = "lx-fdtb";
+                ramdisk = "lx-initrd";
                 hash-1 {
                     algo = "sha256";
                 };
