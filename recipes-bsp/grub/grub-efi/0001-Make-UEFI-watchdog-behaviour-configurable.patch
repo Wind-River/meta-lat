@@ -12,6 +12,8 @@ system.
 Create a command line interface to enable/disable watchdog:
 efi-watchdog (enable|disable) <code> <timeout>
 
+Upstream-Status: Inappropriate [WRLinux Specific]
+
 Signed-off-by: Jiang Lu <lu.jiang@windriver.com>
 
 Rebase for grub 2.06
