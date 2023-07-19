@@ -158,8 +158,11 @@ do_image_ostree() {
 	mkdir -p boot/loader.0
 	mkdir -p boot/loader.1
 	ln -sf boot/loader.0 boot/loader
-
-	checksum=$(cd ${DEPLOY_DIR_IMAGE}; cat ${OSTREE_MULTIPLE_KERNELS} ${OSTREE_KERNEL} ${DEFAULT_INITRD_NAME}-${MACHINE}${RAMDISK_EXT} | sha256sum | cut -f 1 -d " ")
+	if [ "${USE_FIT}" != "1" ]; then
+		checksum=$(cd ${DEPLOY_DIR_IMAGE}; cat ${OSTREE_MULTIPLE_KERNELS} ${OSTREE_KERNEL} ${DEFAULT_INITRD_NAME}-${MACHINE}${RAMDISK_EXT} | sha256sum | cut -f 1 -d " ")
+	else
+		checksum=$(cd ${DEPLOY_DIR_IMAGE}; cat ${OSTREE_KERNEL} | sha256sum | cut -f 1 -d " ")
+	fi
 
 	#deploy the device tree file
 	mkdir -p usr/lib/ostree-boot
