@@ -150,15 +150,6 @@ for fw in s32g_pfe_class.fw s32g_pfe_util.fw; do
         cp -f $IMAGE_ROOTFS/lib/firmware/$fw $DEPLOY_DIR_IMAGE/
     fi
 done
-
-if [ "@ota-manager@" = "fmu" ]; then
-    echo "LABEL=apps    /apps  auto   defaults 0 0" >> $IMAGE_ROOTFS/etc/fstab
-    if [ -d $IMAGE_ROOTFS/apps ]; then
-        cp $IMAGE_ROOTFS/apps -ar $WORKDIR/rootfs_ota_apps
-    else
-        mkdir -p $WORKDIR/rootfs_ota_apps
-    fi
-fi
 '''
 DEFAULT_VX_APP_SCRIPT = 'echo "run vx do_rootfs script in $IMAGE_ROOTFS"'
 
