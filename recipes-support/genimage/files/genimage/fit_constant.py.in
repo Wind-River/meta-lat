@@ -146,9 +146,11 @@ fi
 cp -f @lx-manifest@ $DEPLOY_DIR_IMAGE/
 
 for fw in s32g_pfe_class.fw s32g_pfe_util.fw; do
-    if [ -e $IMAGE_ROOTFS/lib/firmware/$fw ]; then
-        cp -f $IMAGE_ROOTFS/lib/firmware/$fw $DEPLOY_DIR_IMAGE/
+    if [ ! -e $IMAGE_ROOTFS/lib/firmware/$fw ]; then
+        echo "PFE firmware $IMAGE_ROOTFS/lib/firmware/$fw not exist"
+        exit 1
     fi
+    cp -f $IMAGE_ROOTFS/lib/firmware/$fw $DEPLOY_DIR_IMAGE/
 done
 '''
 DEFAULT_VX_APP_SCRIPT = 'echo "run vx do_rootfs script in $IMAGE_ROOTFS"'
