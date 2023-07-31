@@ -82,6 +82,7 @@ RDEPENDS:${PN}-init = " \
     util-linux-lsblk \
     util-linux-sfdisk \
     util-linux-blockdev \
+    util-linux-mount \
     e2fsprogs \
     e2fsprogs-resize2fs \
     e2fsprogs-mke2fs \
