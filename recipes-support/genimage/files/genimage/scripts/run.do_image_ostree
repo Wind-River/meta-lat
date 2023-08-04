@@ -158,8 +158,11 @@ do_image_ostree() {
 	mkdir -p boot/loader.0
 	mkdir -p boot/loader.1
 	ln -sf boot/loader.0 boot/loader
-
-	checksum=$(cd ${DEPLOY_DIR_IMAGE}; cat ${OSTREE_MULTIPLE_KERNELS} ${OSTREE_KERNEL} ${DEFAULT_INITRD_NAME}-${MACHINE}${RAMDISK_EXT} | sha256sum | cut -f 1 -d " ")
+	if [ "${USE_FIT}" != "1" ]; then
+		checksum=$(cd ${DEPLOY_DIR_IMAGE}; cat ${OSTREE_MULTIPLE_KERNELS} ${OSTREE_KERNEL} ${DEFAULT_INITRD_NAME}-${MACHINE}${RAMDISK_EXT} | sha256sum | cut -f 1 -d " ")
+	else
+		checksum=$(cd ${DEPLOY_DIR_IMAGE}; cat ${OSTREE_KERNEL} | sha256sum | cut -f 1 -d " ")
+	fi
 
 	#deploy the device tree file
 	mkdir -p usr/lib/ostree-boot
@@ -386,15 +389,17 @@ selinux_set_labels() {
     touch ${OSTREE_ROOTFS}/usr//etc/selinux/fixfiles_exclude_dirs
     echo "/ostree" >> ${OSTREE_ROOTFS}/usr//etc/selinux/fixfiles_exclude_dirs
     echo "/sysroot" >> ${OSTREE_ROOTFS}/usr//etc/selinux/fixfiles_exclude_dirs
-    mv ${OSTREE_ROOTFS}/.autorelabel ${OSTREE_ROOTFS}/usr//etc
-    sed -i '\/bin\/rm/a \\t/usr/sbin/setfiles -F -q  /etc/selinux/wr-mls/contexts/files/file_contexts /etc' ${OSTREE_ROOTFS}/usr/bin/selinux-autorelabel.sh
-    sed -i "s/.autorelabel/etc\/.autorelabel/g" ${OSTREE_ROOTFS}/usr/bin/selinux-autorelabel.sh
+    if [ -f ${OSTREE_ROOTFS}/.autorelabel ]; then
+        mv ${OSTREE_ROOTFS}/.autorelabel ${OSTREE_ROOTFS}/usr//etc
+    fi
 
     POL_TYPE=$(sed -n -e "s&^SELINUXTYPE[[:space:]]*=[[:space:]]*\([0-9A-Za-z_]\+\)&\1&p" ${OSTREE_ROOTFS}/usr//etc/selinux/config)
+    sed -i "\/bin\/rm/a \\\t/usr/sbin/setfiles -F -q /etc/selinux/${POL_TYPE}/contexts/files/file_contexts /etc" ${OSTREE_ROOTFS}/usr/bin/selinux-autorelabel.sh
+    sed -i "s/.autorelabel/etc\/.autorelabel/g" ${OSTREE_ROOTFS}/usr/bin/selinux-autorelabel.sh
+
     if ! setfiles -m -r ${OSTREE_ROOTFS} ${OSTREE_ROOTFS}/usr//etc/selinux/${POL_TYPE}/contexts/files/file_contexts ${OSTREE_ROOTFS}
     then
         bbfatal "selinux_set_labels error."
-        exit 0
     fi
 }
 

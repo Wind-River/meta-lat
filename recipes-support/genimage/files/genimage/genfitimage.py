@@ -335,6 +335,7 @@ class GenFitImage(GenXXX):
     def do_prepare(self):
         super(GenFitImage, self).do_prepare()
         self.workdir = os.path.realpath(os.path.join(self.args.workdir, "workdir", self.image_name))
+        utils.mkdirhier(self.workdir)
         self.target_lxrootfs = os.path.join(self.workdir, 'rootfs')
 
         gpg_data = self.data["gpg"]

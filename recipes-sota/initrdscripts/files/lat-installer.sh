@@ -17,6 +17,7 @@
 #* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #* 
 #*/
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 source /lat-installer.hook
 
 lat_tmp="/tmp/lat"

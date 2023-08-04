@@ -14,7 +14,7 @@ EFI_BOOT_PATH = "/boot/efi/EFI/BOOT"
 
 GRUB_BUILDIN += "tftp efinet reboot"
 GRUB_BUILDIN += "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'chain regexp efivar', '', d)}"
-GRUB_BUILDIN += "${@bb.utils.contains('DISTRO_FEATURES', 'luks', 'gcry_rijndael cryptodisk luks eval', '', d)}"
+GRUB_BUILDIN += "${@bb.utils.contains('DISTRO_FEATURES', 'luks', 'gcry_rijndael cryptodisk luks eval gcry_sha256 tpm', '', d)}"
 
 do_compile:append:class-native() {
         make grub-editenv

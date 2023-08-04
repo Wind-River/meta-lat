@@ -38,7 +38,7 @@ ALLOW_RM_VAR=1
 DEVMD=1
 # The timeout (tenth of a second) for rootfs on low speed device
 MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE=60
-datapart=""
+export datapart=""
 
 # Copied from initramfs-framework. The core of this script probably should be
 # turned into initramfs-framework modules to reduce duplication.
@@ -129,6 +129,7 @@ expand_fluxdata() {
 	part_end=`fdisk -l /dev/$datadev | grep ^${datapart} | awk '{print $3}'`
 	disk_end=$(expr $disk_sect - 1026)
 	if [ $part_end -ge $disk_end ]; then
+		datapart=""
 		echo "No fluxdata expansion." && return 0
 	fi
 
@@ -136,6 +137,7 @@ expand_fluxdata() {
 	nextpart=$(echo ${datapart} | sed 's/\(.*\)\(.\)$/\1/')${nextpartnum}
 	blkid ${nextpart} >/dev/null 2>&1
 	if [ $? -eq 0 ]; then
+		datapart=""
 		echo "The fluxdata ${datapart} is not last partitioin, no expansion." && return 0
 	fi
 
@@ -394,6 +396,10 @@ timeout=$(($MAX_TIMEOUT_FOR_WAITING_LOWSPEED_DEVICE * 10))
 do_echo=1
 while [ 1 ] ; do
 	mount "LABEL=${OSTREE_LABEL_FLUXDATA}" "${ROOT_MOUNT}/var" && break
+	if [ $? -eq 32 -a -n "${datapart}" ]; then
+		echo "Mount fluxdata device ${datapart} failed, try to repair"
+		e2fsck -y ${datapart}
+	fi
 	[ $do_echo = 1 ] && echo "Waiting for fluxdata device to be ready..." && do_echo=0
 	sleep 0.1
 	timeout=$(($timeout - 1))

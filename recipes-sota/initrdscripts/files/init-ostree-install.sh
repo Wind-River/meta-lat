@@ -506,7 +506,9 @@ do_dhcp() {
 			if [ "${DHCPARGS}" != "" ] ; then
 				/sbin/udhcpc -i ${DHCPARGS}
 			else
-				/sbin/udhcpc
+				while read nic; do
+					/sbin/udhcpc -i $nic -n
+				done <<< $(ls /sys/class/net |grep -v ^lo\$ |grep -v ^sit0 | grep -v can)
 			fi
 		else
 			dhcpcd ${DHCPARGS}
@@ -1688,6 +1690,18 @@ if [ "${LCURL}" != "" -a "${LCURL}" != "none" ] ; then
 	/lcurl ${LCURLARG}
 fi
 
+if [ -f ${PHYS_SYSROOT}/ostree/?/etc/selinux/config ]; then
+	if [ ! -f ${PHYS_SYSROOT}/ostree/?/etc/.autorelabel ]; then
+		relabeldira=$(ls ${PHYS_SYSROOT}/ostree/? -d | sed -n '1,1p')
+		echo "# first boot relabelling" > ${relabeldira}/etc/.autorelabel
+
+		if [ "$INSTAB" = 1 ] ; then
+			relabeldirb=$(ls ${PHYS_SYSROOT}_b/ostree/? -d | sed -n '1,1p')
+			echo "# first boot relabelling" > ${relabeldirb}/etc/.autorelabel
+		fi
+	fi
+fi
+
 # Modify fstab if not using fluxdata
 # Caution... If someone resets the /etc/fstab with OSTree this change is lost...
 mkdir /var1
@@ -1754,14 +1768,14 @@ fi
 if [ -d /sys/firmware/efi/efivars ] ;then
     if which efibootmgr >/dev/null 2>&1; then
         mount -t efivarfs efivarfs /sys/firmware/efi/efivars
-        for oldboonum in `efibootmgr | grep "^Boot.*\* ${INSTBR}$" |sed "s/Boot\(.*\)\* ${INSTBR}/\1/g"`; do
+        for oldboonum in `efibootmgr | grep "^Boot.*\* ${INSTBR}" |sed "s/Boot\(.*\)\* ${INSTBR}.*/\1/g"`; do
             efibootmgr -b ${oldboonum} -B
-        if [ "$EFIBOOT_FIRST" = "1" ]; then
-            efibootmgr -b 0 -B >/dev/null 2>&1 || true
-            efibootmgr -o 0 -b 0 -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
-        else
-            efibootmgr -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
-        fi
+            if [ "$EFIBOOT_FIRST" = "1" ]; then
+                efibootmgr -b 0 -B >/dev/null 2>&1 || true
+                efibootmgr -o 0 -b 0 -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
+            else
+                efibootmgr -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
+            fi
         done
         efibootmgr -c -w -L "${INSTBR}" -d "${INSTDEV}" -p "${p1}" -l '\EFI\BOOT\bootx64.efi'
         umount /sys/firmware/efi/efivars

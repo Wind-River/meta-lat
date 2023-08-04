@@ -41,6 +41,7 @@ from genimage.fit_constant import DEFAULT_PLATFORM
 from genimage.fit_constant import UBOOT_ENTRYPOINT
 from genimage.fit_constant import UBOOT_LOADADDRESS
 from genimage.fit_constant import UBOOT_DTB_LOADADDRESS
+from genimage.fit_constant import UBOOT_RAMDISK_LOADADDRESS
 
 logger = logging.getLogger('appsdk')
 
@@ -205,6 +206,7 @@ def _main_run_internal(args):
                utils.replace_str_in_file("@UBOOT_ENTRYPOINT@", UBOOT_ENTRYPOINT, hvp_yaml) and \
                utils.replace_str_in_file("@UBOOT_LOADADDRESS@", UBOOT_LOADADDRESS, hvp_yaml) and \
                utils.replace_str_in_file("@UBOOT_DTB_LOADADDRESS@", UBOOT_DTB_LOADADDRESS, hvp_yaml) and \
+               utils.replace_str_in_file("@UBOOT_RAMDISK_LOADADDRESS@", UBOOT_RAMDISK_LOADADDRESS, hvp_yaml) and \
                utils.replace_str_in_file("@PLATFORM@", DEFAULT_PLATFORM, hvp_yaml):
                 cmd = "genyaml -d -o {0} {1}".format(outdir, hvp_yaml)
                 utils.run_cmd_oneshot(cmd)

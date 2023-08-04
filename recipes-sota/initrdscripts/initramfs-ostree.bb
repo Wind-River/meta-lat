@@ -26,7 +26,7 @@ INITRAMFS_PKGS = "${@bb.utils.contains('INITRAMFS_FEATURES', 'busybox', "${PkgsB
 INITRAMFS_PKGS:append:x86-64 = " \
     grub \
     efibootmgr \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'luks', 'grub-efi-boot-key', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'luks ostree', 'grub-efi-boot-key', '', d)} \
 "
 
 RDEPENDS:${PN} = " \

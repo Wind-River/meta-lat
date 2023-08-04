@@ -5,7 +5,6 @@
 #
 machine: bcm-2xxx-rpi4
 packages:
-- crda
 - kernel-devicetree
 - kernel-image-image
 - kernel-module-bcm2835-gpiomem

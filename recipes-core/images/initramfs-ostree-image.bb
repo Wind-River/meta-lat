@@ -21,8 +21,7 @@ IMAGE_LINGUAS = ""
 
 LICENSE = "MIT"
 
-IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
-IMAGE_FSTYPES:append= " ${@oe.utils.conditional('OSTREE_USE_FIT', '1', 'cpio.gz', '', d)}"
+IMAGE_FSTYPES = "${INITRAMFS_FSTYPES} cpio.gz"
 
 # Stop any kind of circular dependency with the flux-ota class
 IMAGE_CLASSES:remove = "flux-ota"
@@ -40,10 +39,13 @@ IMAGE_ROOTFS_EXTRA_SPACE = "0"
 
 BAD_RECOMMENDATIONS += "busybox-syslog"
 
+OSTREE_INITRAMFS_INSTALL ??= ""
 PACKAGE_INSTALL:append = " \
 	${@bb.utils.contains('DISTRO_FEATURES', 'luks', 'packagegroup-luks-initramfs', '', d)} \
 	${@bb.utils.contains('DISTRO_FEATURES', 'ima', 'packagegroup-ima-initramfs', '', d)} \
+	${OSTREE_INITRAMFS_INSTALL} \
 "
+
 ROOTFS_POSTPROCESS_COMMAND += "ostree_check_rpm_public_key;add_gpg_key;remove_boot_dir;"
 
 remove_boot_dir() {
