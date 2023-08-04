@@ -37,6 +37,8 @@ INITRAMFS_MAXSIZE ?= "262144"
 # globally.  Since this is a initramfs, we don't want to make it bigger
 IMAGE_ROOTFS_EXTRA_SPACE = "0"
 
+IMAGE_NAME_SUFFIX ?= ""
+
 BAD_RECOMMENDATIONS += "busybox-syslog"
 
 OSTREE_INITRAMFS_INSTALL ??= ""
