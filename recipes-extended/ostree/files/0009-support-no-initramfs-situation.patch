@@ -1,0 +1,30 @@
+From 1cbd47db5c504fe41f4eba7edb0b9aba58036221 Mon Sep 17 00:00:00 2001
+From: Hongxu Jia <hongxu.jia@windriver.com>
+Date: Fri, 11 Aug 2023 15:40:09 +0800
+Subject: [PATCH] support no initramfs situation
+
+While running ostree without initramfs, it runs init program /init-ostree-pre.sh
+
+Upstream-Status: Inappropriate [wrlinux specific]
+
+Signed-off-by: Hongxu Jia <hongxu.jia@windriver.com>
+---
+ src/switchroot/ostree-prepare-root.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/switchroot/ostree-prepare-root.c b/src/switchroot/ostree-prepare-root.c
+index 5ccacf6..667d0a6 100644
+--- a/src/switchroot/ostree-prepare-root.c
++++ b/src/switchroot/ostree-prepare-root.c
+@@ -433,7 +433,7 @@ main(int argc, char *argv[])
+ 
+   if (running_as_pid1)
+     {
+-      execl ("/sbin/init", "/sbin/init", NULL);
++      execl ("/init-ostree-pre.sh", "/init-ostree-pre.sh", deploy_path, NULL);
+       err (EXIT_FAILURE, "failed to exec init inside ostree");
+     }
+   else
+-- 
+2.27.0
+
