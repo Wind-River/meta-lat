@@ -12,6 +12,10 @@ SRC_URI += "\
 "
 FILESEXTRAPATHS:prepend := "${THISDIR}:${THISDIR}/files:"
 
+RDEPENDS:${PN} += " \
+    util-linux-findmnt \
+"
+
 do_install:append() {
 	install -d ${D}${sbindir}
 	install -m 0755 ${WORKDIR}/clearbootflag_${ARCH_WATCHDOG_SETTING}.sh ${D}${sbindir}/clearbootflag.sh

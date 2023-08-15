@@ -27,7 +27,7 @@ read_args() {
 }
 read_args
 
-partbase=$(cat /proc/mounts |grep "sysroot " | awk '{print $1}')
+partbase=$(findmnt /sysroot/ -n -o SOURCE)
 ### ASSUME sysroot is on a partitio <= 9 ###
 if [ "$(echo "${partbase}" | sed  's#/dev/mmcblk##g')" != "${partbase}" ] ; then
 	dev=$(echo "${partbase}" | sed 's#.\{2\}$##g')
