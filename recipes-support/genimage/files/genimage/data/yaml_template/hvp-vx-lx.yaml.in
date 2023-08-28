@@ -63,6 +63,21 @@ fit-config: |
                     algo = "sha1";
                 };
             };
+
+            lx_initrd {
+                description = "Ostree initrd";
+                data = /incbin/("@lx-initrd@");
+                type = "ramdisk";
+                arch = "arm64";
+                os = "linux";
+                compression = "none";
+                load = <0xa2081000>;
+                entry = <0xa2081000>;
+                hash {
+                    algo = "sha1";
+                };
+            };
+
         };
 
         configurations {
@@ -70,7 +85,7 @@ fit-config: |
             wrhv {
                 description = "Boot Hypervisor";
                 kernel = "hvp_kernel";
-                loadables = "vx_kernel", "lx_kernel";
+                loadables = "vx_kernel", "lx_kernel", "lx_initrd";
                 hash-1 {
                     algo = "sha1";
                 };
@@ -78,7 +93,7 @@ fit-config: |
             wrhv_b {
                 description = "Boot Hypervisor for B";
                 kernel = "hvp_kernel_b";
-                loadables = "vx_kernel", "lx_kernel";
+                loadables = "vx_kernel", "lx_kernel", "lx_initrd";
                 hash-1 {
                     algo = "sha1";
                 };
@@ -86,7 +101,8 @@ fit-config: |
         };
     };
 fit-input-files:
-  lx-kernel: @DEFAULT_DEPLOY@/Image-initramfs-@MACHINE@.bin
+  lx-kernel: @DEFAULT_DEPLOY@/Image-@MACHINE@.bin
+  lx-initrd: @DEFAULT_DEPLOY@/initramfs-ostree-image-@MACHINE@.cpio.gz
   vx-kernel: $VXWORKS_URL/vxWorks.bin
   hvp: $HVP_URL/hypervisor-main.bin
   hvp-b: $HVP_URL/hypervisor-rollback.bin
