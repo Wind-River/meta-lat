@@ -304,7 +304,8 @@ class GenFitImage(GenXXX):
             src = os.path.expandvars(src)
             # src is url or path, fetch it
             if src.startswith("http") or os.path.exists(src) or src.startswith("mc cp"):
-                dst = os.path.join(self.deploydir, 'downloads', os.path.basename(src))
+                utils.mkdirhier(os.path.join(self.deploydir, 'downloads', key))
+                dst = os.path.join(self.deploydir, 'downloads', key, os.path.basename(src))
                 fetch_node = {'src': src, 'dst': dst}
                 install_files([fetch_node], self.deploydir)
                 self.fit_inputs[key] = dst
