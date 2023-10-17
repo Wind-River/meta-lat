@@ -4,7 +4,8 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-ExecStart=/usr/bin/docker start -a %i
+Type=forking
+ExecStart=/usr/bin/docker start %i
 ExecStop=/usr/bin/docker stop -t 5 %i
 
 [Install]
