@@ -1,12 +1,15 @@
 [Unit]
 Description=Run docker container %I
-Requires=docker.service
-After=docker.service
+Wants=docker.service podman.service
+After=docker.service podman.service
 
 [Service]
 Type=forking
+ExecStartPre=/bin/bash -c 'mkdir -p /tmp/start-container; while [ $(ls /tmp/start-container | wc -l) -ge 3 ]; do sleep 1; done; touch /tmp/start-container/%i'
 ExecStart=/usr/bin/docker start %i
-ExecStop=/usr/bin/docker stop -t 5 %i
+ExecStartPost=rm /tmp/start-container/%i
+ExecStop=/bin/bash -c 'mkdir -p /tmp/start-container; while [ $(ls /tmp/start-container | wc -l) -ge 3 ]; do sleep 1; done; touch /tmp/start-container/%i; /usr/bin/docker stop -t 5 %i'
+ExecStopPost=rm /tmp/start-container/%i
 
 [Install]
 WantedBy=multi-user.target
