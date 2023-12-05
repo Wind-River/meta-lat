@@ -862,7 +862,6 @@ class GenExtDebImage(GenImage):
         if self.data.get('multiple-kernels'):
             for ks in self.data.get('multiple-kernels').split():
                 kernels.extend(glob.glob(ks, root_dir=os.path.join(rootfs.target_rootfs, "boot/")))
-            kernels = set(kernels)
             os.environ['OSTREE_MULTIPLE_KERNELS'] = ' '.join(kernels) if kernels else ''
         logger.debug("kernels %s", kernels)
 
